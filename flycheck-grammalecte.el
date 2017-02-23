@@ -9,10 +9,10 @@
 
 ;;; Commentary:
 
-;; This package adds support for grammalecte to flycheck. To use it, add
-;; to your init.el:
+;; This package adds support for grammalecte to flycheck.
 
-;; (require 'flycheck-grammalecte)
+;; It requires the python modules flycheck-grammalecte.py and
+;; grammalecte to be in the same folder than this script.
 
 ;;; License:
 
@@ -37,9 +37,13 @@
 ;;; Code:
 (require 'flycheck)
 
+; Get the location of the script or the current directory if the script is being evaluated in a buffer.
+(defconst grammalecte-directory (if load-file-name (file-name-directory load-file-name) default-directory))
+
+
 (flycheck-define-checker francais-grammalecte
   "Grammalecte syntax checker for french language `http://www.dicollecte.org/grammalecte/'."
-  :command ("/home/guilhem/tools/flycheck-grammalecte/flycheck-grammalecte.py")
+  :command ("python3" (eval (expand-file-name "./flycheck-grammalecte.py" grammalecte-directory)))
   :standard-input t
   :error-patterns
   ((warning line-start "grammaire|" line "|" column "|" (message) line-end)

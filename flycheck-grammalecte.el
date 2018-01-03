@@ -48,7 +48,7 @@
   :error-patterns
   ((warning line-start "grammaire|" line "|" column "|" (message) line-end)
    (info line-start "orthographe|" line "|" column "|" (message) line-end))
-  :modes (org-mode))
+  :modes (org-mode text-mode mail-mode))
 
 (add-to-list 'flycheck-checkers 'francais-grammalecte)
 

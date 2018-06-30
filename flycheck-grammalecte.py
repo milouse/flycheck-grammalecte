@@ -18,8 +18,9 @@ import grammalecte.fr as gce
 import grammalecte.text as txt
 import grammalecte.tokenizer as tkz
 
+
 def main():
-    '''Read the file and run grammalecte on it'''
+    """Read the file and run grammalecte on it"""
     # Load grammalecte.
     gce.load()
     dictionary = gce.getDictionary()
@@ -35,7 +36,8 @@ def main():
     # Spelling errors
     spell_err = []
     for token in tokenizer.genTokens(text):
-        if token['sType'] == "WORD" and not dictionary.isValidToken(token['sValue']):
+        if token["sType"] == "WORD" and \
+           not dictionary.isValidToken(token["sValue"]):
             spell_err.append(token)
 
     # Get colums and lines.
@@ -43,11 +45,12 @@ def main():
 
     # Output
     for i in list(gramm_err):
-        print('grammaire|{}|{}|{}\n'.format(i['nStartY']+1, i['nStartX']+1,
-                                            i['sMessage']))
+        print("grammaire|{}|{}|{}\n".format(i["nStartY"]+1, i["nStartX"]+1,
+                                            i["sMessage"]))
     for i in list(spell_err):
-        print('orthographe|{}|{}|{}\n'.format(i['nStartY']+1, i['nStartX']+1,
-                                              'Mot absent du dictionnaire'))
+        print("orthographe|{}|{}|{}\n".format(i["nStartY"]+1, i["nStartX"]+1,
+                                              "Mot absent du dictionnaire"))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

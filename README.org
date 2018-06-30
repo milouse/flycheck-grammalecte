@@ -1,0 +1,39 @@
+#+title: Flycheck-grammalecte
+
+Simple wrapper for the french language checking
+tool [[http://www.dicollecte.org/][Grammalecte]] and the [[http://www.flycheck.org/][flycheck]] emacs package.
+
+[[./demo.gif]]
+
+*This package is currently a quick hack-around. No particular care has
+been taken to streamline the installation process. Feel free to
+contribute*
+
+* Installation
+
+You need to have the grammalecte python module available for
+=flycheck-grammalecte.py=.
+
+Quick and dirty solution:
+
+#+begin_src
+cd flycheck-grammalecte/
+mkdir tmp
+cd tmp
+wget http://www.dicollecte.org/grammalecte/zip/Grammalecte-fr-v0.6.4.zip
+unzip Grammalecte-fr-v0.6.4.zip
+mv grammalecte ../
+cd ..
+rm -rf tmp
+#+end_src
+
+Then you need to evaluate =flycheck-grammalecte.el=, for instance add
+this to your =.emacs.d/init.el= file:
+
+#+begin_src emacs-lisp
+(load-file "<PATH>/flycheck-grammalecte/flycheck-grammalecte.el")
+#+end_src
+
+* Usage
+
+In a org-buffer, type =M-x flycheck-mode=.

@@ -1,4 +1,4 @@
-;;; flycheck-pyflakes.el --- Support grammalecte in flycheck
+;;; flycheck-grammalecte.el --- Support grammalecte in flycheck
 
 ;; Copyright (C) 2017 Guilhem Doulcier <guilhem.doulcier@espci.fr>
 ;;

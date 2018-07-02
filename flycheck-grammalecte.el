@@ -37,13 +37,34 @@
 ;;; Code:
 (require 'flycheck)
 
-; Get the location of the script or the current directory if the script is being evaluated in a buffer.
-(defconst grammalecte-directory (if load-file-name (file-name-directory load-file-name) default-directory))
+;;;; Configuration options:
 
+(defgroup flycheck-grammalecte nil
+  "Flycheck Grammalecte options"
+  :group 'flycheck-options
+  :group 'i18n)
+
+(defcustom flycheck-grammalecte-directory
+  (if load-file-name (file-name-directory load-file-name) default-directory)
+  "Location of the flycheck-grammalecte package.
+
+This variable must point to the directory where the emacs-lisp and
+python files named `flycheck-grammalecte.el' and
+`flycheck-grammalecte.el' are kept. The default value is automatically
+computed from the included file."
+  :type 'string
+  :group 'flycheck-grammalecte)
+
+
+;;;; Flycheck methods:
 
 (flycheck-define-checker francais-grammalecte
   "Grammalecte syntax checker for french language `http://www.dicollecte.org/grammalecte/'."
-  :command ("python3" (eval (expand-file-name "./flycheck-grammalecte.py" grammalecte-directory)))
+  :command ("python3"
+            (eval
+             (expand-file-name
+              "./flycheck-grammalecte.py"
+              flycheck-grammalecte-directory)))
   :standard-input t
   :error-patterns
   ((warning line-start "grammaire|" line "|" column "|" (message) line-end)

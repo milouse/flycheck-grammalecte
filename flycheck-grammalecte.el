@@ -69,6 +69,20 @@ Default is `t'."
   :type 'boolean
   :group 'flycheck-grammalecte)
 
+(defcustom flycheck-grammalecte-report-apos t
+  "Report apostrophe errors if non `nil'.
+
+Default is `t'."
+  :type 'boolean
+  :group 'flycheck-grammalecte)
+
+(defcustom flycheck-grammalecte-report-nbsp t
+  "Report non-breakable spaces errors if non `nil'.
+
+Default is `t'."
+  :type 'boolean
+  :group 'flycheck-grammalecte)
+
 
 ;;;; Flycheck methods:
 
@@ -81,6 +95,8 @@ Default is `t'."
               flycheck-grammalecte-directory))
             (eval (unless flycheck-grammalecte-report-spellcheck "-S"))
             (eval (unless flycheck-grammalecte-report-grammar "-G"))
+            (eval (unless flycheck-grammalecte-report-apos "-A"))
+            (eval (unless flycheck-grammalecte-report-nbsp "-N"))
             source)
   :error-patterns
   ((warning line-start "grammaire|" line "|" column "|" (message) line-end)

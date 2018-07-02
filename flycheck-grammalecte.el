@@ -55,6 +55,20 @@ computed from the included file."
   :type 'string
   :group 'flycheck-grammalecte)
 
+(defcustom flycheck-grammalecte-report-spellcheck t
+  "Report spellcheck errors if non `nil'.
+
+Default is `t'."
+  :type 'boolean
+  :group 'flycheck-grammalecte)
+
+(defcustom flycheck-grammalecte-report-grammar t
+  "Report grammar errors if non `nil'.
+
+Default is `t'."
+  :type 'boolean
+  :group 'flycheck-grammalecte)
+
 
 ;;;; Flycheck methods:
 
@@ -64,8 +78,10 @@ computed from the included file."
             (eval
              (expand-file-name
               "./flycheck-grammalecte.py"
-              flycheck-grammalecte-directory)))
-  :standard-input t
+              flycheck-grammalecte-directory))
+            (eval (unless flycheck-grammalecte-report-spellcheck "-S"))
+            (eval (unless flycheck-grammalecte-report-grammar "-G"))
+            source)
   :error-patterns
   ((warning line-start "grammaire|" line "|" column "|" (message) line-end)
    (info line-start "orthographe|" line "|" column "|" (message) line-end))

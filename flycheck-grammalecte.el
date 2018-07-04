@@ -1,18 +1,20 @@
 ;;; flycheck-grammalecte.el --- Support grammalecte in flycheck
 
-;; Copyright (C) 2017 Guilhem Doulcier <guilhem.doulcier@espci.fr>
-;;
+;; Copyright (C) 2018 Étienne Deparis
+;; Copyright (C) 2017 Guilhem Doulcier
+
+;; Maintener: Étienne Deparis <etienne@depar.is>
 ;; Author: Guilhem Doulcier <guilhem.doulcier@espci.fr>
+;;   Étienne Deparis <etienne@depar.is>
 ;; Created: 21 February 2017
 ;; Version: 0.1
 ;; Package-Requires: ((flycheck "0.18"))
+;; Keywords: grammar check, flycheck, spellcheck, grammalecte
+;; Homepage: https://git.deparis.io/flycheck-grammalecte/
 
 ;;; Commentary:
 
-;; This package adds support for grammalecte to flycheck.
-
-;; It requires the python modules flycheck-grammalecte.py and
-;; grammalecte to be in the same folder than this script.
+;; This package adds support for Grammalecte to flycheck.
 
 ;;; License:
 

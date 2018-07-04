@@ -5,10 +5,6 @@ tool [[http://www.dicollecte.org/][Grammalecte]] and the [[http://www.flycheck.o
 
 [[./demo.gif]]
 
-*This package is currently a quick hack-around. No particular care has
-been taken to streamline the installation process. Feel free to
-contribute*
-
 * Installation
 
 You need to have the grammalecte python module available for

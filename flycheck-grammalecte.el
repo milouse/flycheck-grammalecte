@@ -85,25 +85,40 @@ Default is `t'."
   :type 'boolean
   :group 'flycheck-grammalecte)
 
+(defcustom flycheck-grammalecte-enabled-modes
+  '(org-mode text-mode mail-mode latex-mode)
+  "Major modes for which `flycheck-grammalecte' should be enabled.
+
+Default modes are `org-mode', `text-mode', `mail-mode' and
+`latex-mode'."
+  :type '(repeat (symbol :tag "Mode"))
+  :group 'flycheck-grammalecte)
+
 
 ;;;; Flycheck methods:
 
-(flycheck-define-checker francais-grammalecte
-  "Grammalecte syntax checker for french language `http://www.dicollecte.org/grammalecte/'."
-  :command ("python3"
-            (eval
-             (expand-file-name
-              "./flycheck-grammalecte.py"
-              flycheck-grammalecte-directory))
-            (eval (unless flycheck-grammalecte-report-spellcheck "-S"))
-            (eval (unless flycheck-grammalecte-report-grammar "-G"))
-            (eval (unless flycheck-grammalecte-report-apos "-A"))
-            (eval (unless flycheck-grammalecte-report-nbsp "-N"))
-            source)
+;; Maybe change it for the complete path to the python file?
+(flycheck-def-executable-var 'français-grammalecte "python3")
+
+;; We do not use the `flycheck-define-checker' helper because we use a
+;; quoted variable to store modes list
+(flycheck-define-command-checker 'francais-grammalecte
+  "Grammalecte syntax checker for french language
+`http://www.dicollecte.org/grammalecte/'."
+  :command '("python3"
+             (eval
+              (expand-file-name
+               "flycheck-grammalecte.py"
+               flycheck-grammalecte-directory))
+             (eval (unless flycheck-grammalecte-report-spellcheck "-S"))
+             (eval (unless flycheck-grammalecte-report-grammar "-G"))
+             (eval (unless flycheck-grammalecte-report-apos "-A"))
+             (eval (unless flycheck-grammalecte-report-nbsp "-N"))
+             source)
   :error-patterns
-  ((warning line-start "grammaire|" line "|" column "|" (message) line-end)
-   (info line-start "orthographe|" line "|" column "|" (message) line-end))
-  :modes (org-mode text-mode mail-mode latex-mode))
+  '((warning line-start "grammaire|" line "|" column "|" (message) line-end)
+    (info line-start "orthographe|" line "|" column "|" (message) line-end))
+  :modes flycheck-grammalecte-enabled-modes)
 
 (add-to-list 'flycheck-checkers 'francais-grammalecte)
 

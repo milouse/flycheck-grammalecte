@@ -9,7 +9,7 @@
 ;; Created: 21 February 2017
 ;; Version: 0.1
 ;; Package-Requires: ((flycheck "0.18"))
-;; Keywords: grammar check, flycheck, spellcheck, grammalecte
+;; Keywords: i18n, wp
 ;; Homepage: https://git.deparis.io/flycheck-grammalecte/
 
 ;;; Commentary:
@@ -52,36 +52,36 @@
 
 This variable must point to the directory where the emacs-lisp and
 python files named `flycheck-grammalecte.el' and
-`flycheck-grammalecte.el' are kept. The default value is automatically
-computed from the included file."
+`flycheck-grammalecte.el' are kept.
+The default value is automatically computed from the included file."
   :type 'string
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-report-spellcheck t
-  "Report spellcheck errors if non `nil'.
+  "Report spellcheck errors if non nil.
 
-Default is `t'."
+Default is t."
   :type 'boolean
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-report-grammar t
-  "Report grammar errors if non `nil'.
+  "Report grammar errors if non nil.
 
-Default is `t'."
+Default is t."
   :type 'boolean
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-report-apos t
-  "Report apostrophe errors if non `nil'.
+  "Report apostrophe errors if non nil.
 
-Default is `t'."
+Default is t."
   :type 'boolean
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-report-nbsp t
-  "Report non-breakable spaces errors if non `nil'.
+  "Report non-breakable spaces errors if non nil.
 
-Default is `t'."
+Default is t."
   :type 'boolean
   :group 'flycheck-grammalecte)
 
@@ -134,7 +134,7 @@ Default modes are `org-mode', `text-mode', `mail-mode' and
              fg-gm-target-folder)))
 
 (defun flycheck-grammalecte-download-grammalecte-if-needed ()
-  "Download grammalecte if not there"
+  "Download grammalecte if not there."
   (unless (file-exists-p
            (expand-file-name "grammalecte/grammar_checker.py"
                              flycheck-grammalecte-directory))

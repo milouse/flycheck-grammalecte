@@ -94,6 +94,59 @@ Default modes are `org-mode', `text-mode', `mail-mode' and
   :type '(repeat (symbol :tag "Mode"))
   :group 'flycheck-grammalecte)
 
+(defconst flycheck-grammalecte-grammalecte-version "0.6.4")
+
+
+;;; Helper methods:
+
+(defun flycheck-grammalecte-download-grammalecte ()
+  "Download and extract grammalecte python program."
+  (interactive)
+  (let* ((fg-gm-dist-name
+          (concat "Grammalecte-fr-v"
+                  flycheck-grammalecte-grammalecte-version))
+         (fg-gm-zip-name (concat fg-gm-dist-name ".zip"))
+         (fg-gm-dl-url
+          (concat
+           "http://www.dicollecte.org/grammalecte/zip/"
+           fg-gm-zip-name))
+         (fg-gm-local-file
+          (expand-file-name
+           fg-gm-dist-name flycheck-grammalecte-directory))
+         (fg-gm-local-zip-file
+          (expand-file-name
+           (concat fg-gm-dist-name ".zip")
+           flycheck-grammalecte-directory))
+         (fg-gm-source-folder
+          (expand-file-name "grammalecte" fg-gm-local-file))
+         (fg-gm-target-folder
+          (expand-file-name
+           "grammalecte" flycheck-grammalecte-directory)))
+    (unless (file-exists-p fg-gm-local-zip-file)
+      (url-copy-file fg-gm-dl-url fg-gm-local-zip-file))
+    (call-process "unzip" nil nil nil
+                  fg-gm-local-zip-file (concat "-d" fg-gm-local-file))
+    (when (file-exists-p fg-gm-source-folder)
+      (rename-file fg-gm-source-folder fg-gm-target-folder)
+      (delete-directory fg-gm-local-file t)
+      (delete-file fg-gm-local-zip-file))
+    (message "Grammalecte dowloaded and extracted in %s"
+             fg-gm-target-folder)))
+
+(defun flycheck-grammalecte-download-grammalecte-if-needed ()
+  "Download grammalecte if not there"
+  (unless (file-exists-p
+           (expand-file-name "grammalecte/grammar_checker.py"
+                             flycheck-grammalecte-directory))
+    (if (yes-or-no-p
+         "[flycheck-grammalecte] Grammalecte data not found. Download it NOW?")
+        (flycheck-grammalecte-download-grammalecte)
+      (display-warning "flycheck-grammalecte"
+                       "Grammalecte will fail if used.
+Please run the command `flycheck-grammalecte-download-grammalecte'
+as soon as possible."))))
+(add-hook 'after-init-hook
+          'flycheck-grammalecte-download-grammalecte-if-needed)
 
 ;;;; Flycheck methods:
 

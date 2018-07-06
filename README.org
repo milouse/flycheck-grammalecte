@@ -7,29 +7,58 @@ tool [[http://www.dicollecte.org/][Grammalecte]] and the [[http://www.flycheck.o
 
 * Installation
 
-You need to have the grammalecte python module available for
-=flycheck-grammalecte.py=.
+** Prerequisite
 
-Quick and dirty solution:
+This package has a strong dependency on =python3=. The installation of
+the right version of python is up to you.
 
-#+begin_src
-cd flycheck-grammalecte/
-mkdir tmp
-cd tmp
-wget http://www.dicollecte.org/grammalecte/zip/Grammalecte-fr-v0.6.4.zip
-unzip Grammalecte-fr-v0.6.4.zip
-mv grammalecte ../
-cd ..
-rm -rf tmp
-#+end_src
+** As a package
 
-Then you need to evaluate =flycheck-grammalecte.el=, for instance add
-this to your =.emacs.d/init.el= file:
+TBD
+
+** Manual
+
+In any case, you first need to clone this repository. We recommend you
+to put it somewhere under your =.emacs.d= folder.
 
 #+begin_src emacs-lisp
-(load-file "<PATH>/flycheck-grammalecte/flycheck-grammalecte.el")
+cd ~/.emacs.d
+git clone https://git.deparis.io/flycheck-grammalecte
 #+end_src
+
+On GNU/Linux and Mac OS, you can benefit of a =Makefile=, which will
+download for you the last version of Grammalecte and compile the Emacs
+Lisp package. For that to happen, go to the newly created
+=flycheck-grammalecte= folder and enter the =make= command.
+
+#+begin_src
+cd flycheck-grammalecte
+make
+#+end_src
+
+When it's done, you can add the following line in your emacs config
+file:
+
+#+begin_src emacs-lisp
+(load-file "~/.emacs.d/flycheck-grammalecte/flycheck-grammalecte.elc")
+#+end_src
+
+And everything should be fine.
+
+You may want to clean up a bit the Flycheck-grammalecte directory by
+entering the following command: =make clean=.
+
+If you cannot or don't want to use the =Makefile=, you can also just add
+the following line to your emacs config file (please note that in that
+case, we call the =.el= file as we have not byte-compiled it):
+
+#+begin_src emacs-lisp
+(load-file "~/.emacs.d/flycheck-grammalecte/flycheck-grammalecte.el")
+#+end_src
+
+Then restart Emacs. At the end of the Emacs initialization, you will be
+prompt to download and install Grammalecte.
 
 * Usage
 
-In a org-buffer, type =M-x flycheck-mode=.
+In an org-buffer, for example, type =M-x flycheck-mode=.

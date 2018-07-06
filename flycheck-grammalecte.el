@@ -7,7 +7,7 @@
 ;; Author: Guilhem Doulcier <guilhem.doulcier@espci.fr>
 ;;   Étienne Deparis <etienne@depar.is>
 ;; Created: 21 February 2017
-;; Version: 0.1
+;; Version: 0.2
 ;; Package-Requires: ((flycheck "0.18"))
 ;; Keywords: i18n, wp
 ;; Homepage: https://git.deparis.io/flycheck-grammalecte/

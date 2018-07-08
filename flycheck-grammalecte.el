@@ -8,7 +8,7 @@
 ;;   Étienne Deparis <etienne@depar.is>
 ;; Created: 21 February 2017
 ;; Version: 0.3
-;; Package-Requires: ((flycheck "0.18"))
+;; Package-Requires: ((flycheck "26"))
 ;; Keywords: i18n, wp
 ;; Homepage: https://git.deparis.io/flycheck-grammalecte/
 

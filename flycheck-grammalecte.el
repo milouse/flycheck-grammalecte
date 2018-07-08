@@ -46,17 +46,6 @@
   :group 'flycheck-options
   :group 'i18n)
 
-(defcustom flycheck-grammalecte-directory
-  (if load-file-name (file-name-directory load-file-name) default-directory)
-  "Location of the flycheck-grammalecte package.
-
-This variable must point to the directory where the emacs-lisp and
-python files named `flycheck-grammalecte.el' and
-`flycheck-grammalecte.el' are kept.
-The default value is automatically computed from the included file."
-  :type 'string
-  :group 'flycheck-grammalecte)
-
 (defcustom flycheck-grammalecte-report-spellcheck t
   "Report spellcheck errors if non nil.
 
@@ -93,6 +82,15 @@ Default modes are `org-mode', `text-mode', `mail-mode' and
 `latex-mode'."
   :type '(repeat (symbol :tag "Mode"))
   :group 'flycheck-grammalecte)
+
+(defvar flycheck-grammalecte-directory
+  (if load-file-name (file-name-directory load-file-name) default-directory)
+  "Location of the flycheck-grammalecte package.
+
+This variable must point to the directory where the emacs-lisp and
+python files named `flycheck-grammalecte.el' and
+`flycheck-grammalecte.el' are kept.
+The default value is automatically computed from the included file.")
 
 (defconst flycheck-grammalecte-grammalecte-version "0.6.4")
 

@@ -21,16 +21,31 @@ from argparse import ArgumentParser
 
 def main(files, opts={}):
     """Read the file and run grammalecte on it"""
-    # Load grammalecte.
-    oGrammarChecker = grammalecte.GrammarChecker("fr")
 
     # Read input from stdin or first arg.
     text_input = [line for line in fileinput.input(files=files)]
-    text, lineset = txt.createParagraphWithLines(list(enumerate(text_input)))
+    text, lineset = txt.createParagraphWithLines(
+        list(enumerate(text_input)))
 
-    # Grammar errors
-    gramm_err, spell_err = oGrammarChecker.getParagraphErrors(
-        text, bDebug=False)
+    do_gramm = ("no_gramm" not in opts or opts["no_gramm"] is False)
+    do_spell = ("no_spell" not in opts or opts["no_spell"] is False)
+    gramm_err = spell_err = []
+
+    # Load grammalecte.
+    gc = grammalecte.GrammarChecker("fr")
+
+    # Compute grammar and spell check errors
+    if do_gramm:
+        gc.gce.setOption(
+            "apos", "no_apos" not in opts or opts["no_apos"] is False)
+        gc.gce.setOption(
+            "nbsp", "no_nbsp" not in opts or opts["no_nbsp"] is False)
+        gramm_err = gc.gce.parse(
+            text, "FR",
+            bDebug=False)
+
+    if do_spell:
+        spell_err = gc.oSpellChecker.parseParagraph(text, False)
 
     # Get colums and lines.
     gramm_err, spell_err = txt.convertToXY(gramm_err, spell_err, lineset)
@@ -42,28 +57,21 @@ def main(files, opts={}):
     ]
 
     # Output
-    if "no_gramm" not in opts or opts["no_gramm"] is False:
+    if do_gramm:
         org_re = re.compile(
             "^#\\+(?:{})\\:$".format("|".join(org_keywords)),
             re.IGNORECASE)
         for i in list(gramm_err):
             next_line_no = i["nStartY"] + 1
             next_char_no = i["nStartX"] + 1
-            if i["sType"] == "apos" and "no_apos" in opts and \
-               opts["no_apos"] is True:
-                continue
-            elif i["sType"] == "esp":
+            if i["sType"] == "esp":
                 cur_line = text_input[i["nStartY"]]
                 next_line = text_input[next_line_no]
                 if cur_line[i["nStartX"]] == "\n" and \
                    next_line.strip() == "":
                     continue
             elif i["sType"] == "nbsp":
-                # If the option is set, directly pass to the following
-                # error
-                if "no_nbsp" in opts and opts["no_nbsp"] is True:
-                    continue
-                # Else, remove some unwanted nbsp warnings
+                # Remove some unwanted nbsp warnings
                 cur_line = text_input[i["nStartY"]]
                 if cur_line[0:4] == "#-*-":
                     continue
@@ -74,7 +82,7 @@ def main(files, opts={}):
                   .format(next_line_no, i["nStartX"] + 1,
                           i["sMessage"]))
 
-    if "no_spell" not in opts or opts["no_spell"] is False:
+    if do_spell:
         for i in list(spell_err):
             cur_line = text_input[i["nStartY"]]
             next_char_no = i["nStartX"] + 1

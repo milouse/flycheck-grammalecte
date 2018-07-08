@@ -1,0 +1,30 @@
+#+title: Contributing
+
+* On repositories
+
+The canonical git repository is
+https://git.deparis.io/flycheck-grammalecte/
+
+However, some other mirrors exists in order to ease participation:
+
+- [[https://framagit.org/milouse/flycheck-grammalecte][On Framagit]]
+- [[https://gitlab.com/milouse/flycheck-grammalecte][On Gitlab]]
+- [[https://github.com/milouse/flycheck-grammalecte][On Github]]
+
+Pull requests, merge requests or issues are accepted on all of these
+mirrors.
+
+* On commit style
+
+This project try to follow the [[https://conventionalcommits.org/][conventionnal commits]] guidelines.
+
+As issues may be tracked on various websites, please don't use
+abbreviated issue reference like « Fixes: #42 », but instead use full
+URL references, like « Fixes:
+[[https://github.com/milouse/flycheck-grammalecte/issues/6]] »
+
+Try your best to respect the character limits described in the [[https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html][Tim Pope
+blog post]]: 50 chars for the first line, 72 chars after. Thank you.
+
+In any case, don't hesitate to look at the previous git commits to find
+live examples.

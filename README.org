@@ -62,3 +62,37 @@ prompt to download and install Grammalecte.
 * Usage
 
 In an org-buffer, for example, type =M-x flycheck-mode=.
+
+** Configuration options
+
+All options are accessibles with =customize=. In Emacs, enter
+=M-x customize=, then click on =Editing=, then =I18n=, and finally on
+=Flycheck Grammalecte=.
+
+You can also set this variables in your Emacs config file. Here is a
+quick reference of the available variables:
+
+- =flycheck-grammalecte-report-spellcheck= :: If this variable is set to
+     =nil=, Flycheck will *not* report spellchecking error. Only grammar
+     errors will be notified. This can be handy when you want to use
+     /flyspell/ or /ispell/. Default is =t=.
+- =flycheck-grammalecte-report-grammar= :: If this variable is set to
+     =nil=, Flycheck will *not* report grammar error. Only spellchecking
+     errors will be notified. Default is =t=.
+- =flycheck-grammalecte-report-apos= :: If this variable is set to
+     =nil=, Flycheck will *not* report typographical apostrophes (’)
+     error. This can be usefull when your main editor mode manage
+     apostrophe itself (like LaTeX, org-mode export…). Default is =t=.
+- =flycheck-grammalecte-report-nbsp= :: If this variable is set to
+     =nil=, Flycheck will *not* report non-breakable spaces
+     error. This can be usefull when your main editor mode manage
+     spaces itself (like LaTeX, org-mode export…). Default is =t=.
+- =flycheck-grammalecte-enabled-modes= :: This variable stores the list
+     of major modes for which /flycheck-grammalecte/ must be
+     used. Default is ='(org-mode text-mode mail-mode latex-mode)=. To
+     add markdown mode, for example, use the following line:
+
+#+begin_src emacs-lisp
+(setq flycheck-grammalecte-enabled-modes
+      '(org-mode text-mode mail-mode latex-mode markdown-mode))
+#+end_src

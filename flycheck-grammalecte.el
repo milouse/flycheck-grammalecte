@@ -92,7 +92,7 @@ python files named `flycheck-grammalecte.el' and
 `flycheck-grammalecte.el' are kept.
 The default value is automatically computed from the included file.")
 
-(defconst flycheck-grammalecte-grammalecte-version "0.6.4")
+(defconst flycheck-grammalecte-grammalecte-version "0.6.5")
 
 
 ;;; Helper methods:
@@ -122,6 +122,10 @@ The default value is automatically computed from the included file.")
            "grammalecte" flycheck-grammalecte-directory)))
     (unless (file-exists-p fg-gm-local-zip-file)
       (url-copy-file fg-gm-dl-url fg-gm-local-zip-file))
+    ;; Always do a clean update. Begin by removing old folder if it's
+    ;; present
+    (when (file-directory-p fg-gm-target-folder)
+      (delete-directory fg-gm-target-folder t))
     (call-process "unzip" nil nil nil
                   fg-gm-local-zip-file (concat "-d" fg-gm-local-file))
     (when (file-exists-p fg-gm-source-folder)

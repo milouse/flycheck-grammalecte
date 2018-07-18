@@ -1,4 +1,4 @@
-;;; flycheck-grammalecte.el --- Support grammalecte in flycheck
+;;; flycheck-grammalecte.el --- Support grammalecte in flycheck -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2018 Étienne Deparis
 ;; Copyright (C) 2017 Guilhem Doulcier
@@ -144,7 +144,7 @@ The default value is automatically computed from the included file.")
 Please run the command `flycheck-grammalecte-download-grammalecte'
 as soon as possible."))))
 (add-hook 'after-init-hook
-          'flycheck-grammalecte-download-grammalecte-if-needed)
+          #'flycheck-grammalecte-download-grammalecte-if-needed)
 
 ;;;; Flycheck methods:
 

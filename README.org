@@ -7,6 +7,17 @@ tool [[http://www.dicollecte.org/][Grammalecte]] and the [[http://www.flycheck.o
 
 * Installation
 
+You must follow either the /As a package/ or /With the provided Makefile/
+section. Then, you can go to the /Configuration/ section to know more
+about the available options.
+
+It is worth to know that at the first launch of emacs after you have
+installed this package, it will offer you to dowload the Grammalecte
+binary with a =y-or-n= question. *Warning*: if you run emacs as a
+daemon, it may block its start as it will wait for an answer in a
+background process. You should try to start a regular emacs instance
+after this installation.
+
 ** Prerequisite
 
 This package has a strong dependency on =python3=. The installation of
@@ -14,12 +25,20 @@ the right version of python is up to you.
 
 ** As a package
 
-TBD
+Unfortunately, =flycheck-grammalecte= has not yet been added to
+melpa. You will need to copy the =flycheck-grammalecte.el= and
+=Flycheck-grammalecte.py= files to a directory in your =load-path=.
 
-** Manual
+Then, somewhere in your =.emacs.d= init files, add the following line:
 
-In any case, you first need to clone this repository. We recommend you
-to put it somewhere under your =.emacs.d= folder.
+#+begin_src emacs-lisp
+(require 'flycheck-grammalecte)
+#+end_src
+
+** With the provided makefile
+
+You first need to clone this repository. We recommend you to put it
+somewhere under your =.emacs.d= folder.
 
 #+begin_src emacs-lisp
 cd ~/.emacs.d
@@ -59,11 +78,7 @@ case, we call the =.el= file as we have not byte-compiled it):
 Then restart Emacs. At the end of the Emacs initialization, you will be
 prompt to download and install Grammalecte.
 
-* Usage
-
-In an org-buffer, for example, type =M-x flycheck-mode=.
-
-** Configuration options
+* Configuration
 
 All options are accessibles with =customize=. In Emacs, enter
 =M-x customize=, then click on =Editing=, then =I18n=, and finally on
@@ -94,5 +109,9 @@ quick reference of the available variables:
 
 #+begin_src emacs-lisp
 (setq flycheck-grammalecte-enabled-modes
-      '(org-mode text-mode mail-mode latex-mode markdown-mode))
+      '(org-mode text-mode mail-mode latex-mode markdown-mode mu4e-compose-mode))
 #+end_src
+
+* Usage
+
+In an Org buffer, for example, type =M-x flycheck-mode=.

@@ -2,7 +2,7 @@
 
 * On repositories
 
-The canonical git repository is
+The canonical git repository of this package is
 https://git.deparis.io/flycheck-grammalecte/
 
 However, some other mirrors exists in order to ease participation:

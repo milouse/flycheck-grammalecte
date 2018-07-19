@@ -5,10 +5,10 @@
 
 ;; Maintener: Étienne Deparis <etienne@depar.is>
 ;; Author: Guilhem Doulcier <guilhem.doulcier@espci.fr>
-;;   Étienne Deparis <etienne@depar.is>
+;;         Étienne Deparis <etienne@depar.is>
 ;; Created: 21 February 2017
 ;; Version: 0.4
-;; Package-Requires: ((flycheck "26"))
+;; Package-Requires: ((emacs "24") (flycheck "26"))
 ;; Keywords: i18n, wp
 ;; Homepage: https://git.deparis.io/flycheck-grammalecte/
 
@@ -37,6 +37,7 @@
 ;; Boston, MA 02110-1301, USA.
 
 ;;; Code:
+
 (require 'flycheck)
 
 ;;;; Configuration options:
@@ -48,28 +49,24 @@
 
 (defcustom flycheck-grammalecte-report-spellcheck t
   "Report spellcheck errors if non nil.
-
 Default is t."
   :type 'boolean
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-report-grammar t
   "Report grammar errors if non nil.
-
 Default is t."
   :type 'boolean
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-report-apos t
   "Report apostrophe errors if non nil.
-
 Default is t."
   :type 'boolean
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-report-nbsp t
   "Report non-breakable spaces errors if non nil.
-
 Default is t."
   :type 'boolean
   :group 'flycheck-grammalecte)
@@ -80,79 +77,100 @@ Default is t."
 
 Default modes are `org-mode', `text-mode', `mail-mode' and
 `latex-mode'."
-  :type '(repeat (symbol :tag "Mode"))
+  :type '(repeat (function :tag "Mode"))
   :group 'flycheck-grammalecte)
 
 (defvar flycheck-grammalecte-directory
   (if load-file-name (file-name-directory load-file-name) default-directory)
   "Location of the flycheck-grammalecte package.
-
 This variable must point to the directory where the emacs-lisp and
 python files named `flycheck-grammalecte.el' and
-`flycheck-grammalecte.el' are kept.
+`flycheck-grammalecte.py' are kept.
 The default value is automatically computed from the included file.")
 
 (defconst flycheck-grammalecte-grammalecte-version "0.6.5")
 
+;;;; Helper methods:
 
-;;; Helper methods:
+(defun flycheck-grammalecte--download-zip ()
+  "Download Grammalecte CLI zip file."
+  (let* ((fgm-zip-name
+          (concat "Grammalecte-fr-v"
+                  flycheck-grammalecte-grammalecte-version
+                  ".zip"))
+         (fgm-dl-url
+          (concat "http://www.dicollecte.org/grammalecte/zip/"
+                  fgm-zip-name))
+         (fgm-zip-file (expand-file-name
+                        fgm-zip-name
+                        flycheck-grammalecte-directory)))
+    ;; Do not download it twice if it's still there for some reason…
+    (unless (file-exists-p fgm-zip-file)
+      (url-copy-file fgm-dl-url fgm-zip-file))
+    (message "Grammalecte downloaded to %s" fgm-zip-file)
+    fgm-zip-file))
+
+(defun flycheck-grammalecte--extract-zip (fgm-zip-file)
+  "Extract FGM-ZIP-FILE."
+  (let ((fgm-extracted-folder (file-name-sans-extension fgm-zip-file)))
+    ;; Unzip file given in parameters in `fgm-extracted-folder'.
+    (call-process "unzip" nil nil nil
+                  fgm-zip-file (concat "-d" fgm-extracted-folder))
+    ;; Remove the zip file
+    (delete-file fgm-zip-file)
+    (message "Grammalecte extracted to %s" fgm-extracted-folder)
+    fgm-extracted-folder))
+
+(defun flycheck-grammalecte--install-py-files (fgm-extracted-folder)
+  "Install the interesting files from FGM-EXTRACTED-FOLDER.
+Move the `grammalecte' subfolder, containing the necessary python files
+from FGM-EXTRACTED-FOLDER to their destination, alongside the other
+package files."
+  (let ((fgm-source-folder
+         (expand-file-name "grammalecte" fgm-extracted-folder))
+        (fgm-target-folder
+         (expand-file-name "grammalecte"
+                           flycheck-grammalecte-directory)))
+    ;; Always do a clean update. Begin by removing old folder if it's
+    ;; present.
+    (when (file-directory-p fgm-target-folder)
+      (delete-directory fgm-target-folder t))
+    ;; Extract the `grammalecte' subfolder from the extracted directory.
+    (when (file-exists-p fgm-source-folder)
+      (rename-file fgm-source-folder fgm-target-folder)
+      ;; Do some cleanup
+      (delete-directory fgm-extracted-folder t))
+    (message "Grammalecte installed in %s" fgm-target-folder)
+    fgm-target-folder))
+
+(defun flycheck-grammalecte--download-grammalecte-if-needed ()
+  "Install Grammalecte python package if it's not there."
+  ;; This function only works for `flycheck-grammalecte-enabled-modes'.
+  ;; No need to bother the user in other modes.
+  (when (memq major-mode flycheck-grammalecte-enabled-modes)
+    (unless (file-exists-p
+             (expand-file-name "grammalecte/grammar_checker.py"
+                               flycheck-grammalecte-directory))
+      (if (yes-or-no-p
+           "[flycheck-grammalecte] Grammalecte data not found. Download it NOW?")
+          (flycheck-grammalecte-download-grammalecte)
+        (display-warning "flycheck-grammalecte"
+                         "Grammalecte will fail if used.
+Please run the command `flycheck-grammalecte-download-grammalecte'
+as soon as possible.")))))
 
 (defun flycheck-grammalecte-download-grammalecte ()
-  "Download and extract grammalecte python program."
+  "Download, extract and install Grammalecte python program."
   (interactive)
-  (let* ((fg-gm-dist-name
-          (concat "Grammalecte-fr-v"
-                  flycheck-grammalecte-grammalecte-version))
-         (fg-gm-zip-name (concat fg-gm-dist-name ".zip"))
-         (fg-gm-dl-url
-          (concat
-           "http://www.dicollecte.org/grammalecte/zip/"
-           fg-gm-zip-name))
-         (fg-gm-local-file
-          (expand-file-name
-           fg-gm-dist-name flycheck-grammalecte-directory))
-         (fg-gm-local-zip-file
-          (expand-file-name
-           (concat fg-gm-dist-name ".zip")
-           flycheck-grammalecte-directory))
-         (fg-gm-source-folder
-          (expand-file-name "grammalecte" fg-gm-local-file))
-         (fg-gm-target-folder
-          (expand-file-name
-           "grammalecte" flycheck-grammalecte-directory)))
-    (unless (file-exists-p fg-gm-local-zip-file)
-      (url-copy-file fg-gm-dl-url fg-gm-local-zip-file))
-    ;; Always do a clean update. Begin by removing old folder if it's
-    ;; present
-    (when (file-directory-p fg-gm-target-folder)
-      (delete-directory fg-gm-target-folder t))
-    (call-process "unzip" nil nil nil
-                  fg-gm-local-zip-file (concat "-d" fg-gm-local-file))
-    (when (file-exists-p fg-gm-source-folder)
-      (rename-file fg-gm-source-folder fg-gm-target-folder)
-      (delete-directory fg-gm-local-file t)
-      (delete-file fg-gm-local-zip-file))
-    (message "Grammalecte dowloaded and extracted in %s"
-             fg-gm-target-folder)))
+  (flycheck-grammalecte--install-py-files
+   (flycheck-grammalecte--extract-zip
+    (flycheck-grammalecte--download-zip))))
 
-(defun flycheck-grammalecte-download-grammalecte-if-needed ()
-  "Download grammalecte if not there."
-  (unless (file-exists-p
-           (expand-file-name "grammalecte/grammar_checker.py"
-                             flycheck-grammalecte-directory))
-    (if (yes-or-no-p
-         "[flycheck-grammalecte] Grammalecte data not found. Download it NOW?")
-        (flycheck-grammalecte-download-grammalecte)
-      (display-warning "flycheck-grammalecte"
-                       "Grammalecte will fail if used.
-Please run the command `flycheck-grammalecte-download-grammalecte'
-as soon as possible."))))
 (add-hook 'after-init-hook
-          #'flycheck-grammalecte-download-grammalecte-if-needed)
+          #'flycheck-grammalecte--download-grammalecte-if-needed)
 
-;;;; Flycheck methods:
+;;;; Checker definition:
 
-;; Maybe change it for the complete path to the python file?
 (flycheck-def-executable-var 'français-grammalecte "python3")
 
 ;; We do not use the `flycheck-define-checker' helper because we use a

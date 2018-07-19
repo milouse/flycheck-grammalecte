@@ -1,4 +1,4 @@
-;;; flycheck-grammalecte.el --- Support grammalecte in flycheck -*- lexical-binding: t; -*-
+;;; flycheck-grammalecte.el --- Integrate Grammalecte with Flycheck -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2018 Étienne Deparis
 ;; Copyright (C) 2017 Guilhem Doulcier
@@ -14,7 +14,7 @@
 
 ;;; Commentary:
 
-;; This package adds support for Grammalecte to flycheck.
+;; Adds support for Grammalecte (a french grammar checker) to flycheck.
 
 ;;; License:
 

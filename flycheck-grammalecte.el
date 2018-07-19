@@ -166,7 +166,7 @@ as soon as possible.")))))
    (flycheck-grammalecte--extract-zip
     (flycheck-grammalecte--download-zip))))
 
-(add-hook 'after-init-hook
+(add-hook 'flycheck-mode-hook
           #'flycheck-grammalecte--download-grammalecte-if-needed)
 
 ;;;; Checker definition:

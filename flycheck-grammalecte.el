@@ -9,7 +9,7 @@
 ;; Created: 21 February 2017
 ;; Version: 0.4
 ;; Package-Requires: ((emacs "24") (flycheck "26"))
-;; Keywords: i18n, wp
+;; Keywords: i18n, text
 ;; Homepage: https://git.deparis.io/flycheck-grammalecte/
 
 ;;; Commentary:

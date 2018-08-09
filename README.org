@@ -25,9 +25,11 @@ the right version of python is up to you.
 
 ** As a package
 
-Unfortunately, =flycheck-grammalecte= has not yet been added to
-melpa. You will need to copy the =flycheck-grammalecte.el= and
-=Flycheck-grammalecte.py= files to a directory in your =load-path=.
+[[https://stable.melpa.org/#/flycheck-grammalecte][file:https://stable.melpa.org/packages/flycheck-grammalecte-badge.svg]]
+
+[[https://melpa.org/#/flycheck-grammalecte][file:https://melpa.org/packages/flycheck-grammalecte-badge.svg]]
+
+=flycheck-grammalecte= is available on MELPA stable and unstable.
 
 Then, somewhere in your =.emacs.d= init files, add the following line:
 

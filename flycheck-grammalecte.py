@@ -5,6 +5,7 @@ This script is the glue that link flycheck syntax checker for emacs
 and the grammalecte http://www.dicollecte.org/grammalecte/ syntax
 checker. It requires the grammalecte package.
 
+Copyright (C) 2018 Étienne Deparis <etienne@depar.is>
 Copyright (C) 2017 Guilhem Doulcier <guilhem.doulcier@espci.fr>
 This is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

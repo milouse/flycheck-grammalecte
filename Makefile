@@ -1,4 +1,4 @@
-GRAMVER = 0.6.4
+GRAMVER = 0.6.5
 
 EMACS=emacs -Q -q --batch -nw --eval "(package-initialize)"
 
@@ -17,7 +17,7 @@ build: deps flycheck-grammalecte.elc
 deps: grammalecte/__init__.py
 
 grammalecte/__init__.py:
-	wget http://www.dicollecte.org/grammalecte/zip/Grammalecte-fr-v$(GRAMVER).zip
+	wget https://www.dicollecte.org/grammalecte/zip/Grammalecte-fr-v$(GRAMVER).zip
 	mkdir Grammalecte-fr-v$(GRAMVER)
 	unzip Grammalecte-fr-v$(GRAMVER).zip -d Grammalecte-fr-v$(GRAMVER)
 	mv Grammalecte-fr-v$(GRAMVER)/grammalecte .

@@ -64,24 +64,22 @@ def main(files, opts={}):
             re.IGNORECASE)
         for i in list(gramm_err):
             next_line_no = i["nStartY"] + 1
+            cur_line = text_input[i["nStartY"]]
             next_char_no = i["nStartX"] + 1
             if i["sType"] == "esp":
-                cur_line = text_input[i["nStartY"]]
                 next_line = text_input[next_line_no]
                 if cur_line[i["nStartX"]] == "\n" and \
                    next_line.strip() == "":
                     continue
             elif i["sType"] == "nbsp":
                 # Remove some unwanted nbsp warnings
-                cur_line = text_input[i["nStartY"]]
                 if cur_line[0:4] == "#-*-":
                     continue
                 m = org_re.match(cur_line[0:next_char_no])
                 if m is not None and m.start() == 0:
                     continue
             print("grammaire|{}|{}|{}\n"
-                  .format(next_line_no, i["nStartX"] + 1,
-                          i["sMessage"]))
+                  .format(next_line_no, next_char_no, i["sMessage"]))
 
     if do_spell:
         for i in list(spell_err):

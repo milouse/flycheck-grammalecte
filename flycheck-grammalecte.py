@@ -41,6 +41,11 @@ def main(files, opts={}):
             "apos", "no_apos" not in opts or opts["no_apos"] is False)
         gc.gce.setOption(
             "nbsp", "no_nbsp" not in opts or opts["no_nbsp"] is False)
+        gc.gce.setOption(
+            "esp", "no_esp" not in opts or opts["no_esp"] is False)
+        gc.gce.setOption(
+            "tab", "no_esp" not in opts or opts["no_esp"] is False)
+
         gramm_err = gc.gce.parse(
             text, "FR",
             bDebug=False)
@@ -106,6 +111,8 @@ if __name__ == "__main__":
                         help="Don't report apostrophe errors")
     parser.add_argument("-N", "--no-nbsp", action="store_true",
                         help="Don't report non-breakable spaces errors")
+    parser.add_argument("-W", "--no-space", action="store_true",
+                        help="Don't report useless spaces and tabs errors")
     parser.add_argument('files', metavar='FILE', nargs='*',
                         help="files to read, if empty, stdin is used")
 
@@ -117,6 +124,7 @@ if __name__ == "__main__":
         "no_spell": args.no_spellcheck,
         "no_gramm": args.no_grammar,
         "no_apos": args.no_apostrophe,
-        "no_nbsp": args.no_nbsp
+        "no_nbsp": args.no_nbsp,
+        "no_esp": args.no_space
     }
     main(files, opts)

@@ -71,6 +71,12 @@ Default is t."
   :type 'boolean
   :group 'flycheck-grammalecte)
 
+(defcustom flycheck-grammalecte-report-esp t
+  "Report useless spaces and tabs errors if non nil.
+Default is t."
+  :type 'boolean
+  :group 'flycheck-grammalecte)
+
 (defcustom flycheck-grammalecte-enabled-modes
   '(org-mode text-mode mail-mode latex-mode)
   "Major modes for which `flycheck-grammalecte' should be enabled.
@@ -187,6 +193,7 @@ as soon as possible.")))))
              (eval (unless flycheck-grammalecte-report-grammar "-G"))
              (eval (unless flycheck-grammalecte-report-apos "-A"))
              (eval (unless flycheck-grammalecte-report-nbsp "-N"))
+             (eval (unless flycheck-grammalecte-report-esp "-W"))
              source)
   :error-patterns
   '((warning line-start "grammaire|" line "|" column "|" (message) line-end)

@@ -68,23 +68,32 @@ def main(files, opts={}):
             "^#\\+(?:{})\\:$".format("|".join(org_keywords)),
             re.IGNORECASE)
         for i in list(gramm_err):
-            next_line_no = i["nStartY"] + 1
             cur_line = text_input[i["nStartY"]]
-            next_char_no = i["nStartX"] + 1
             if i["sType"] == "esp":
-                next_line = text_input[next_line_no]
-                if cur_line[i["nStartX"]] == "\n" and \
-                   next_line.strip() == "":
+                # Remove useless space warning for visual paragraph in
+                # text modes
+                next_line_no = i["nStartY"] + 1
+                if next_line_no > len(text_input):
+                    # Weird, but maybe there is no blank line at the end
+                    # of the file? Or some sort of buffer overflow?
+                    next_line = ""
+                else:
+                    next_line = text_input[next_line_no].strip()
+                if cur_line[i["nStartX"]] == "\n" and next_line == "":
                     continue
             elif i["sType"] == "nbsp":
                 # Remove some unwanted nbsp warnings
                 if cur_line[0:4] == "#-*-":
                     continue
-                m = org_re.match(cur_line[0:next_char_no])
+                # The following line is not subject to overflow
+                # excepton, even if i["nStartX"] + 1 > len(cur_line)
+                m = org_re.match(cur_line[0:i["nStartX"] + 1])
                 if m is not None and m.start() == 0:
                     continue
             print("grammaire|{}|{}|{}\n"
-                  .format(next_line_no, next_char_no, i["sMessage"]))
+                  .format(i["nStartY"] + 1,
+                          i["nStartX"] + 1,
+                          i["sMessage"]))
 
     if do_spell:
         for i in list(spell_err):

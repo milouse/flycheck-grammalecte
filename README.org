@@ -1,119 +1,80 @@
 #+title: Flycheck-grammalecte
 
-Simple wrapper for the french language checking
-tool [[http://www.dicollecte.org/][Grammalecte]] and the [[http://www.flycheck.org/][flycheck]] emacs package.
+Simple wrapper for the french language checking tool [[http://www.dicollecte.org/][Grammalecte]] and
+the [[http://www.flycheck.org/][flycheck]] GNU Emacs package.
 
 [[./demo.gif]]
 
 * Installation
 
-You must follow either the /As a package/ or /With the provided Makefile/
-section. Then, you can go to the /Configuration/ section to know more
-about the available options.
-
-It is worth to know that at the first launch of emacs after you have
-installed this package, it will offer you to dowload the Grammalecte
-binary with a =y-or-n= question. *Warning*: if you run emacs as a
-daemon, it may block its start as it will wait for an answer in a
-background process. You should try to start a regular emacs instance
-after this installation.
-
-** Prerequisite
-
-This package has a strong dependency on =python3=. The installation of
-the right version of python is up to you.
-
-** As a package
-
 [[https://stable.melpa.org/#/flycheck-grammalecte][file:https://stable.melpa.org/packages/flycheck-grammalecte-badge.svg]]
 
 [[https://melpa.org/#/flycheck-grammalecte][file:https://melpa.org/packages/flycheck-grammalecte-badge.svg]]
 
-=flycheck-grammalecte= is available on MELPA stable and unstable.
+This package has a strong dependency on =python3=. The installation of
+the right version of python is up to you.
 
-Then, somewhere in your =.emacs.d= init files, add the following line:
+=flycheck-grammalecte= is available on MELPA stable and unstable. Please
+read the [[https://www.emacswiki.org/emacs/InstallingPackages][Installing Package documentation]] from the EmacsWiki to know
+more how to install a package. A [[./MANUAL_INSTALL.org][manual installation procedure]] exists
+too if you prefer.
+
+If you install =flycheck-grammalecte= as a package, you need to add the
+following line somewhere in your GNU Emacs config file:
 
 #+begin_src emacs-lisp
 (require 'flycheck-grammalecte)
 #+end_src
 
-** With the provided makefile
+Then restart GNU Emacs.
 
-You first need to clone this repository. We recommend you to put it
-somewhere under your =.emacs.d= folder.
-
-#+begin_src emacs-lisp
-cd ~/.emacs.d
-git clone https://git.deparis.io/flycheck-grammalecte
-#+end_src
-
-On GNU/Linux and Mac OS, you can benefit of a =Makefile=, which will
-download for you the last version of Grammalecte and compile the Emacs
-Lisp package. For that to happen, go to the newly created
-=flycheck-grammalecte= folder and enter the =make= command.
-
-#+begin_src
-cd flycheck-grammalecte
-make
-#+end_src
-
-When it's done, you can add the following line in your emacs config
-file:
-
-#+begin_src emacs-lisp
-(load-file "~/.emacs.d/flycheck-grammalecte/flycheck-grammalecte.elc")
-#+end_src
-
-And everything should be fine.
-
-You may want to clean up a bit the Flycheck-grammalecte directory by
-entering the following command: =make clean=.
-
-If you cannot or don't want to use the =Makefile=, you can also just add
-the following line to your emacs config file (please note that in that
-case, we call the =.el= file as we have not byte-compiled it):
-
-#+begin_src emacs-lisp
-(load-file "~/.emacs.d/flycheck-grammalecte/flycheck-grammalecte.el")
-#+end_src
-
-Then restart Emacs. At the end of the Emacs initialization, you will be
-prompt to download and install Grammalecte.
+Finally, the last expected step is to download the
+[[https://grammalecte.net/#download][CLI & Server upstream package]]. Just enter the following command:
+~M-x flycheck-grammalecte-download-grammalecte~
 
 * Configuration
 
-All options are accessibles with =customize=. In Emacs, enter
-=M-x customize=, then click on =Editing=, then =I18n=, and finally on
+All options are accessibles with ~customize~. In GNU Emacs, enter
+~M-x customize~, then click on =Editing=, then =I18n=, and finally on
 =Flycheck Grammalecte=.
 
-You can also set this variables in your Emacs config file. Here is a
-quick reference of the available variables:
+You can also set this variables in your GNU Emacs config file. Here is
+a quick reference of the available variables:
 
 - =flycheck-grammalecte-report-spellcheck= :: If this variable is set to
-     =nil=, Flycheck will *not* report spellchecking error. Only grammar
+     ~nil~, Flycheck will *not* report spellchecking error. Only grammar
      errors will be notified. This can be handy when you want to use
-     /flyspell/ or /ispell/. Default is =t=.
+     /flyspell/ or /ispell/. Default is ~t~.
 - =flycheck-grammalecte-report-grammar= :: If this variable is set to
-     =nil=, Flycheck will *not* report grammar error. Only spellchecking
-     errors will be notified. Default is =t=.
+     ~nil~, Flycheck will *not* report grammar error. Only spellchecking
+     errors will be notified. Default is ~t~.
 - =flycheck-grammalecte-report-apos= :: If this variable is set to
-     =nil=, Flycheck will *not* report typographical apostrophes (’)
+     ~nil~, Flycheck will *not* report typographical apostrophes (’)
      error. This can be usefull when your main editor mode manage
-     apostrophe itself (like LaTeX, org-mode export…). Default is =t=.
+     apostrophe by itself (like LaTeX, org-mode export…). Default is
+     ~t~.
 - =flycheck-grammalecte-report-nbsp= :: If this variable is set to
-     =nil=, Flycheck will *not* report non-breakable spaces
+     ~nil~, Flycheck will *not* report non-breakable spaces
      error. This can be usefull when your main editor mode manage
-     spaces itself (like LaTeX, org-mode export…). Default is =t=.
+     spaces by itself (like LaTeX, org-mode export…). Default is ~t~.
+- =flycheck-grammalecte-report-esp= :: If this variable is set to
+     ~nil~, Flycheck will *not* report useless spaces and tabs error.
+     This can be usefull when your main editor mode manage spaces by
+     itself (like LaTeX, org-mode export…). Default is ~t~.
 - =flycheck-grammalecte-enabled-modes= :: This variable stores the list
      of major modes for which /flycheck-grammalecte/ must be
-     used. Default is ='(org-mode text-mode mail-mode latex-mode)=. To
-     add markdown mode, for example, use the following line:
+     used. *Warning*, this variable must be set *before* loading
+     =flycheck-grammalecte= itself. Thus, do not try to set it with
+     ~customize~. Put it directly in your GNU Emacs config file.
+     Default is ~'(org-mode text-mode mail-mode latex-mode)~. To add
+     markdown mode, for example, use the following line:
 
 #+begin_src emacs-lisp
 (setq flycheck-grammalecte-enabled-modes
       '(org-mode text-mode mail-mode latex-mode markdown-mode mu4e-compose-mode))
+(require 'flycheck-grammalecte)
 #+end_src
 
 * Usage
 
-In an Org buffer, for example, type =M-x flycheck-mode=.
+In an Org buffer, for example, type ~M-x flycheck-mode~.

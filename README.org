@@ -66,7 +66,7 @@ a quick reference of the available variables:
      used. *Warning*, this variable must be set *before* loading
      =flycheck-grammalecte= itself. Thus, do not try to set it with
      ~customize~. Put it directly in your GNU Emacs config file.
-     Default is ~'(org-mode text-mode mail-mode latex-mode)~. To add
+     Default is ~’(org-mode text-mode mail-mode latex-mode)~. To add
      markdown mode, for example, use the following line:
 
 #+begin_src emacs-lisp

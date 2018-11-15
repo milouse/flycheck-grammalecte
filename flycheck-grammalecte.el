@@ -105,7 +105,7 @@ The default value is automatically computed from the included file.")
                   flycheck-grammalecte-grammalecte-version
                   ".zip"))
          (fgm-dl-url
-          (concat "https://www.dicollecte.org/grammalecte/zip/"
+          (concat "https://grammalecte.net/grammalecte/zip/"
                   fgm-zip-name))
          (fgm-zip-file (expand-file-name
                         fgm-zip-name
@@ -183,7 +183,7 @@ as soon as possible.")))))
 ;; quoted variable to store modes list
 (flycheck-define-command-checker 'francais-grammalecte
   "Grammalecte syntax checker for french language
-`https://www.dicollecte.org/grammalecte/'."
+`https://grammalecte.net/'."
   :command '("python3"
              (eval
               (expand-file-name

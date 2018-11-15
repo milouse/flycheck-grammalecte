@@ -17,7 +17,7 @@ build: deps flycheck-grammalecte.elc
 deps: grammalecte/__init__.py
 
 grammalecte/__init__.py:
-	wget https://www.dicollecte.org/grammalecte/zip/Grammalecte-fr-v$(GRAMVER).zip
+	wget https://grammalecte.net/grammalecte/zip/Grammalecte-fr-v$(GRAMVER).zip
 	mkdir Grammalecte-fr-v$(GRAMVER)
 	unzip Grammalecte-fr-v$(GRAMVER).zip -d Grammalecte-fr-v$(GRAMVER)
 	mv Grammalecte-fr-v$(GRAMVER)/grammalecte .

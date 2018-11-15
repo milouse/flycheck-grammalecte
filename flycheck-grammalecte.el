@@ -105,7 +105,7 @@ The default value is automatically computed from the included file.")
                   flycheck-grammalecte-grammalecte-version
                   ".zip"))
          (fgm-dl-url
-          (concat "https://www.dicollecte.org/grammalecte/zip/"
+          (concat "https://grammalecte.net/grammalecte/zip/"
                   fgm-zip-name))
          (fgm-zip-file (expand-file-name
                         fgm-zip-name

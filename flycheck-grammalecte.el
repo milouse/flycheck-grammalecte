@@ -8,7 +8,7 @@
 ;;         Étienne Deparis <etienne@depar.is>
 ;; Created: 21 February 2017
 ;; Version: 0.5
-;; Package-Requires: ((emacs "24") (flycheck "26"))
+;; Package-Requires: ((emacs "24.3") (flycheck "26"))
 ;; Keywords: i18n, text
 ;; Homepage: https://git.deparis.io/flycheck-grammalecte/
 
@@ -165,6 +165,15 @@ package files."
 Please run the command `flycheck-grammalecte-download-grammalecte'
 as soon as possible.")))))
 
+(defun flycheck-grammalecte--fetch-crisco-words (word type)
+  "Fetch TYPE words from the CRISCO dictionary for the given WORD.
+TYPE may be `synonymes' or `antonymes'."
+  (shell-command-to-string
+   (concat "curl -s http://crisco.unicaen.fr/des/synonymes/" word
+           " | sed -n '/<i class=[^>]*>[0-9]* " type
+           "/{n;s|\\s*<a href=\"/des/synonymes/[^\"]*\">\\([^<]*\\)</a>,\\?|- \\1\\n|g;p;/<!--Fin liste des "
+           type "-->/q}' | sed '$ d'")))
+
 (defun flycheck-grammalecte-download-grammalecte ()
   "Download, extract and install Grammalecte python program."
   (interactive)
@@ -174,6 +183,29 @@ as soon as possible.")))))
 
 (add-hook 'flycheck-mode-hook
           #'flycheck-grammalecte--download-grammalecte-if-needed)
+
+(defun flycheck-grammalecte-find-synomyms-at-point ()
+  "Find synonyms for the word at point.
+This function will call a subprocess to fetch data from the CRISCO¹
+thesaurus through curl and sed.  The found words are then displayed in
+a new buffer in another window.  This function will not work with
+Windows OS.
+¹ http://crisco.unicaen.fr/des/synonymes/"
+  (interactive)
+  (if (get-buffer "*Flycheck Grammalecte Synomyms*")
+      (kill-buffer "*Flycheck Grammalecte Synomyms*"))
+  (let ((word (thing-at-point 'word 'no-properties))
+        (buffer (get-buffer-create "*Flycheck Grammalecte Synomyms*")))
+    (with-current-buffer buffer
+      (insert "* Synomymes\n\n")
+      (insert (flycheck-grammalecte--fetch-crisco-words word "synonymes"))
+      (insert "\n* Antonymes\n\n")
+      (insert (flycheck-grammalecte--fetch-crisco-words word "antonymes"))
+      (org-mode)
+      (read-only-mode))
+    (switch-to-buffer-other-window buffer)
+    (goto-char (point-min))))
+
 
 ;;;; Checker definition:
 

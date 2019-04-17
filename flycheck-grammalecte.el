@@ -94,7 +94,7 @@ python files named `flycheck-grammalecte.el' and
 `flycheck-grammalecte.py' are kept.
 The default value is automatically computed from the included file.")
 
-(defconst flycheck-grammalecte-grammalecte-version "0.6.5")
+(defconst flycheck-grammalecte-grammalecte-version "1.0.1")
 
 ;;;; Helper methods:
 

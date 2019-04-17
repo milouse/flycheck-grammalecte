@@ -86,6 +86,13 @@ Default modes are `org-mode', `text-mode', `mail-mode' and
   :type '(repeat (function :tag "Mode"))
   :group 'flycheck-grammalecte)
 
+(defcustom flycheck-grammalecte-download-without-asking nil
+  "Download grammalecte upstream package without asking if non nil.
+
+Otherwise, it will ask for a yes-or-no confirmation."
+  :type 'boolean
+  :group 'flycheck-grammalecte)
+
 (defvar flycheck-grammalecte-directory
   (if load-file-name (file-name-directory load-file-name) default-directory)
   "Location of the flycheck-grammalecte package.
@@ -157,8 +164,9 @@ package files."
     (unless (file-exists-p
              (expand-file-name "grammalecte/grammar_checker.py"
                                flycheck-grammalecte-directory))
-      (if (yes-or-no-p
-           "[flycheck-grammalecte] Grammalecte data not found. Download it NOW?")
+      (if (or flycheck-grammalecte-download-without-asking
+              (yes-or-no-p
+               "[flycheck-grammalecte] Grammalecte data not found. Download it NOW?"))
           (flycheck-grammalecte-download-grammalecte)
         (display-warning "flycheck-grammalecte"
                          "Grammalecte will fail if used.

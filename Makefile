@@ -2,11 +2,11 @@ GRAMVER = 0.6.5
 
 EMACS=emacs -Q -q --batch -nw --eval "(package-initialize)"
 
-.PHONY: build deps clean uninstall
+.PHONY: build clean uninstall
 
 all: build
 
-build: deps flycheck-grammalecte.elc
+build: grammalecte flycheck-grammalecte.elc
 	$(info You should now add the following line to your .emacs.d/init.el file)
 	$(info (load-file "$(PWD)/flycheck-grammalecte.elc"))
 
@@ -14,13 +14,15 @@ build: deps flycheck-grammalecte.elc
 	$(info Compiling $(PWD)/$<...)
 	@$(EMACS) -f batch-byte-compile $<
 
-deps: grammalecte/__init__.py
+Grammalecte-fr-v$(GRAMVER).zip:
+	curl -O https://grammalecte.net/grammalecte/zip/Grammalecte-fr-v$(GRAMVER).zip
 
-grammalecte/__init__.py:
-	wget https://grammalecte.net/grammalecte/zip/Grammalecte-fr-v$(GRAMVER).zip
-	mkdir Grammalecte-fr-v$(GRAMVER)
-	unzip Grammalecte-fr-v$(GRAMVER).zip -d Grammalecte-fr-v$(GRAMVER)
-	mv Grammalecte-fr-v$(GRAMVER)/grammalecte .
+Grammalecte-fr-v$(GRAMVER): Grammalecte-fr-v$(GRAMVER).zip
+	mkdir -p Grammalecte-fr-v$(GRAMVER)
+	unzip -o Grammalecte-fr-v$(GRAMVER).zip -d Grammalecte-fr-v$(GRAMVER)
+
+grammalecte: Grammalecte-fr-v$(GRAMVER)
+	cp -R Grammalecte-fr-v$(GRAMVER)/grammalecte .
 
 clean:
 	rm -rf Grammalecte-fr-v$(GRAMVER)

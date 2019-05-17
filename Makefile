@@ -1,4 +1,4 @@
-GRAMVER = 1.0.1
+GRAMVER = 1.1
 
 EMACS=emacs -Q -q --batch -nw --eval "(package-initialize)"
 

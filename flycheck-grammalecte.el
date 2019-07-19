@@ -101,15 +101,29 @@ python files named `flycheck-grammalecte.el' and
 `flycheck-grammalecte.py' are kept.
 The default value is automatically computed from the included file.")
 
-(defconst flycheck-grammalecte-grammalecte-version "1.1")
 
 ;;;; Helper methods:
+
+(defun flycheck-grammalecte--grammalecte-version ()
+  "Return the upstream version of the flycheck-grammalecte package.
+Signal a `file-error' error if something wrong happen while retrieving
+the Grammalecte home page or if no version string is found in the page."
+  (let* ((url "https://grammalecte.net/index.html")
+         (buffer (url-retrieve-synchronously url)))
+    (with-current-buffer buffer
+      (goto-char (point-min))
+      (if (re-search-forward
+           "^ +<p id=\"version_num\">\\([0-9.]+\\)</p>$"
+           nil t) ;; Parse all downloaded data and avoid error
+          (match-string 1)
+        (signal 'file-error
+                (list url "No version number found on grammalecte website"))))))
 
 (defun flycheck-grammalecte--download-zip ()
   "Download Grammalecte CLI zip file."
   (let* ((fgm-zip-name
           (concat "Grammalecte-fr-v"
-                  flycheck-grammalecte-grammalecte-version
+                  (flycheck-grammalecte--grammalecte-version)
                   ".zip"))
          (fgm-dl-url
           (concat "https://grammalecte.net/grammalecte/zip/"

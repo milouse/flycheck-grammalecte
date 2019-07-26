@@ -25,15 +25,22 @@ def main(files, opts={}):
 
     # Read input from stdin or first arg.
     text_input = []
+    # At which list the real document begins?
+    document_offset = 0
     for line in fileinput.input(files=files):
         borders = ["^--text follows this line--",
                    "^\begin{document}"]
+        border_match = False
         for b in borders:
             if re.search(b, line, re.I):
-                # Discard all previous lines, which are considered as
-                # headers in some mode (latex, mail...)
-                text_input = []
-                continue
+                border_match = True
+                break
+        if border_match:
+            # Discard all previous lines, which are considered as
+            # headers in some mode (latex, mail...)
+            document_offset = len(text_input) + 1
+            text_input = []
+            continue
         text_input.append(line)
     text, lineset = txt.createParagraphWithLines(
         list(enumerate(text_input)))
@@ -101,7 +108,7 @@ def main(files, opts={}):
                 if m is not None and m.start() == 0:
                     continue
             print("grammaire|{}|{}|{}\n"
-                  .format(i["nStartY"] + 1,
+                  .format(i["nStartY"] + 1 + document_offset,
                           i["nStartX"] + 1,
                           i["sMessage"]))
 
@@ -115,7 +122,8 @@ def main(files, opts={}):
             if m is not None and m.start() == i["nStartX"]:
                 continue
             print("orthographe|{}|{}|{}\n"
-                  .format(i["nStartY"] + 1, i["nStartX"] + 1,
+                  .format(i["nStartY"] + 1 + document_offset,
+                          i["nStartX"] + 1,
                           "Mot absent du dictionnaire"))
 
 

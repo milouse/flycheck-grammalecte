@@ -1,4 +1,4 @@
-GRAMVER = 1.1
+GRAMVER = $(shell curl -s https://grammalecte.net/index.html | sed -n 's|^ *<p id="version_num">\([0-9.]*\)</p>|\1|p')
 
 EMACS=emacs -Q -q --batch -nw --eval "(package-initialize)"
 

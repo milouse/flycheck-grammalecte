@@ -24,7 +24,17 @@ def main(files, opts={}):
     """Read the file and run grammalecte on it"""
 
     # Read input from stdin or first arg.
-    text_input = [line for line in fileinput.input(files=files)]
+    text_input = []
+    for line in fileinput.input(files=files):
+        borders = ["^--text follows this line--",
+                   "^\begin{document}"]
+        for b in borders:
+            if re.search(b, line, re.I):
+                # Discard all previous lines, which are considered as
+                # headers in some mode (latex, mail...)
+                text_input = []
+                continue
+        text_input.append(line)
     text, lineset = txt.createParagraphWithLines(
         list(enumerate(text_input)))
 

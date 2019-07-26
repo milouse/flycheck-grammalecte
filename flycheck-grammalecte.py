@@ -98,7 +98,6 @@ def main(files, opts={}):
     if do_spell:
         for i in list(spell_err):
             cur_line = text_input[i["nStartY"]]
-            next_char_no = i["nStartX"] + 1
             org_re = re.compile(
                 "(?:{})\\:".format("|".join(org_keywords)),
                 re.IGNORECASE)

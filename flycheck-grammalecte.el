@@ -102,6 +102,7 @@ python files named `flycheck-grammalecte.el' and
 The default value is automatically computed from the included file.")
 
 
+
 ;;;; Helper methods:
 
 (defun flycheck-grammalecte--grammalecte-version ()
@@ -196,6 +197,10 @@ TYPE may be `synonymes' or `antonymes'."
            "/{n;s|\\s*<a href=\"/des/synonymes/[^\"]*\">\\([^<]*\\)</a>,\\?|- \\1\\n|g;p;/<!--Fin liste des "
            type "-->/q}' | sed '$ d'")))
 
+
+
+;;;; Public function
+
 (defun flycheck-grammalecte-download-grammalecte ()
   "Download, extract and install Grammalecte python program."
   (interactive)
@@ -229,6 +234,7 @@ Windows OS.
     (goto-char (point-min))))
 
 
+
 ;;;; Checker definition:
 
 (flycheck-def-executable-var 'français-grammalecte "python3")

@@ -1,20 +1,20 @@
 #+title: Manual installation procedure
 
-This package has a strong dependency on =python3=. The installation of
+This package has a strong dependency on ~python3~. The installation of
 the right version of python is up to you.
 
 You first need to clone this repository. We recommend you to put it
-somewhere under your =.emacs.d= folder.
+somewhere under your ~.emacs.d~ folder.
 
 #+begin_src emacs-lisp
 cd ~/.emacs.d
 git clone https://git.deparis.io/flycheck-grammalecte
 #+end_src
 
-On GNU/Linux and Mac OS, you can benefit of a =Makefile=, which will
+On GNU/Linux and Mac OS, you can benefit of a ~Makefile~, which will
 download for you the last version of Grammalecte and compile the GNU
 Emacs Lisp package. For that to happen, go to the newly created
-=flycheck-grammalecte= folder and enter the ~make~ command.
+~flycheck-grammalecte~ folder and enter the ~make~ command.
 
 #+begin_src
 cd flycheck-grammalecte
@@ -33,9 +33,9 @@ And everything should be fine.
 You may want to clean up a bit the Flycheck-grammalecte directory by
 entering the following command: ~make clean~.
 
-If you cannot or don't want to use the =Makefile=, you can also just add
+If you cannot or don't want to use the ~Makefile~, you can also just add
 the following line to your GNU Emacs config file (please note that in
-that case, we call the =.el= file as we have not byte-compiled it):
+that case, we call the ~.el~ file as we have not byte-compiled it):
 
 #+begin_src emacs-lisp
 (load-file "~/.emacs.d/flycheck-grammalecte/flycheck-grammalecte.el")

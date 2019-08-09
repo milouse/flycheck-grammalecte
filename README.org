@@ -11,15 +11,15 @@ the [[http://www.flycheck.org/][flycheck]] GNU Emacs package.
 
 [[https://melpa.org/#/flycheck-grammalecte][file:https://melpa.org/packages/flycheck-grammalecte-badge.svg]]
 
-This package has a strong dependency on =python3=. The installation of
+This package has a strong dependency on ~python3~. The installation of
 the right version of python is up to you.
 
-=flycheck-grammalecte= is available on MELPA stable and unstable. Please
+/Flycheck grammalecte/ is available on MELPA stable and unstable. Please
 read the [[https://www.emacswiki.org/emacs/InstallingPackages][Installing Package documentation]] from the EmacsWiki to know
 more how to install a package. A [[./MANUAL_INSTALL.org][manual installation procedure]] exists
 too if you prefer.
 
-If you install =flycheck-grammalecte= as a package, you need to add the
+If you install /Flycheck grammalecte/ as a package, you need to add the
 following line somewhere in your GNU Emacs config file:
 
 #+begin_src emacs-lisp
@@ -35,36 +35,36 @@ Finally, the last expected step is to download the
 * Configuration
 
 All options are accessibles with ~customize~. In GNU Emacs, enter
-~M-x customize~, then click on =Editing=, then =I18n=, and finally on
-=Flycheck Grammalecte=.
+~M-x customize~, then click on ~Editing~, then ~I18n~, and finally on
+~Flycheck Grammalecte~.
 
 You can also set this variables in your GNU Emacs config file. Here is
 a quick reference of the available variables:
 
-- =flycheck-grammalecte-report-spellcheck= :: If this variable is set to
+- ~flycheck-grammalecte-report-spellcheck~ :: If this variable is set to
      ~nil~, Flycheck will *not* report spellchecking error. Only grammar
      errors will be notified. This can be handy when you want to use
      /flyspell/ or /ispell/. Default is ~t~.
-- =flycheck-grammalecte-report-grammar= :: If this variable is set to
+- ~flycheck-grammalecte-report-grammar~ :: If this variable is set to
      ~nil~, Flycheck will *not* report grammar error. Only spellchecking
      errors will be notified. Default is ~t~.
-- =flycheck-grammalecte-report-apos= :: If this variable is set to
+- ~flycheck-grammalecte-report-apos~ :: If this variable is set to
      ~nil~, Flycheck will *not* report typographical apostrophes (’)
      error. This can be usefull when your main editor mode manage
      apostrophe by itself (like LaTeX, org-mode export…). Default is
      ~t~.
-- =flycheck-grammalecte-report-nbsp= :: If this variable is set to
+- ~flycheck-grammalecte-report-nbsp~ :: If this variable is set to
      ~nil~, Flycheck will *not* report non-breakable spaces
      error. This can be usefull when your main editor mode manage
      spaces by itself (like LaTeX, org-mode export…). Default is ~t~.
-- =flycheck-grammalecte-report-esp= :: If this variable is set to
+- ~flycheck-grammalecte-report-esp~ :: If this variable is set to
      ~nil~, Flycheck will *not* report useless spaces and tabs error.
      This can be usefull when your main editor mode manage spaces by
      itself (like LaTeX, org-mode export…). Default is ~t~.
-- =flycheck-grammalecte-enabled-modes= :: This variable stores the list
+- ~flycheck-grammalecte-enabled-modes~ :: This variable stores the list
      of major modes for which /flycheck-grammalecte/ must be
      used. *Warning*, this variable must be set *before* loading
-     =flycheck-grammalecte= itself. Thus, do not try to set it with
+     ~flycheck-grammalecte~ itself. Thus, do not try to set it with
      ~customize~. Put it directly in your GNU Emacs config file.
      Default is ~’(org-mode text-mode mail-mode latex-mode)~. To add
      markdown mode, for example, use the following line:

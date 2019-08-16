@@ -356,30 +356,39 @@ Windows OS.
 
 ;;;; Checker definition:
 
-(flycheck-def-executable-var 'français-grammalecte "python3")
+;;;###autoload
+(defun flycheck-grammalecte-setup ()
+  "Build the flycheck checker, matching your taste."
+  (flycheck-def-executable-var 'grammalecte "python3")
+  (let ((cmdline '(source)))
+    ;; add-to-list prepend the new value to the list. Thus we first add
+    ;; all possible command arguments.
+    (unless flycheck-grammalecte-report-spellcheck
+      (add-to-list 'cmdline "-S"))
+    (unless flycheck-grammalecte-report-grammar
+      (add-to-list 'cmdline "-G"))
+    (unless flycheck-grammalecte-report-apos
+      (add-to-list 'cmdline "-A"))
+      (unless flycheck-grammalecte-report-nbsp
+      (add-to-list 'cmdline "-N"))
+    (unless flycheck-grammalecte-report-esp
+      (add-to-list 'cmdline "-W"))
+    ;; Then we can add the python script path
+    (add-to-list 'cmdline (expand-file-name "flycheck-grammalecte.py" flycheck-grammalecte-directory))
+    ;; And finally the python3 interpreter
+    (add-to-list 'cmdline "python3")
 
-;; We do not use the `flycheck-define-checker' helper because we use a
-;; quoted variable to store modes list
-(flycheck-define-command-checker 'francais-grammalecte
-  "Grammalecte syntax checker for french language
+    ;; Now that we have all our variables, we can create the custom
+    ;; checker.
+    (flycheck-define-command-checker 'grammalecte
+      "Grammalecte syntax checker for french language
 See URL `https://grammalecte.net/'."
-  :command '("python3"
-             (eval
-              (expand-file-name
-               "flycheck-grammalecte.py"
-               flycheck-grammalecte-directory))
-             (eval (unless flycheck-grammalecte-report-spellcheck "-S"))
-             (eval (unless flycheck-grammalecte-report-grammar "-G"))
-             (eval (unless flycheck-grammalecte-report-apos "-A"))
-             (eval (unless flycheck-grammalecte-report-nbsp "-N"))
-             (eval (unless flycheck-grammalecte-report-esp "-W"))
-             source)
-  :error-patterns
-  '((warning line-start "grammaire|" line "|" column "|" (message) line-end)
-    (info line-start "orthographe|" line "|" column "|" (message) line-end))
-  :modes flycheck-grammalecte-enabled-modes)
-
-(add-to-list 'flycheck-checkers 'francais-grammalecte)
+      :command cmdline
+      :error-patterns
+      '((warning line-start "grammaire|" line "|" column "|" (message) line-end)
+        (info line-start "orthographe|" line "|" column "|" (message) line-end))
+      :modes flycheck-grammalecte-enabled-modes)
+    (add-to-list 'flycheck-checkers 'grammalecte)))
 
 (provide 'flycheck-grammalecte)
 ;;; flycheck-grammalecte.el ends here

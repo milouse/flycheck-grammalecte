@@ -277,6 +277,7 @@ Quitter ‘q’ ou ‘k’, Copier avec ‘mouse-1’ ou ‘RET’.")
 
 ;;;; Synonym and antonyme public methods:
 
+;;;###autoload
 (defun flycheck-grammalecte-find-synonyms (word)
   "Find synonyms and antonyms for the given WORD.
 This function will call a subprocess to fetch data from the CRISCO¹
@@ -299,6 +300,7 @@ Windows OS.
       (flycheck-grammalecte-synonyms-mode))
     (switch-to-buffer-other-window buffer)))
 
+;;;###autoload
 (defun flycheck-grammalecte-find-synomyms-at-point ()
   "Find synonyms and antonyms for the word at point."
   (interactive)

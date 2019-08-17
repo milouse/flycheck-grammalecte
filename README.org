@@ -1,7 +1,10 @@
 #+title: Flycheck-grammalecte
 
-Simple wrapper for the french language checking tool [[http://www.dicollecte.org/][Grammalecte]] and
-the [[http://www.flycheck.org/][flycheck]] GNU Emacs package.
+Integrate the french grammar and typography checker [[http://www.dicollecte.org/][Grammalecte]] with
+[[http://www.flycheck.org/][flycheck]] to automatically look for mistakes in your writings. It also
+provides an easy way to find synonyms and antonyms for a given word (to
+avoid repetitions for exemple). This package is of very little interest
+for other languages.
 
 [[./demo.gif]]
 
@@ -77,4 +80,13 @@ a quick reference of the available variables:
 
 * Usage
 
-In an Org buffer, for example, type ~M-x flycheck-mode~.
+Enable /flycheck/ in a buffer, which major mode is declared in
+~flycheck-grammalecte-enabled-modes~, and voilà!
+
+* Credits
+
+The original package has been written by Guilhem Doulcier.
+
+This package would have not existed without the nice work of the people
+behinds the [[https://grammalecte.net/][Grammalecte]] and the [[http://crisco.unicaen.fr/des/synonymes/synonyme][“Dictionnaire Électronique des
+Synonymes”]] projects.

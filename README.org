@@ -46,8 +46,8 @@ a quick reference of the available variables:
 
 - ~flycheck-grammalecte-report-spellcheck~ :: If this variable is set to
      ~nil~, Flycheck will *not* report spellchecking error. Only grammar
-     errors will be notified. This can be handy when you want to use
-     /flyspell/ or /ispell/. Default is ~t~.
+     errors will be notified. ~nil~ is the default value as you should
+     better use /flyspell/ or /ispell/.
 - ~flycheck-grammalecte-report-grammar~ :: If this variable is set to
      ~nil~, Flycheck will *not* report grammar error. Only spellchecking
      errors will be notified. Default is ~t~.

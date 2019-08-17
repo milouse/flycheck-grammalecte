@@ -47,9 +47,9 @@
   :group 'flycheck-options
   :group 'i18n)
 
-(defcustom flycheck-grammalecte-report-spellcheck t
+(defcustom flycheck-grammalecte-report-spellcheck nil
   "Report spellcheck errors if non nil.
-Default is t."
+Default is nil.  You should use `flyspell' instead."
   :type 'boolean
   :group 'flycheck-grammalecte)
 

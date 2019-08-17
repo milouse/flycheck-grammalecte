@@ -78,6 +78,15 @@ a quick reference of the available variables:
 (require 'flycheck-grammalecte)
 #+end_src
 
+** Breaking changes
+
+*** Version 0.9
+
+This version changes the default value of
+~flycheck-grammalecte-report-spellcheck~ to ~nil~, making now
+grammalecte to *not* report spellchecking errors. If you like the old
+behavior, you are now required to explicitely set this variable to ~t~.
+
 * Usage
 
 Enable /flycheck/ in a buffer, which major mode is declared in

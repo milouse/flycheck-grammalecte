@@ -170,11 +170,14 @@ package files."
     (message "Grammalecte installed in %s" fgm-target-folder)
     fgm-target-folder))
 
-(defun flycheck-grammalecte--download-grammalecte-if-needed ()
-  "Install Grammalecte python package if it's not there."
-  ;; This function only works for `flycheck-grammalecte-enabled-modes'.
-  ;; No need to bother the user in other modes.
-  (when (memq major-mode flycheck-grammalecte-enabled-modes)
+(defun flycheck-grammalecte--download-grammalecte-if-needed (&optional force)
+  "Install Grammalecte python package if it's not there and current
+buffer major mode is present in the `flycheck-grammalecte-enabled-modes'
+list.
+
+If optional argument FORCE is non nil, verification will occurs even
+when current buffer major mode is not in `flycheck-grammalecte-enabled-modes'."
+  (when (or force (memq major-mode flycheck-grammalecte-enabled-modes))
     (unless (file-exists-p
              (expand-file-name "grammalecte/grammar_checker.py"
                                flycheck-grammalecte-directory))
@@ -187,6 +190,47 @@ package files."
 Please run the command `flycheck-grammalecte-download-grammalecte'
 as soon as possible.")))))
 
+
+
+;;;; Special buffer major mode methods
+
+(defun flycheck-grammalecte--set-buffer-title (title)
+  "Update the current buffer `header-line-format' with information on
+how to close it, prefixed by the given TITLE."
+  (setq-local
+   header-line-format
+   (concat title " Quitter ‘q’ ou ‘k’, Copier avec ‘mouse-1’ ou ‘RET’.")))
+
+(defvar flycheck-grammalecte-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "k" #'(lambda () (interactive)(quit-window t)))
+    (define-key map "o" #'other-window)
+    (define-key map "q" #'quit-window)
+    (define-key map (kbd "<mouse-1>")
+      #'(lambda (event)
+          (interactive "e")
+          (flycheck-grammalecte--kill-ring-save-at-point (posn-point (event-end event)))))
+    (define-key map (kbd "<RET>")
+      #'(lambda () (interactive)(flycheck-grammalecte--kill-ring-save-at-point)))
+    map)
+  "Keymap for `flycheck-grammalecte-mode'.")
+
+(define-derived-mode flycheck-grammalecte-mode special-mode
+  "Flycheck Grammalecte mode"
+  "Major mode used to display results of a synonym research or
+conjugation table."
+  (buffer-disable-undo)
+  (setq buffer-read-only t
+        show-trailing-whitespace nil)
+  (when (bound-and-true-p global-linum-mode)
+    (linum-mode -1))
+  (when (and (fboundp 'nlinum-mode)
+             (bound-and-true-p global-nlinum-mode))
+    (nlinum-mode -1))
+  (when (and (fboundp 'display-line-numbers-mode)
+             (bound-and-true-p global-display-line-numbers-mode))
+    (display-line-numbers-mode -1))
+  (goto-char (point-min)))
 
 
 ;;;; Public methods:
@@ -238,40 +282,6 @@ TYPE may be `synonymes' or `antonymes'."
         "%s sauvé dans le kill-ring.  Utilisez ‘C-y’ n'importe où pour l'utiliser."
         (buffer-substring-no-properties beg end))))))
 
-(defvar flycheck-grammalecte-synonyms-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "k" #'(lambda () (interactive)(quit-window t)))
-    (define-key map "o" #'other-window)
-    (define-key map "q" #'quit-window)
-    (define-key map (kbd "<mouse-1>")
-      #'(lambda (event)
-          (interactive "e")
-          (flycheck-grammalecte--kill-ring-save-at-point (posn-point (event-end event)))))
-    (define-key map (kbd "<RET>")
-      #'(lambda () (interactive)(flycheck-grammalecte--kill-ring-save-at-point)))
-    map)
-  "Keymap for `flycheck-grammalecte-synonyms-mode'.")
-
-(define-derived-mode flycheck-grammalecte-synonyms-mode special-mode
-  "CRISCO synonymes"
-  "Major mode used to display results of a synonym research."
-  (buffer-disable-undo)
-  (setq buffer-read-only t
-        show-trailing-whitespace nil)
-  (when (bound-and-true-p global-linum-mode)
-    (linum-mode -1))
-  (when (and (fboundp 'nlinum-mode)
-             (bound-and-true-p global-nlinum-mode))
-    (nlinum-mode -1))
-  (when (and (fboundp 'display-line-numbers-mode)
-             (bound-and-true-p global-display-line-numbers-mode))
-    (display-line-numbers-mode -1))
-  (setq-local
-   header-line-format
-   "Sélection de synonymes ou d'antonyme.  \
-Quitter ‘q’ ou ‘k’, Copier avec ‘mouse-1’ ou ‘RET’.")
-  (goto-char (point-min)))
-
 
 
 ;;;; Synonym and antonyme public methods:
@@ -296,7 +306,9 @@ Windows OS.
                                'face 'org-level-1) "\n\n")
       (flycheck-grammalecte--insert-crisco-words word "antonymes")
       (insert "\n") ;; Avoid ugly last button
-      (flycheck-grammalecte-synonyms-mode))
+      (flycheck-grammalecte-mode)
+      (flycheck-grammalecte--set-buffer-title
+       "Sélection de synonymes ou d'antonymes."))
     (switch-to-buffer-other-window buffer)))
 
 ;;;###autoload
@@ -305,6 +317,40 @@ Windows OS.
   (interactive)
   (let ((word (thing-at-point 'word 'no-properties)))
     (flycheck-grammalecte-find-synonyms word)))
+
+;;;###autoload
+(defun flycheck-grammalecte-conjugate-verb (verb)
+  "Display the conjugation table for the given VERB."
+  (interactive "sVerb: ")
+  (flycheck-grammalecte--download-grammalecte-if-needed t)
+  (if (get-buffer "*Conjugaison*")
+      (kill-buffer "*Conjugaison*"))
+  (let ((buffer (get-buffer-create "*Conjugaison*")))
+    (with-current-buffer buffer
+      (insert
+       (shell-command-to-string
+        (format "python %s %s"
+                (expand-file-name "conjugueur.py" flycheck-grammalecte-directory)
+                verb)))
+      (goto-char (point-min))
+      (while (re-search-forward "^\\* [^\n]+$" nil t)
+        (replace-match (propertize (match-string 0) 'face 'org-level-1)))
+      (goto-char (point-min))
+      (while (re-search-forward "^\\*\\* [^\n]+$" nil t)
+        (replace-match (propertize (match-string 0) 'face 'org-level-2)))
+      (goto-char (point-min))
+      (while (re-search-forward "\\*\\(?:avoir\\|être\\)\\*" nil t)
+        (replace-match (propertize (match-string 0) 'face 'bold)))
+      (goto-char (point-min))
+      (while (re-search-forward "^\\- \\([^ \n]+\\)$" nil t)
+        (replace-match
+         (propertize (match-string 1) 'mouse-face 'highlight
+                     'help-echo "mouse-1: Copier le mot")
+         t t nil 1))
+      (flycheck-grammalecte-mode)
+      (flycheck-grammalecte--set-buffer-title
+       (format "Conjugaison de %s." verb)))
+    (switch-to-buffer-other-window buffer)))
 
 
 

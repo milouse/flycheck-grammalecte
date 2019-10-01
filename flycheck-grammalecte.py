@@ -78,12 +78,12 @@ def main(files, opts={}):
         "header", "keywords", "language", "name", "options", "title",
         "attr_.+"
     ]
+    org_re = re.compile(
+        r"^#\+(?:{})\:".format("|".join(org_keywords)),
+        re.IGNORECASE)
 
     # Output
     if do_gramm:
-        org_re = re.compile(
-            "^#\\+(?:{})\\:$".format("|".join(org_keywords)),
-            re.IGNORECASE)
         for i in list(gramm_err):
             cur_line = text_input[i["nStartY"]]
             if i["sType"] == "esp":
@@ -102,10 +102,7 @@ def main(files, opts={}):
                 # Remove some unwanted nbsp warnings
                 if cur_line[0:4] == "#-*-":
                     continue
-                # The following line is not subject to overflow
-                # excepton, even if i["nStartX"] + 1 > len(cur_line)
-                m = org_re.match(cur_line[0:i["nStartX"] + 1])
-                if m is not None and m.start() == 0:
+                if org_re.search(cur_line) is not None:
                     continue
             print("grammaire|{}|{}|{}"
                   .format(i["nStartY"] + 1 + document_offset,
@@ -115,11 +112,8 @@ def main(files, opts={}):
     if do_spell:
         for i in list(spell_err):
             cur_line = text_input[i["nStartY"]]
-            org_re = re.compile(
-                "(?:{})\\:".format("|".join(org_keywords)),
-                re.IGNORECASE)
-            m = org_re.match(cur_line, i["nStartX"])
-            if m is not None and m.start() == i["nStartX"]:
+            if org_re.search(cur_line) is not None \
+               and i["sValue"] in org_keywords:
                 continue
             print("orthographe|{}|{}|{}"
                   .format(i["nStartY"] + 1 + document_offset,

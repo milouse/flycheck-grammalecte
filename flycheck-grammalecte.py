@@ -107,7 +107,7 @@ def main(files, opts={}):
                 m = org_re.match(cur_line[0:i["nStartX"] + 1])
                 if m is not None and m.start() == 0:
                     continue
-            print("grammaire|{}|{}|{}\n"
+            print("grammaire|{}|{}|{}"
                   .format(i["nStartY"] + 1 + document_offset,
                           i["nStartX"] + 1,
                           i["sMessage"]))
@@ -121,7 +121,7 @@ def main(files, opts={}):
             m = org_re.match(cur_line, i["nStartX"])
             if m is not None and m.start() == i["nStartX"]:
                 continue
-            print("orthographe|{}|{}|{}\n"
+            print("orthographe|{}|{}|{}"
                   .format(i["nStartY"] + 1 + document_offset,
                           i["nStartX"] + 1,
                           "Mot absent du dictionnaire"))

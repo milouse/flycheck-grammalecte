@@ -124,7 +124,7 @@ def main(files, opts={}):
             print("orthographe|{}|{}|{}"
                   .format(i["nStartY"] + 1 + document_offset,
                           i["nStartX"] + 1,
-                          "Mot absent du dictionnaire"))
+                          "« {} » absent du dictionnaire".format(i["sValue"])))
 
 
 if __name__ == "__main__":

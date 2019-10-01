@@ -20,6 +20,23 @@ import grammalecte.text as txt
 from argparse import ArgumentParser
 
 
+def match_latex_expr(cur_line, word=None, pos=None):
+    latex_re = re.compile(r"\\(\w+)(?:\[([^]]+)\])?(?:{([^}]*)})?")
+    if word is None and pos is None:
+        return False
+    for n in latex_re.finditer(cur_line):
+        if word is not None \
+           and (word == n[1] or word == n[2] or word == n[3]
+                or (n[2] is not None and re.search(word, n[2]) is not None)
+                or (n[3] is not None and re.search(word, n[3]) is not None)):
+            # This is a latex keyword, switch next
+            return True
+        elif pos is not None and pos in range(*n.span()):
+            # Error is somewhere in a latex expression
+            return True
+    return False
+
+
 def main(files, opts={}):
     """Read the file and run grammalecte on it"""
 
@@ -100,6 +117,8 @@ def main(files, opts={}):
                     continue
                 if org_re.search(cur_line) is not None:
                     continue
+            elif match_latex_expr(cur_line, pos=i["nStartX"]):
+                continue
             message = i["sMessage"]
             suggs = i.get("aSuggestions", [])
             if len(suggs) > 0:
@@ -116,6 +135,8 @@ def main(files, opts={}):
             cur_line = text_input[i["nStartY"]]
             if org_re.search(cur_line) is not None \
                and i["sValue"] in org_keywords:
+                continue
+            if match_latex_expr(cur_line, word=i["sValue"]):
                 continue
             print("orthographe|{}|{}|{}"
                   .format(i["nStartY"] + 1 + document_offset,

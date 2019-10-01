@@ -104,10 +104,15 @@ def main(files, opts={}):
                     continue
                 if org_re.search(cur_line) is not None:
                     continue
+            message = i["sMessage"]
+            if "aSuggestions" in i and len(i["aSuggestions"]):
+                message += " ⇨ " + ", ".join(i["aSuggestions"])
+            message = message.replace("“", "« ").replace("« ", "« ") \
+                             .replace("”", " »").replace(" »", " »")
             print("grammaire|{}|{}|{}"
                   .format(i["nStartY"] + 1 + document_offset,
                           i["nStartX"] + 1,
-                          i["sMessage"]))
+                          message))
 
     if do_spell:
         for i in list(spell_err):

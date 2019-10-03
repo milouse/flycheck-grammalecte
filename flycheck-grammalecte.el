@@ -211,7 +211,7 @@ as soon as possible.")))))
 TYPE may be `synonymes' or `antonymes'."
   (split-string
    (shell-command-to-string
-    (concat "curl -s http://crisco.unicaen.fr/des/synonymes/" word
+    (concat "curl -s https://crisco2.unicaen.fr/des/synonymes/" word
             " | sed -n '/<i class=[^>]*>[0-9]* " type
             "/{n;s|\\s*<a href=\"/des/synonymes/[^\"]*\">\\([^<]*\\)</a>,\\?|\\1\\n|g;p;/<!--Fin liste des "
             type "-->/q}' | sed '$ d'"))

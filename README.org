@@ -93,9 +93,9 @@ Enable /flycheck/ in a buffer, which major mode is declared in
 ~flycheck-grammalecte-enabled-modes~, and voilà!
 
 If you are looking for a better word at some place, you can use the
-function ~flycheck-grammalecte-find-synomyms-at-point~ (which will take
+function ~flycheck-grammalecte-find-synonyms-at-point~ (which will take
 the word at point to find synonyms and antonyms) or the simpler
-~flycheck-grammalecte-find-synomyms~ (which will ask you for a word
+~flycheck-grammalecte-find-synonyms~ (which will ask you for a word
 before doing the search). Pro tip: these functions are available even in
 buffer, which major mode is not in the
 ~flycheck-grammalecte-enabled-modes~ list.

@@ -286,11 +286,11 @@ a new buffer in another window.  This function will not work with
 Windows OS.
 ¹ http://crisco.unicaen.fr/des/synonymes/"
   (interactive "sWord: ")
-  (if (get-buffer "*Flycheck Grammalecte Synomyms*")
-      (kill-buffer "*Flycheck Grammalecte Synomyms*"))
-  (let ((buffer (get-buffer-create "*Flycheck Grammalecte Synomyms*")))
+  (if (get-buffer "*Synonymes*")
+      (kill-buffer "*Synonymes*"))
+  (let ((buffer (get-buffer-create "*Synonymes*")))
     (with-current-buffer buffer
-      (insert (propertize (format "* Synomymes de %s" word)
+      (insert (propertize (format "* Synonymes de %s" word)
                           'face 'org-level-1) "\n\n")
       (flycheck-grammalecte--insert-crisco-words word "synonymes")
       (insert "\n\n" (propertize (format "* Antonymes de %s" word)
@@ -301,7 +301,7 @@ Windows OS.
     (switch-to-buffer-other-window buffer)))
 
 ;;;###autoload
-(defun flycheck-grammalecte-find-synomyms-at-point ()
+(defun flycheck-grammalecte-find-synonyms-at-point ()
   "Find synonyms and antonyms for the word at point."
   (interactive)
   (let ((word (thing-at-point 'word 'no-properties)))

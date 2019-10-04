@@ -229,14 +229,15 @@ TYPE may be `synonymes' or `antonymes'."
   "In the synonyms result buffer, select the word at POS."
   (unless pos (setq pos (point)))
   (goto-char pos)
-  (let ((beg (+ 2 (line-beginning-position))) ;; ignore the leading -
-        (end (line-end-position))
-        word)
-    (kill-ring-save beg end)
-    (message
-     (format
-      "%s sauvé dans le kill-ring.  Utilisez ‘C-y’ n'importe où pour l'utiliser."
-      (buffer-substring-no-properties beg end)))))
+  (when (string= "-" (string (char-after (line-beginning-position))))
+    (let ((beg (+ 2 (line-beginning-position))) ;; ignore the leading -
+          (end (line-end-position))
+          word)
+      (kill-ring-save beg end)
+      (message
+       (format
+        "%s sauvé dans le kill-ring.  Utilisez ‘C-y’ n'importe où pour l'utiliser."
+        (buffer-substring-no-properties beg end))))))
 
 (defvar flycheck-grammalecte-synonyms-mode-map
   (let ((map (make-sparse-keymap)))

@@ -123,11 +123,10 @@ the Grammalecte home page or if no version string is found in the page."
 (defun flycheck-grammalecte--download-zip ()
   "Download Grammalecte CLI zip file."
   (let* ((fgm-zip-name
-          (concat "Grammalecte-fr-v"
-                  (flycheck-grammalecte--grammalecte-version)
-                  ".zip"))
+          (format "Grammalecte-fr-v%s.zip"
+                  (flycheck-grammalecte--grammalecte-version)))
          (fgm-dl-url
-          (concat "https://grammalecte.net/grammalecte/zip/"
+          (format "https://grammalecte.net/grammalecte/zip/%s"
                   fgm-zip-name))
          (fgm-zip-file (expand-file-name
                         fgm-zip-name

@@ -93,6 +93,26 @@ Otherwise, it will ask for a yes-or-no confirmation."
   :type 'boolean
   :group 'flycheck-grammalecte)
 
+(defcustom flycheck-grammalecte-filters '()
+  "List patterns for which errors in matching texts must be ignored.
+These patterns must be python Regular Expressions¹.
+Escape character ‘\\’ must be doubled twice: one time for emacs
+and one time for python.  For example, to exclude LaTeX math
+formulas, one can use :
+
+    (custom-set-variables
+     '(flycheck-grammalecte-filters
+       '(\"\\$.*?\\$\"
+         \"\\\\begin{equation}.*?\\\\end{equation}\")))
+
+Filters are applied sequentially.  In practice all characters of
+the matching pattern are replaced by ‘&’, which are ignored by
+grammalecte.
+
+¹ See URL `https://docs.python.org/3.5/library/re.html#regular-expression-syntax'."
+  :type '(repeat string)
+  :group 'flycheck-grammalecte)
+
 (defvar flycheck-grammalecte-directory
   (if load-file-name (file-name-directory load-file-name) default-directory)
   "Location of the flycheck-grammalecte package.
@@ -373,6 +393,9 @@ Windows OS.
       (push "-N" cmdline))
     (unless flycheck-grammalecte-report-esp
       (push "-W" cmdline))
+    (dolist (filter flycheck-grammalecte-filters)
+      (push (concat "-F " filter) cmdline))
+
     ;; Then we can add the python script path
     (push (expand-file-name "flycheck-grammalecte.py" flycheck-grammalecte-directory) cmdline)
     ;; And finally the python3 interpreter

@@ -62,6 +62,17 @@ def main(files, opts={}):
     text, lineset = txt.createParagraphWithLines(
         list(enumerate(text_input)))
 
+    # Replace filters patterns with some character to preserve position
+    replacement_char = "&"
+    filters = opts.get("filters", [])
+    for pattern in filters:
+        p = re.compile(pattern)
+        for i in p.finditer(text):
+            beg = text[:i.start()]
+            end = text[i.end()+1:]
+            repl = (i.end() - i.start() + 1) * replacement_char
+            text = beg + repl + end
+
     do_gramm = not opts.get("no_gramm", False)
     do_spell = not opts.get("no_spell", False)
     gramm_err = spell_err = []
@@ -156,6 +167,9 @@ if __name__ == "__main__":
                         help="Don't report non-breakable spaces errors")
     parser.add_argument("-W", "--no-space", action="store_true",
                         help="Don't report useless spaces and tabs errors")
+    parser.add_argument('-F', "--filters", action="append",
+                        help="Filter pattern (regular expression "
+                        "replaced before analysis)")
     parser.add_argument('files', metavar='FILE', nargs='*',
                         help="files to read, if empty, stdin is used")
 
@@ -168,6 +182,7 @@ if __name__ == "__main__":
         "no_gramm": args.no_grammar,
         "no_apos": args.no_apostrophe,
         "no_nbsp": args.no_nbsp,
-        "no_esp": args.no_space
+        "no_esp": args.no_space,
+        "filters": args.filters
     }
     main(files, opts)

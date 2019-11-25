@@ -394,7 +394,7 @@ Windows OS.
     (unless flycheck-grammalecte-report-esp
       (push "-W" cmdline))
     (dolist (filter flycheck-grammalecte-filters)
-      (push (concat "-F " filter) cmdline))
+      (push (concat "-f " filter) cmdline))
 
     ;; Then we can add the python script path
     (push (expand-file-name "flycheck-grammalecte.py" flycheck-grammalecte-directory) cmdline)

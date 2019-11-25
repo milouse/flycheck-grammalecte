@@ -167,7 +167,7 @@ if __name__ == "__main__":
                         help="Don't report non-breakable spaces errors")
     parser.add_argument("-W", "--no-space", action="store_true",
                         help="Don't report useless spaces and tabs errors")
-    parser.add_argument('-F', "--filters", action="append",
+    parser.add_argument('-f', "--filters", action="append",
                         help="Filter pattern (regular expression "
                         "replaced before analysis)")
     parser.add_argument('files', metavar='FILE', nargs='*',

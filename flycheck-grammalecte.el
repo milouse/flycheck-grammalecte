@@ -231,8 +231,7 @@ TYPE may be `synonymes' or `antonymes'."
   (goto-char pos)
   (when (string= "-" (string (char-after (line-beginning-position))))
     (let ((beg (+ 2 (line-beginning-position))) ;; ignore the leading -
-          (end (line-end-position))
-          word)
+          (end (line-end-position)))
       (kill-ring-save beg end)
       (message
        (format

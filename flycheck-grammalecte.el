@@ -48,31 +48,31 @@
   :group 'i18n)
 
 (defcustom flycheck-grammalecte-report-spellcheck nil
-  "Report spellcheck errors if non nil.
+  "Report spellcheck errors if non-nil.
 Default is nil.  You should use `flyspell' instead."
   :type 'boolean
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-report-grammar t
-  "Report grammar errors if non nil.
+  "Report grammar errors if non-nil.
 Default is t."
   :type 'boolean
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-report-apos t
-  "Report apostrophe errors if non nil.
+  "Report apostrophe errors if non-nil.
 Default is t."
   :type 'boolean
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-report-nbsp t
-  "Report non-breakable spaces errors if non nil.
+  "Report non-breakable spaces errors if non-nil.
 Default is t."
   :type 'boolean
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-report-esp t
-  "Report useless spaces and tabs errors if non nil.
+  "Report useless spaces and tabs errors if non-nil.
 Default is t."
   :type 'boolean
   :group 'flycheck-grammalecte)
@@ -87,7 +87,7 @@ Default modes are `org-mode', `text-mode', `mail-mode' and
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-download-without-asking nil
-  "Download grammalecte upstream package without asking if non nil.
+  "Download grammalecte upstream package without asking if non-nil.
 
 Otherwise, it will ask for a yes-or-no confirmation."
   :type 'boolean
@@ -171,11 +171,11 @@ package files."
     fgm-target-folder))
 
 (defun flycheck-grammalecte--download-grammalecte-if-needed (&optional force)
-  "Install Grammalecte python package if it's not there and current
-buffer major mode is present in the `flycheck-grammalecte-enabled-modes'
-list.
-
-If optional argument FORCE is non nil, verification will occurs even
+  "Install Grammalecte python package if it's required.
+This method checks if the python package is already installed and
+if the current buffer major mode is present in the
+`flycheck-grammalecte-enabled-modes' list.
+If optional argument FORCE is non-nil, verification will occurs even
 when current buffer major mode is not in `flycheck-grammalecte-enabled-modes'."
   (when (or force (memq major-mode flycheck-grammalecte-enabled-modes))
     (unless (file-exists-p
@@ -183,7 +183,7 @@ when current buffer major mode is not in `flycheck-grammalecte-enabled-modes'."
                                flycheck-grammalecte-directory))
       (if (or flycheck-grammalecte-download-without-asking
               (yes-or-no-p
-               "[flycheck-grammalecte] Grammalecte data not found. Download it NOW?"))
+               "[flycheck-grammalecte] Grammalecte data not found.  Download it NOW?"))
           (flycheck-grammalecte-download-grammalecte)
         (display-warning "flycheck-grammalecte"
                          "Grammalecte will fail if used.
@@ -195,8 +195,8 @@ as soon as possible.")))))
 ;;;; Special buffer major mode methods
 
 (defun flycheck-grammalecte--set-buffer-title (title)
-  "Update the current buffer `header-line-format' with information on
-how to close it, prefixed by the given TITLE."
+  "Decorate the current buffer `header-line-format', prefixed by TITLE.
+It adds information on how to close it."
   (setq-local
    header-line-format
    (concat title " Quitter ‘q’ ou ‘k’, Copier avec ‘mouse-1’ ou ‘RET’.")))
@@ -251,7 +251,7 @@ conjugation table."
 
 (defun flycheck-grammalecte--fetch-crisco-words (word type)
   "Fetch TYPE words from the CRISCO dictionary for the given WORD.
-TYPE may be `synonymes' or `antonymes'."
+TYPE may be ‘synonymes’ or ‘antonymes’."
   (split-string
    (shell-command-to-string
     (concat "curl -s https://crisco2.unicaen.fr/des/synonymes/" word
@@ -262,7 +262,7 @@ TYPE may be `synonymes' or `antonymes'."
 
 (defun flycheck-grammalecte--insert-crisco-words (word type)
   "Insert the results for a search of TYPE words for the given WORD.
-TYPE may be `synonymes' or `antonymes'."
+TYPE may be ‘synonymes’ or ‘antonymes’."
   (insert
    (mapconcat
     #'(lambda (w) (concat "- " (propertize w 'mouse-face 'highlight 'help-echo "mouse-1: Copier le mot")))
@@ -293,7 +293,7 @@ This function will call a subprocess to fetch data from the CRISCO¹
 thesaurus through curl and sed.  The found words are then displayed in
 a new buffer in another window.  This function will not work with
 Windows OS.
-¹ http://crisco.unicaen.fr/des/synonymes/"
+¹ See URL `https://crisco2.unicaen.fr/des/synonymes/'"
   (interactive "sWord: ")
   (if (get-buffer "*Synonymes*")
       (kill-buffer "*Synonymes*"))
@@ -362,7 +362,7 @@ Windows OS.
 ;; quoted variable to store modes list
 (flycheck-define-command-checker 'francais-grammalecte
   "Grammalecte syntax checker for french language
-`https://grammalecte.net/'."
+See URL `https://grammalecte.net/'."
   :command '("python3"
              (eval
               (expand-file-name

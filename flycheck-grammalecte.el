@@ -364,19 +364,19 @@ Windows OS.
     ;; add-to-list prepend the new value to the list. Thus we first add
     ;; all possible command arguments.
     (unless flycheck-grammalecte-report-spellcheck
-      (add-to-list 'cmdline "-S"))
+      (push "-S" cmdline))
     (unless flycheck-grammalecte-report-grammar
-      (add-to-list 'cmdline "-G"))
+      (push "-G" cmdline))
     (unless flycheck-grammalecte-report-apos
-      (add-to-list 'cmdline "-A"))
+      (push "-A" cmdline))
       (unless flycheck-grammalecte-report-nbsp
-      (add-to-list 'cmdline "-N"))
+      (push "-N" cmdline))
     (unless flycheck-grammalecte-report-esp
-      (add-to-list 'cmdline "-W"))
+      (push "-W" cmdline))
     ;; Then we can add the python script path
-    (add-to-list 'cmdline (expand-file-name "flycheck-grammalecte.py" flycheck-grammalecte-directory))
+    (push (expand-file-name "flycheck-grammalecte.py" flycheck-grammalecte-directory) cmdline)
     ;; And finally the python3 interpreter
-    (add-to-list 'cmdline "python3")
+    (push "python3" cmdline)
 
     ;; Now that we have all our variables, we can create the custom
     ;; checker.

@@ -1,32 +1,44 @@
 GRAMVER = $(shell curl -s https://grammalecte.net/index.html | sed -n 's|^ *<p id="version_num">\([0-9.]*\)</p>|\1|p')
 
-EMACS=emacs -Q -q --batch -nw --eval "(package-initialize)"
+EMACS=emacs -Q --batch -nw
 
 .PHONY: build clean uninstall
+
+.INTERMEDIATE: Grammalecte-fr-v$(GRAMVER).zip dash.zip flycheck.zip
 
 all: build
 
 build: grammalecte flycheck-grammalecte.elc
-	$(info You should now add the following line to your .emacs.d/init.el file)
-	$(info (load-file "$(PWD)/flycheck-grammalecte.elc"))
 
-%.elc: %.el
-	$(info Compiling $(PWD)/$<...)
-	@$(EMACS) -f batch-byte-compile $<
+flycheck-grammalecte.elc: flycheck-grammalecte.el dash.el-master/dash.el flycheck-master/flycheck.el
+	$(EMACS) --eval "(add-to-list 'load-path \"dash.el-master\")" \
+		--eval "(add-to-list 'load-path \"flycheck-master\")" \
+		-f batch-byte-compile flycheck-grammalecte.el
+
+dash.zip:
+	curl -Lso dash.zip https://github.com/magnars/dash.el/archive/master.zip
+
+dash.el-master/dash.el: dash.zip
+	unzip -qo dash.zip
+
+flycheck.zip:
+	curl -Lso flycheck.zip https://github.com/flycheck/flycheck/archive/master.zip
+
+flycheck-master/flycheck.el: flycheck.zip
+	unzip -qo flycheck.zip
 
 Grammalecte-fr-v$(GRAMVER).zip:
-	curl -O https://grammalecte.net/grammalecte/zip/Grammalecte-fr-v$(GRAMVER).zip
+	curl -sO https://grammalecte.net/grammalecte/zip/Grammalecte-fr-v$(GRAMVER).zip
 
 Grammalecte-fr-v$(GRAMVER): Grammalecte-fr-v$(GRAMVER).zip
 	mkdir -p Grammalecte-fr-v$(GRAMVER)
-	unzip -o Grammalecte-fr-v$(GRAMVER).zip -d Grammalecte-fr-v$(GRAMVER)
+	unzip -qo Grammalecte-fr-v$(GRAMVER).zip -d Grammalecte-fr-v$(GRAMVER)
 
 grammalecte: Grammalecte-fr-v$(GRAMVER)
 	cp -R Grammalecte-fr-v$(GRAMVER)/grammalecte .
 
 clean:
-	rm -rf Grammalecte-fr-v$(GRAMVER)
-	rm -f Grammalecte-fr-v$(GRAMVER).zip
+	rm -rf Grammalecte-fr-v$(GRAMVER) dash.el-master flycheck-master
 
 uninstall: clean
 	rm -rf grammalecte

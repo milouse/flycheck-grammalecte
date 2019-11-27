@@ -45,8 +45,8 @@ def main(files, opts={}):
     text, lineset = txt.createParagraphWithLines(
         list(enumerate(text_input)))
 
-    do_gramm = ("no_gramm" not in opts or opts["no_gramm"] is False)
-    do_spell = ("no_spell" not in opts or opts["no_spell"] is False)
+    do_gramm = not opts.get("no_gramm", False)
+    do_spell = not opts.get("no_spell", False)
     gramm_err = spell_err = []
 
     # Load grammalecte.
@@ -54,14 +54,10 @@ def main(files, opts={}):
 
     # Compute grammar and spell check errors
     if do_gramm:
-        gc.gce.setOption(
-            "apos", "no_apos" not in opts or opts["no_apos"] is False)
-        gc.gce.setOption(
-            "nbsp", "no_nbsp" not in opts or opts["no_nbsp"] is False)
-        gc.gce.setOption(
-            "esp", "no_esp" not in opts or opts["no_esp"] is False)
-        gc.gce.setOption(
-            "tab", "no_esp" not in opts or opts["no_esp"] is False)
+        gc.gce.setOption("apos", not opts.get("no_apos", False))
+        gc.gce.setOption("nbsp", not opts.get("no_nbsp", False))
+        gc.gce.setOption("esp", not opts.get("no_esp", False))
+        gc.gce.setOption("tab", not opts.get("no_esp", False))
 
         gramm_err = gc.gce.parse(
             text, "FR",
@@ -105,8 +101,9 @@ def main(files, opts={}):
                 if org_re.search(cur_line) is not None:
                     continue
             message = i["sMessage"]
-            if "aSuggestions" in i and len(i["aSuggestions"]):
-                message += " ⇨ " + ", ".join(i["aSuggestions"])
+            suggs = i.get("aSuggestions", [])
+            if len(suggs) > 0:
+                message += " ⇨ " + ", ".join(suggs)
             message = message.replace("“", "« ").replace("« ", "« ") \
                              .replace("”", " »").replace(" »", " »")
             print("grammaire|{}|{}|{}"

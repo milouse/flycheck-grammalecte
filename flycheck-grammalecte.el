@@ -7,7 +7,7 @@
 ;; Author: Guilhem Doulcier <guilhem.doulcier@espci.fr>
 ;;         Étienne Deparis <etienne@depar.is>
 ;; Created: 21 February 2017
-;; Version: 0.9
+;; Version: 1.0
 ;; Package-Requires: ((emacs "25.1") (flycheck "26"))
 ;; Keywords: i18n, text
 ;; Homepage: https://git.deparis.io/flycheck-grammalecte/
@@ -48,31 +48,31 @@
   :group 'i18n)
 
 (defcustom flycheck-grammalecte-report-spellcheck nil
-  "Report spellcheck errors if non nil.
+  "Report spellcheck errors if non-nil.
 Default is nil.  You should use `flyspell' instead."
   :type 'boolean
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-report-grammar t
-  "Report grammar errors if non nil.
+  "Report grammar errors if non-nil.
 Default is t."
   :type 'boolean
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-report-apos t
-  "Report apostrophe errors if non nil.
+  "Report apostrophe errors if non-nil.
 Default is t."
   :type 'boolean
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-report-nbsp t
-  "Report non-breakable spaces errors if non nil.
+  "Report non-breakable spaces errors if non-nil.
 Default is t."
   :type 'boolean
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-report-esp t
-  "Report useless spaces and tabs errors if non nil.
+  "Report useless spaces and tabs errors if non-nil.
 Default is t."
   :type 'boolean
   :group 'flycheck-grammalecte)
@@ -87,7 +87,7 @@ Default modes are `org-mode', `text-mode', `mail-mode' and
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-download-without-asking nil
-  "Download grammalecte upstream package without asking if non nil.
+  "Download grammalecte upstream package without asking if non-nil.
 
 Otherwise, it will ask for a yes-or-no confirmation."
   :type 'boolean
@@ -123,11 +123,10 @@ the Grammalecte home page or if no version string is found in the page."
 (defun flycheck-grammalecte--download-zip ()
   "Download Grammalecte CLI zip file."
   (let* ((fgm-zip-name
-          (concat "Grammalecte-fr-v"
-                  (flycheck-grammalecte--grammalecte-version)
-                  ".zip"))
+          (format "Grammalecte-fr-v%s.zip"
+                  (flycheck-grammalecte--grammalecte-version)))
          (fgm-dl-url
-          (concat "https://grammalecte.net/grammalecte/zip/"
+          (format "https://grammalecte.net/grammalecte/zip/%s"
                   fgm-zip-name))
          (fgm-zip-file (expand-file-name
                         fgm-zip-name
@@ -171,23 +170,67 @@ package files."
     (message "Grammalecte installed in %s" fgm-target-folder)
     fgm-target-folder))
 
-(defun flycheck-grammalecte--download-grammalecte-if-needed ()
-  "Install Grammalecte python package if it's not there."
-  ;; This function only works for `flycheck-grammalecte-enabled-modes'.
-  ;; No need to bother the user in other modes.
-  (when (memq major-mode flycheck-grammalecte-enabled-modes)
+(defun flycheck-grammalecte--download-grammalecte-if-needed (&optional force)
+  "Install Grammalecte python package if it's required.
+This method checks if the python package is already installed and
+if the current buffer major mode is present in the
+`flycheck-grammalecte-enabled-modes' list.
+If optional argument FORCE is non-nil, verification will occurs even
+when current buffer major mode is not in `flycheck-grammalecte-enabled-modes'."
+  (when (or force (memq major-mode flycheck-grammalecte-enabled-modes))
     (unless (file-exists-p
              (expand-file-name "grammalecte/grammar_checker.py"
                                flycheck-grammalecte-directory))
       (if (or flycheck-grammalecte-download-without-asking
               (yes-or-no-p
-               "[flycheck-grammalecte] Grammalecte data not found. Download it NOW?"))
+               "[flycheck-grammalecte] Grammalecte data not found.  Download it NOW?"))
           (flycheck-grammalecte-download-grammalecte)
         (display-warning "flycheck-grammalecte"
                          "Grammalecte will fail if used.
 Please run the command `flycheck-grammalecte-download-grammalecte'
 as soon as possible.")))))
 
+
+
+;;;; Special buffer major mode methods
+
+(defun flycheck-grammalecte--set-buffer-title (title)
+  "Decorate the current buffer `header-line-format', prefixed by TITLE.
+It adds information on how to close it."
+  (setq-local
+   header-line-format
+   (concat title " Quitter ‘q’ ou ‘k’, Copier avec ‘mouse-1’ ou ‘RET’.")))
+
+(defvar flycheck-grammalecte-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "k" #'(lambda () (interactive)(quit-window t)))
+    (define-key map "o" #'other-window)
+    (define-key map "q" #'quit-window)
+    (define-key map (kbd "<mouse-1>")
+      #'(lambda (event)
+          (interactive "e")
+          (flycheck-grammalecte--kill-ring-save-at-point (posn-point (event-end event)))))
+    (define-key map (kbd "<RET>")
+      #'(lambda () (interactive)(flycheck-grammalecte--kill-ring-save-at-point)))
+    map)
+  "Keymap for `flycheck-grammalecte-mode'.")
+
+(define-derived-mode flycheck-grammalecte-mode special-mode
+  "Flycheck Grammalecte mode"
+  "Major mode used to display results of a synonym research or
+conjugation table."
+  (buffer-disable-undo)
+  (setq buffer-read-only t
+        show-trailing-whitespace nil)
+  (when (bound-and-true-p global-linum-mode)
+    (linum-mode -1))
+  (when (and (fboundp 'nlinum-mode)
+             (bound-and-true-p global-nlinum-mode))
+    (nlinum-mode -1))
+  (when (and (fboundp 'display-line-numbers-mode)
+             (bound-and-true-p global-display-line-numbers-mode))
+    (display-line-numbers-mode -1))
+  (goto-char (point-min)))
 
 
 ;;;; Public methods:
@@ -208,7 +251,7 @@ as soon as possible.")))))
 
 (defun flycheck-grammalecte--fetch-crisco-words (word type)
   "Fetch TYPE words from the CRISCO dictionary for the given WORD.
-TYPE may be `synonymes' or `antonymes'."
+TYPE may be ‘synonymes’ or ‘antonymes’."
   (split-string
    (shell-command-to-string
     (concat "curl -s https://crisco2.unicaen.fr/des/synonymes/" word
@@ -219,7 +262,7 @@ TYPE may be `synonymes' or `antonymes'."
 
 (defun flycheck-grammalecte--insert-crisco-words (word type)
   "Insert the results for a search of TYPE words for the given WORD.
-TYPE may be `synonymes' or `antonymes'."
+TYPE may be ‘synonymes’ or ‘antonymes’."
   (insert
    (mapconcat
     #'(lambda (w) (concat "- " (propertize w 'mouse-face 'highlight 'help-echo "mouse-1: Copier le mot")))
@@ -230,48 +273,14 @@ TYPE may be `synonymes' or `antonymes'."
   "In the synonyms result buffer, select the word at POS."
   (unless pos (setq pos (point)))
   (goto-char pos)
-  (let ((beg (+ 2 (line-beginning-position))) ;; ignore the leading -
-        (end (line-end-position))
-        word)
-    (kill-ring-save beg end)
-    (message
-     (format
-      "%s sauvé dans le kill-ring.  Utilisez ‘C-y’ n'importe où pour l'utiliser."
-      (buffer-substring-no-properties beg end)))))
-
-(defvar flycheck-grammalecte-synonyms-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "k" #'(lambda () (interactive)(quit-window t)))
-    (define-key map "o" #'other-window)
-    (define-key map "q" #'quit-window)
-    (define-key map (kbd "<mouse-1>")
-      #'(lambda (event)
-          (interactive "e")
-          (flycheck-grammalecte--kill-ring-save-at-point (posn-point (event-end event)))))
-    (define-key map (kbd "<RET>")
-      #'(lambda () (interactive)(flycheck-grammalecte--kill-ring-save-at-point)))
-    map)
-  "Keymap for `flycheck-grammalecte-synonyms-mode'.")
-
-(define-derived-mode flycheck-grammalecte-synonyms-mode special-mode
-  "CRISCO synonymes"
-  "Major mode used to display results of a synonym research."
-  (buffer-disable-undo)
-  (setq buffer-read-only t
-        show-trailing-whitespace nil)
-  (when (bound-and-true-p global-linum-mode)
-    (linum-mode -1))
-  (when (and (fboundp 'nlinum-mode)
-             (bound-and-true-p global-nlinum-mode))
-    (nlinum-mode -1))
-  (when (and (fboundp 'display-line-numbers-mode)
-             (bound-and-true-p global-display-line-numbers-mode))
-    (display-line-numbers-mode -1))
-  (setq-local
-   header-line-format
-   "Sélection de synonymes ou d'antonyme.  \
-Quitter ‘q’ ou ‘k’, Copier avec ‘mouse-1’ ou ‘RET’.")
-  (goto-char (point-min)))
+  (when (string= "-" (string (char-after (line-beginning-position))))
+    (let ((beg (+ 2 (line-beginning-position))) ;; ignore the leading -
+          (end (line-end-position)))
+      (kill-ring-save beg end)
+      (message
+       (format
+        "%s sauvé dans le kill-ring.  Utilisez ‘C-y’ n'importe où pour l'utiliser."
+        (buffer-substring-no-properties beg end))))))
 
 
 
@@ -284,57 +293,102 @@ This function will call a subprocess to fetch data from the CRISCO¹
 thesaurus through curl and sed.  The found words are then displayed in
 a new buffer in another window.  This function will not work with
 Windows OS.
-¹ http://crisco.unicaen.fr/des/synonymes/"
+¹ See URL `https://crisco2.unicaen.fr/des/synonymes/'"
   (interactive "sWord: ")
-  (if (get-buffer "*Flycheck Grammalecte Synomyms*")
-      (kill-buffer "*Flycheck Grammalecte Synomyms*"))
-  (let ((buffer (get-buffer-create "*Flycheck Grammalecte Synomyms*")))
+  (if (get-buffer "*Synonymes*")
+      (kill-buffer "*Synonymes*"))
+  (let ((buffer (get-buffer-create "*Synonymes*")))
     (with-current-buffer buffer
-      (insert (propertize (format "* Synomymes de %s" word)
+      (insert (propertize (format "* Synonymes de %s" word)
                           'face 'org-level-1) "\n\n")
       (flycheck-grammalecte--insert-crisco-words word "synonymes")
       (insert "\n\n" (propertize (format "* Antonymes de %s" word)
                                'face 'org-level-1) "\n\n")
       (flycheck-grammalecte--insert-crisco-words word "antonymes")
       (insert "\n") ;; Avoid ugly last button
-      (flycheck-grammalecte-synonyms-mode))
+      (flycheck-grammalecte-mode)
+      (flycheck-grammalecte--set-buffer-title
+       "Sélection de synonymes ou d'antonymes."))
     (switch-to-buffer-other-window buffer)))
 
 ;;;###autoload
-(defun flycheck-grammalecte-find-synomyms-at-point ()
+(defun flycheck-grammalecte-find-synonyms-at-point ()
   "Find synonyms and antonyms for the word at point."
   (interactive)
   (let ((word (thing-at-point 'word 'no-properties)))
     (flycheck-grammalecte-find-synonyms word)))
 
+;;;###autoload
+(defun flycheck-grammalecte-conjugate-verb (verb)
+  "Display the conjugation table for the given VERB."
+  (interactive "sVerb: ")
+  (flycheck-grammalecte--download-grammalecte-if-needed t)
+  (if (get-buffer "*Conjugaison*")
+      (kill-buffer "*Conjugaison*"))
+  (let ((buffer (get-buffer-create "*Conjugaison*")))
+    (with-current-buffer buffer
+      (insert
+       (shell-command-to-string
+        (format "python %s %s"
+                (expand-file-name "conjugueur.py" flycheck-grammalecte-directory)
+                verb)))
+      (goto-char (point-min))
+      (while (re-search-forward "^\\* [^\n]+$" nil t)
+        (replace-match (propertize (match-string 0) 'face 'org-level-1)))
+      (goto-char (point-min))
+      (while (re-search-forward "^\\*\\* [^\n]+$" nil t)
+        (replace-match (propertize (match-string 0) 'face 'org-level-2)))
+      (goto-char (point-min))
+      (while (re-search-forward "\\*\\(?:avoir\\|être\\)\\*" nil t)
+        (replace-match (propertize (match-string 0) 'face 'bold)))
+      (goto-char (point-min))
+      (while (re-search-forward "^\\- \\([^ \n]+\\)$" nil t)
+        (replace-match
+         (propertize (match-string 1) 'mouse-face 'highlight
+                     'help-echo "mouse-1: Copier le mot")
+         t t nil 1))
+      (flycheck-grammalecte-mode)
+      (flycheck-grammalecte--set-buffer-title
+       (format "Conjugaison de %s." verb)))
+    (switch-to-buffer-other-window buffer)))
+
 
 
 ;;;; Checker definition:
 
-(flycheck-def-executable-var 'français-grammalecte "python3")
+;;;###autoload
+(defun flycheck-grammalecte-setup ()
+  "Build the flycheck checker, matching your taste."
+  (flycheck-def-executable-var 'grammalecte "python3")
+  (let ((cmdline '(source)))
+    ;; add-to-list prepend the new value to the list. Thus we first add
+    ;; all possible command arguments.
+    (unless flycheck-grammalecte-report-spellcheck
+      (push "-S" cmdline))
+    (unless flycheck-grammalecte-report-grammar
+      (push "-G" cmdline))
+    (unless flycheck-grammalecte-report-apos
+      (push "-A" cmdline))
+      (unless flycheck-grammalecte-report-nbsp
+      (push "-N" cmdline))
+    (unless flycheck-grammalecte-report-esp
+      (push "-W" cmdline))
+    ;; Then we can add the python script path
+    (push (expand-file-name "flycheck-grammalecte.py" flycheck-grammalecte-directory) cmdline)
+    ;; And finally the python3 interpreter
+    (push "python3" cmdline)
 
-;; We do not use the `flycheck-define-checker' helper because we use a
-;; quoted variable to store modes list
-(flycheck-define-command-checker 'francais-grammalecte
-  "Grammalecte syntax checker for french language
-`https://grammalecte.net/'."
-  :command '("python3"
-             (eval
-              (expand-file-name
-               "flycheck-grammalecte.py"
-               flycheck-grammalecte-directory))
-             (eval (unless flycheck-grammalecte-report-spellcheck "-S"))
-             (eval (unless flycheck-grammalecte-report-grammar "-G"))
-             (eval (unless flycheck-grammalecte-report-apos "-A"))
-             (eval (unless flycheck-grammalecte-report-nbsp "-N"))
-             (eval (unless flycheck-grammalecte-report-esp "-W"))
-             source)
-  :error-patterns
-  '((warning line-start "grammaire|" line "|" column "|" (message) line-end)
-    (info line-start "orthographe|" line "|" column "|" (message) line-end))
-  :modes flycheck-grammalecte-enabled-modes)
-
-(add-to-list 'flycheck-checkers 'francais-grammalecte)
+    ;; Now that we have all our variables, we can create the custom
+    ;; checker.
+    (flycheck-define-command-checker 'grammalecte
+      "Grammalecte syntax checker for french language
+See URL `https://grammalecte.net/'."
+      :command cmdline
+      :error-patterns
+      '((warning line-start "grammaire|" line "|" column "|" (message) line-end)
+        (info line-start "orthographe|" line "|" column "|" (message) line-end))
+      :modes flycheck-grammalecte-enabled-modes)
+    (add-to-list 'flycheck-checkers 'grammalecte)))
 
 (provide 'flycheck-grammalecte)
 ;;; flycheck-grammalecte.el ends here

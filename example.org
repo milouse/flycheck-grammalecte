@@ -1,0 +1,10 @@
+#+title: Example de l'utilisation de grammalecte dans flycheck
+
+* Châpitre 1
+
+Quoi ? Racontes ! Racontes-moi ! Bon sangg, parles ! Oui. Il y a des
+menteur partout.
+
+Je suit sidéré par la brutales arrogance de cette homme-là. Quelle
+salopard! Un escrocs de la pire espece Quant sera t’il châtiés pour ses
+mensonge ? Merde ! J’en aie marre.

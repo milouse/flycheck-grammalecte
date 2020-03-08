@@ -22,14 +22,13 @@ read the [[https://www.emacswiki.org/emacs/InstallingPackages][Installing Packag
 more how to install a package. A [[./MANUAL_INSTALL.org][manual installation procedure]] exists
 too if you prefer.
 
-If you install /Flycheck grammalecte/ as a package, you need to add the
-following line somewhere in your GNU Emacs config file:
+To enable it, simply add the following line somewhere in your GNU Emacs
+config file:
 
 #+begin_src emacs-lisp
-(require 'flycheck-grammalecte)
+(with-eval-after-load 'flycheck
+  (flycheck-grammalecte-setup))
 #+end_src
-
-Then restart GNU Emacs.
 
 Finally, the last expected step is to download the
 [[https://grammalecte.net/#download][CLI & Server upstream package]]. Just enter the following command:
@@ -41,8 +40,20 @@ All options are accessibles with ~customize~. In GNU Emacs, enter
 ~M-x customize~, then click on ~Editing~, then ~I18n~, and finally on
 ~Flycheck Grammalecte~.
 
-You can also set this variables in your GNU Emacs config file. Here is
-a quick reference of the available variables:
+You can also set these variables in your GNU Emacs config
+file. Configuration must occurs *before* calling
+~flycheck-grammalecte-setup~. In that case, don't forget to first
+require ~flycheck-grammalecte~ to prefill its variables. For exemple:
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'flycheck
+  (require 'flycheck-grammalecte)
+  (setq flycheck-grammalecte-report-esp nil)
+  (add-to-list 'flycheck-grammalecte-enabled-modes 'markdown-mode)
+  (flycheck-grammalecte-setup))
+#+end_src
+
+Here is a quick reference of the available variables:
 
 - ~flycheck-grammalecte-report-spellcheck~ :: If this variable is set to
      ~nil~, Flycheck will *not* report spellchecking error. Only grammar
@@ -66,17 +77,9 @@ a quick reference of the available variables:
      itself (like LaTeX, org-mode export…). Default is ~t~.
 - ~flycheck-grammalecte-enabled-modes~ :: This variable stores the list
      of major modes for which /flycheck-grammalecte/ must be
-     used. *Warning*, this variable must be set *before* loading
-     ~flycheck-grammalecte~ itself. Thus, do not try to set it with
-     ~customize~. Put it directly in your GNU Emacs config file.
-     Default is ~’(org-mode text-mode mail-mode latex-mode)~. To add
-     markdown mode, for example, use the following line:
-
-#+begin_src emacs-lisp
-(setq flycheck-grammalecte-enabled-modes
-      '(org-mode text-mode mail-mode latex-mode markdown-mode mu4e-compose-mode))
-(require 'flycheck-grammalecte)
-#+end_src
+     used. Default is ~’(org-mode text-mode mail-mode latex-mode)~. To
+     add markdown mode use the following line for exemple:
+     ~(add-to-list 'flycheck-grammalecte-enabled-modes 'markdown-mode)~
 
 ** Breaking changes
 
@@ -87,15 +90,28 @@ This version changes the default value of
 grammalecte to *not* report spellchecking errors. If you like the old
 behavior, you are now required to explicitely set this variable to ~t~.
 
+*** Version 1.0
+
+As you may have noticed, the most important change is the introduction
+of the function ~flycheck-grammalecte-setup~, which didn't exist
+before. If you don't add it to your init file, the checker won't be
+added to Flycheck checkers list and will never start. Thus, you are
+required now to add the following line *after* your customization to
+this package:
+
+#+begin_src emacs-lisp
+(flycheck-grammalecte-setup)
+#+end_src
+
 * Usage
 
 Enable /flycheck/ in a buffer, which major mode is declared in
 ~flycheck-grammalecte-enabled-modes~, and voilà!
 
 If you are looking for a better word at some place, you can use the
-function ~flycheck-grammalecte-find-synomyms-at-point~ (which will take
+function ~flycheck-grammalecte-find-synonyms-at-point~ (which will take
 the word at point to find synonyms and antonyms) or the simpler
-~flycheck-grammalecte-find-synomyms~ (which will ask you for a word
+~flycheck-grammalecte-find-synonyms~ (which will ask you for a word
 before doing the search). Pro tip: these functions are available even in
 buffer, which major mode is not in the
 ~flycheck-grammalecte-enabled-modes~ list.

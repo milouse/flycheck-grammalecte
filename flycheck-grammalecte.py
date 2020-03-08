@@ -3,9 +3,9 @@
 
 This script is the glue that link flycheck syntax checker for emacs
 and the grammalecte http://www.dicollecte.org/grammalecte/ syntax
-checker. It requires the grammalecte package.
+checker.  It requires the grammalecte package.
 
-Copyright (C) 2018 Étienne Deparis <etienne@depar.is>
+Copyright (C) 2018+ Étienne Deparis <etienne@depar.is>
 Copyright (C) 2017 Guilhem Doulcier <guilhem.doulcier@espci.fr>
 This is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -45,8 +45,8 @@ def main(files, opts={}):
     text, lineset = txt.createParagraphWithLines(
         list(enumerate(text_input)))
 
-    do_gramm = ("no_gramm" not in opts or opts["no_gramm"] is False)
-    do_spell = ("no_spell" not in opts or opts["no_spell"] is False)
+    do_gramm = not opts.get("no_gramm", False)
+    do_spell = not opts.get("no_spell", False)
     gramm_err = spell_err = []
 
     # Load grammalecte.
@@ -54,14 +54,10 @@ def main(files, opts={}):
 
     # Compute grammar and spell check errors
     if do_gramm:
-        gc.gce.setOption(
-            "apos", "no_apos" not in opts or opts["no_apos"] is False)
-        gc.gce.setOption(
-            "nbsp", "no_nbsp" not in opts or opts["no_nbsp"] is False)
-        gc.gce.setOption(
-            "esp", "no_esp" not in opts or opts["no_esp"] is False)
-        gc.gce.setOption(
-            "tab", "no_esp" not in opts or opts["no_esp"] is False)
+        gc.gce.setOption("apos", not opts.get("no_apos", False))
+        gc.gce.setOption("nbsp", not opts.get("no_nbsp", False))
+        gc.gce.setOption("esp", not opts.get("no_esp", False))
+        gc.gce.setOption("tab", not opts.get("no_esp", False))
 
         gramm_err = gc.gce.parse(
             text, "FR",
@@ -78,12 +74,12 @@ def main(files, opts={}):
         "header", "keywords", "language", "name", "options", "title",
         "attr_.+"
     ]
+    org_re = re.compile(
+        r"^#\+(?:{})\:".format("|".join(org_keywords)),
+        re.IGNORECASE)
 
     # Output
     if do_gramm:
-        org_re = re.compile(
-            "^#\\+(?:{})\\:$".format("|".join(org_keywords)),
-            re.IGNORECASE)
         for i in list(gramm_err):
             cur_line = text_input[i["nStartY"]]
             if i["sType"] == "esp":
@@ -102,29 +98,29 @@ def main(files, opts={}):
                 # Remove some unwanted nbsp warnings
                 if cur_line[0:4] == "#-*-":
                     continue
-                # The following line is not subject to overflow
-                # excepton, even if i["nStartX"] + 1 > len(cur_line)
-                m = org_re.match(cur_line[0:i["nStartX"] + 1])
-                if m is not None and m.start() == 0:
+                if org_re.search(cur_line) is not None:
                     continue
-            print("grammaire|{}|{}|{}\n"
+            message = i["sMessage"]
+            suggs = i.get("aSuggestions", [])
+            if len(suggs) > 0:
+                message += " ⇨ " + ", ".join(suggs)
+            message = message.replace("“", "« ").replace("« ", "« ") \
+                             .replace("”", " »").replace(" »", " »")
+            print("grammaire|{}|{}|{}"
                   .format(i["nStartY"] + 1 + document_offset,
                           i["nStartX"] + 1,
-                          i["sMessage"]))
+                          message))
 
     if do_spell:
         for i in list(spell_err):
             cur_line = text_input[i["nStartY"]]
-            org_re = re.compile(
-                "(?:{})\\:".format("|".join(org_keywords)),
-                re.IGNORECASE)
-            m = org_re.match(cur_line, i["nStartX"])
-            if m is not None and m.start() == i["nStartX"]:
+            if org_re.search(cur_line) is not None \
+               and i["sValue"] in org_keywords:
                 continue
-            print("orthographe|{}|{}|{}\n"
+            print("orthographe|{}|{}|{}"
                   .format(i["nStartY"] + 1 + document_offset,
                           i["nStartX"] + 1,
-                          "Mot absent du dictionnaire"))
+                          "« {} » absent du dictionnaire".format(i["sValue"])))
 
 
 if __name__ == "__main__":

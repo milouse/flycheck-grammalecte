@@ -1,7 +1,7 @@
 #+title: Manual installation procedure
 
-This package has a strong dependency on ~python3~. The installation of
-the right version of python is up to you.
+Obviously, this package also depends on /flycheck/, which must be loaded
+first.
 
 You first need to clone this repository. We recommend you to put it
 somewhere under your ~.emacs.d~ folder.
@@ -26,6 +26,7 @@ file:
 
 #+begin_src emacs-lisp
 (load-file "~/.emacs.d/flycheck-grammalecte/flycheck-grammalecte.elc")
+(flycheck-grammalecte-setup)
 #+end_src
 
 And everything should be fine.
@@ -39,10 +40,7 @@ that case, we call the ~.el~ file as we have not byte-compiled it):
 
 #+begin_src emacs-lisp
 (load-file "~/.emacs.d/flycheck-grammalecte/flycheck-grammalecte.el")
+(flycheck-grammalecte-setup)
 #+end_src
 
 Then restart GNU Emacs.
-
-The last expected step is to download the [[https://grammalecte.net/#download][CLI & Server upstream package]].
-Just enter the following command:
-~M-x flycheck-grammalecte-download-grammalecte~

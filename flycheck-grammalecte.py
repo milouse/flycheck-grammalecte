@@ -52,8 +52,8 @@ def main(files, opts={}):
         p = re.compile(pattern)
         for i in p.finditer(text):
             beg = text[:i.start()]
-            end = text[i.end()+1:]
-            repl = (i.end() - i.start() + 1) * replacement_char
+            end = text[i.end():]
+            repl = (i.end() - i.start()) * replacement_char
             text = beg + repl + end
 
     do_gramm = not opts.get("no_gramm", False)

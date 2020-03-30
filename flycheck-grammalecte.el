@@ -246,6 +246,24 @@ other buffer by the copied word."
     (when bounds
       (delete-region (car bounds) (cdr bounds)))))
 
+(defun flycheck-grammalecte--propertize-conjugation-buffer ()
+  "Propertize some important words in the conjugation buffer."
+  (goto-char (point-min))
+  (while (re-search-forward "^\\* [^\n]+$" nil t)
+    (replace-match (propertize (match-string 0) 'face 'org-level-1)))
+  (goto-char (point-min))
+  (while (re-search-forward "^\\*\\* [^\n]+$" nil t)
+    (replace-match (propertize (match-string 0) 'face 'org-level-2)))
+  (goto-char (point-min))
+  (while (re-search-forward "\\*\\(?:avoir\\|être\\)\\*" nil t)
+    (replace-match (propertize (match-string 0) 'face 'bold)))
+  (goto-char (point-min))
+  (while (re-search-forward "^\\- \\([^ \n]+\\)$" nil t)
+    (replace-match
+     (propertize (match-string 1) 'mouse-face 'highlight
+                 'help-echo "mouse-1: Remplacer par…")
+     t t nil 1)))
+
 
 
 ;;;; Definition helper methods:
@@ -498,34 +516,21 @@ The found words are then displayed in a new buffer in another window.
 (defun flycheck-grammalecte-conjugate-verb (verb)
   "Display the conjugation table for the given VERB."
   (interactive "sVerbe: ")
-  (flycheck-grammalecte--download-grammalecte-if-needed t)
-  (if (get-buffer "*Conjugaison*")
-      (kill-buffer "*Conjugaison*"))
-  (let ((buffer (get-buffer-create "*Conjugaison*")))
-    (with-current-buffer buffer
-      (insert
-       (shell-command-to-string
-        (format "python3 %s %s"
-                (expand-file-name "conjugueur.py" flycheck-grammalecte--directory)
-                verb)))
-      (goto-char (point-min))
-      (while (re-search-forward "^\\* [^\n]+$" nil t)
-        (replace-match (propertize (match-string 0) 'face 'org-level-1)))
-      (goto-char (point-min))
-      (while (re-search-forward "^\\*\\* [^\n]+$" nil t)
-        (replace-match (propertize (match-string 0) 'face 'org-level-2)))
-      (goto-char (point-min))
-      (while (re-search-forward "\\*\\(?:avoir\\|être\\)\\*" nil t)
-        (replace-match (propertize (match-string 0) 'face 'bold)))
-      (goto-char (point-min))
-      (while (re-search-forward "^\\- \\([^ \n]+\\)$" nil t)
-        (replace-match
-         (propertize (match-string 1) 'mouse-face 'highlight
-                     'help-echo "mouse-1: Remplacer par…")
-         t t nil 1))
-      (flycheck-grammalecte-mode)
-      (flycheck-grammalecte--set-buffer-title
-       (format "Conjugaison de %s." verb)))
+  (let* ((buffer-name (format "*Conjugaison de %s*" verb))
+         (buffer (get-buffer buffer-name)))
+    (unless buffer
+      (flycheck-grammalecte--download-grammalecte-if-needed t)
+      (setq buffer (get-buffer-create buffer-name))
+      (with-current-buffer buffer
+        (insert
+         (shell-command-to-string
+          (format "python3 %s %s"
+                  (expand-file-name "conjugueur.py" flycheck-grammalecte--directory)
+                  verb)))
+        (flycheck-grammalecte--propertize-conjugation-buffer)
+        (flycheck-grammalecte-mode)
+        (flycheck-grammalecte--set-buffer-title
+         (format "Conjugaison de %s." verb))))
     (pop-to-buffer buffer)))
 
 

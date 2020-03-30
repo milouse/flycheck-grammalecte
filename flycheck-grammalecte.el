@@ -338,7 +338,9 @@ Windows OS.
   "Find synonyms and antonyms for the word at point."
   (interactive)
   (let ((word (thing-at-point 'word 'no-properties)))
-    (flycheck-grammalecte-find-synonyms word)))
+    (if word
+        (flycheck-grammalecte-find-synonyms word)
+      (call-interactively 'flycheck-grammalecte-find-synonyms))))
 
 ;;;###autoload
 (defun flycheck-grammalecte-conjugate-verb (verb)

@@ -244,6 +244,68 @@ other buffer by the copied word."
 
 
 
+;;;; Synonyms and antonyms helper methods:
+
+(defun flycheck-grammalecte--extract-crisco-words (type)
+  (save-excursion
+    (save-restriction
+      (let ((results '()) content start end)
+        (goto-char (point-min))
+        (if (re-search-forward
+             (format "<i class=[^>]*>[[:digit:]]* %s?" type)
+             nil t)
+            (setq start (match-beginning 0))
+          (when flycheck-grammalecte--debug-mode
+            (display-warning
+             "flycheck-grammalecte"
+             (format "Début de liste des %s non trouvée." type))))
+        (if (re-search-forward
+             (format "<!-- ?Fin liste des %s ?-->" type)
+             nil t)
+            (setq end (match-beginning 0))
+          (when flycheck-grammalecte--debug-mode
+            (display-warning
+             "flycheck-grammalecte"
+             (format "Fin de liste des %s non trouvée." type))))
+        (when (and start end)
+          (narrow-to-region start end)
+          (setq content (decode-coding-string (buffer-string) 'utf-8-unix))
+          (with-temp-buffer
+            (insert content)
+            (goto-char (point-min))
+            (while (re-search-forward "[[:blank:]]*<a href=\"/des/synonymes/[^\"]*\">\\([^<]*\\)</a>,?" nil t)
+              (push (match-string 1) results))))
+        results))))
+
+(defun flycheck-grammalecte--fetch-crisco-words (word)
+  "Fetch synonymes and antonymes for the given WORD from the CRISCO."
+  (let ((url (format "https://crisco2.unicaen.fr/des/synonymes/%s" word))
+        found-words)
+    (with-current-buffer (url-retrieve-synchronously url t t)
+      (let ((synonymes (flycheck-grammalecte--extract-crisco-words "synonymes"))
+            (antonymes (flycheck-grammalecte--extract-crisco-words "antonymes")))
+        (setq found-words (list :synonymes synonymes
+                                :antonymes antonymes))
+        (if (and flycheck-grammalecte--debug-mode
+                 (seq-empty-p synonymes) (seq-empty-p antonymes))
+            (switch-to-buffer (current-buffer))
+          (kill-buffer (current-buffer)))))
+    found-words))
+
+(defun flycheck-grammalecte--propertize-crisco-words (words)
+  "Insert WORDS at point, after having propertized them."
+  (if (seq-empty-p words)
+      (insert "Aucun résultat")
+    (insert
+     (mapconcat
+      #'(lambda (w)
+          (concat "- "
+                  (propertize w 'mouse-face 'highlight
+                                'help-echo "mouse-1: Remplacer par…")))
+      words "\n"))))
+
+
+
 ;;;; Special buffer major mode methods
 
 (defun flycheck-grammalecte--set-buffer-title (title)
@@ -307,68 +369,34 @@ conjugation table."
 
 
 
-;;;; Synonym and antonyme helper methods:
-
-(defun flycheck-grammalecte--fetch-crisco-words (word type)
-  "Fetch TYPE words from the CRISCO dictionary for the given WORD.
-TYPE may be ‘synonymes’ or ‘antonymes’."
-  (split-string
-   (shell-command-to-string
-    (concat "curl -s https://crisco2.unicaen.fr/des/synonymes/" word
-            " | sed -n '/<i class=[^>]*>[0-9]* " type
-            "/{n;s|\\s*<a href=\"/des/synonymes/[^\"]*\">\\([^<]*\\)</a>,\\?|\\1\\n|g;p;/<!--Fin liste des "
-            type "-->/q}' | sed '$ d'"))
-   "\n" t))
-
-(defun flycheck-grammalecte--insert-crisco-words (word type)
-  "Insert the results for a search of TYPE words for the given WORD.
-TYPE may be ‘synonymes’ or ‘antonymes’."
-  (insert
-   (mapconcat
-    #'(lambda (w) (concat "- " (propertize w 'mouse-face 'highlight 'help-echo "mouse-1: Copier le mot")))
-    (flycheck-grammalecte--fetch-crisco-words word type)
-    "\n")))
-
-(defun flycheck-grammalecte--kill-ring-save-at-point (&optional pos)
-  "In the synonyms result buffer, select the word at POS."
-  (unless pos (setq pos (point)))
-  (goto-char pos)
-  (when (string= "-" (string (char-after (line-beginning-position))))
-    (let ((beg (+ 2 (line-beginning-position))) ;; ignore the leading -
-          (end (line-end-position)))
-      (kill-ring-save beg end)
-      (message
-       (format
-        "%s sauvé dans le kill-ring.  Utilisez ‘C-y’ n'importe où pour l'utiliser."
-        (buffer-substring-no-properties beg end))))))
-
-
-
-;;;; Synonym and antonyme public methods:
+;;;; Synonyms and antonyms public methods:
 
 ;;;###autoload
 (defun flycheck-grammalecte-find-synonyms (word)
   "Find synonyms and antonyms for the given WORD.
-This function will call a subprocess to fetch data from the CRISCO¹
-thesaurus through curl and sed.  The found words are then displayed in
-a new buffer in another window.  This function will not work with
-Windows OS.
+This function will fetch data from the CRISCO¹ thesaurus.
+The found words are then displayed in a new buffer in another window.
+
 ¹ See URL `https://crisco2.unicaen.fr/des/synonymes/'"
-  (interactive "sWord: ")
-  (if (get-buffer "*Synonymes*")
-      (kill-buffer "*Synonymes*"))
-  (let ((buffer (get-buffer-create "*Synonymes*")))
-    (with-current-buffer buffer
-      (insert (propertize (format "* Synonymes de %s" word)
-                          'face 'org-level-1) "\n\n")
-      (flycheck-grammalecte--insert-crisco-words word "synonymes")
-      (insert "\n\n" (propertize (format "* Antonymes de %s" word)
-                               'face 'org-level-1) "\n\n")
-      (flycheck-grammalecte--insert-crisco-words word "antonymes")
-      (insert "\n") ;; Avoid ugly last button
-      (flycheck-grammalecte-mode)
-      (flycheck-grammalecte--set-buffer-title
-       "Sélection de synonymes ou d'antonymes."))
+  (interactive "sMot: ")
+  (let* ((buffer-name (format "*Synonymes de %s*" word))
+         (buffer (get-buffer buffer-name)))
+    (unless buffer
+      (setq buffer (get-buffer-create buffer-name))
+      (let ((found-words (flycheck-grammalecte--fetch-crisco-words word)))
+        (with-current-buffer buffer
+          (insert (propertize (format "* Synonymes de %s" word)
+                              'face 'org-level-1) "\n\n")
+          (flycheck-grammalecte--propertize-crisco-words
+           (plist-get found-words :synonymes))
+          (insert "\n\n" (propertize (format "* Antonymes de %s" word)
+                                     'face 'org-level-1) "\n\n")
+          (flycheck-grammalecte--propertize-crisco-words
+           (plist-get found-words :antonymes))
+          (insert "\n") ;; Avoid ugly last button
+          (flycheck-grammalecte-mode)
+          (flycheck-grammalecte--set-buffer-title
+           "Sélection de synonymes ou d'antonymes."))))
     (switch-to-buffer-other-window buffer)))
 
 ;;;###autoload

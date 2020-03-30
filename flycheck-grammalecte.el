@@ -379,26 +379,19 @@ Windows OS.
 (defun flycheck-grammalecte-setup ()
   "Build the flycheck checker, matching your taste."
   (flycheck-def-executable-var 'grammalecte "python3")
-  (let ((cmdline '(source)))
-    ;; add-to-list prepend the new value to the list. Thus we first add
-    ;; all possible command arguments.
-    (unless flycheck-grammalecte-report-spellcheck
-      (push "-S" cmdline))
-    (unless flycheck-grammalecte-report-grammar
-      (push "-G" cmdline))
-    (unless flycheck-grammalecte-report-apos
-      (push "-A" cmdline))
-      (unless flycheck-grammalecte-report-nbsp
-      (push "-N" cmdline))
-    (unless flycheck-grammalecte-report-esp
-      (push "-W" cmdline))
+  (let ((cmdline '("python3")))
+    (nconc cmdline (list
+                    (expand-file-name
+                     "flycheck-grammalecte.py"
+                     flycheck-grammalecte-directory)))
+    (unless flycheck-grammalecte-report-spellcheck (nconc cmdline (list "-S")))
+    (unless flycheck-grammalecte-report-grammar    (nconc cmdline (list "-G")))
+    (unless flycheck-grammalecte-report-apos       (nconc cmdline (list "-A")))
+    (unless flycheck-grammalecte-report-nbsp       (nconc cmdline (list "-N")))
+    (unless flycheck-grammalecte-report-esp        (nconc cmdline (list "-W")))
     (dolist (filter flycheck-grammalecte-filters)
-      (push (concat "-f " filter) cmdline))
-
-    ;; Then we can add the python script path
-    (push (expand-file-name "flycheck-grammalecte.py" flycheck-grammalecte-directory) cmdline)
-    ;; And finally the python3 interpreter
-    (push "python3" cmdline)
+      (nconc cmdline (list "-f" filter)))
+    (nconc cmdline (list 'source))
 
     ;; Now that we have all our variables, we can create the custom
     ;; checker.

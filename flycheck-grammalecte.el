@@ -292,7 +292,7 @@ other buffer by the copied word."
                                 :antonymes antonymes))
         (if (and flycheck-grammalecte--debug-mode
                  (seq-empty-p synonymes) (seq-empty-p antonymes))
-            (switch-to-buffer (current-buffer))
+            (pop-to-buffer (current-buffer))
           (kill-buffer (current-buffer)))))
     found-words))
 
@@ -389,7 +389,7 @@ The found words are then displayed in a new buffer in another window.
           (flycheck-grammalecte-mode)
           (flycheck-grammalecte--set-buffer-title
            "Sélection de synonymes ou d'antonymes."))))
-    (switch-to-buffer-other-window buffer)))
+    (pop-to-buffer buffer)))
 
 ;;;###autoload
 (defun flycheck-grammalecte-find-synonyms-at-point ()
@@ -436,7 +436,7 @@ The found words are then displayed in a new buffer in another window.
       (flycheck-grammalecte-mode)
       (flycheck-grammalecte--set-buffer-title
        (format "Conjugaison de %s." verb)))
-    (switch-to-buffer-other-window buffer)))
+    (pop-to-buffer buffer)))
 
 
 (defun flycheck-grammalecte-download-grammalecte ()

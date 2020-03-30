@@ -95,8 +95,9 @@ Otherwise, it will ask for a yes-or-no confirmation."
 
 (defcustom flycheck-grammalecte-filters '("\\\\(\\w+)(?:\\[([^]]+)\\])?(?:{([^}]*)})?")
   "List patterns for which errors in matching texts must be ignored.
+
 These patterns must be python Regular Expressions¹.
-Escape character ‘\\’ must be doubled twice: one time for emacs
+Escape character `\\' must be doubled twice: one time for Emacs
 and one time for python.  For example, to exclude LaTeX math
 formulas, one can use :
 
@@ -105,19 +106,21 @@ formulas, one can use :
             \"\\\\begin{equation}.*?\\\\end{equation}\"))
 
 Filters are applied sequentially.  In practice all characters of
-the matching pattern are replaced by ‘&’, which are ignored by
+the matching pattern are replaced by `&', which are ignored by
 grammalecte.
 
 ¹ See URL `https://docs.python.org/3.5/library/re.html#regular-expression-syntax'."
   :type '(repeat string)
   :group 'flycheck-grammalecte)
 
-(defvar flycheck-grammalecte-directory
+(defvar flycheck-grammalecte--directory
   (if load-file-name (file-name-directory load-file-name) default-directory)
   "Location of the flycheck-grammalecte package.
+
 This variable must point to the directory where the emacs-lisp and
 python files named `flycheck-grammalecte.el' and
 `flycheck-grammalecte.py' are kept.
+
 The default value is automatically computed from the included file.")
 
 (defvar flycheck-grammalecte--debug-mode nil
@@ -152,7 +155,7 @@ the Grammalecte home page or if no version string is found in the page."
                   fgm-zip-name))
          (fgm-zip-file (expand-file-name
                         fgm-zip-name
-                        flycheck-grammalecte-directory)))
+                        flycheck-grammalecte--directory)))
     ;; Do not download it twice if it's still there for some reason…
     (unless (file-exists-p fgm-zip-file)
       (url-copy-file fgm-dl-url fgm-zip-file))
@@ -179,7 +182,7 @@ package files."
          (expand-file-name "grammalecte" fgm-extracted-folder))
         (fgm-target-folder
          (expand-file-name "grammalecte"
-                           flycheck-grammalecte-directory)))
+                           flycheck-grammalecte--directory)))
     ;; Always do a clean update. Begin by removing old folder if it's
     ;; present.
     (when (file-directory-p fgm-target-folder)
@@ -202,7 +205,7 @@ when current buffer major mode is not in `flycheck-grammalecte-enabled-modes'."
   (when (or force (memq major-mode flycheck-grammalecte-enabled-modes))
     (unless (file-exists-p
              (expand-file-name "grammalecte/grammar_checker.py"
-                               flycheck-grammalecte-directory))
+                               flycheck-grammalecte--directory))
       (if (or flycheck-grammalecte-download-without-asking
               (yes-or-no-p
                "[flycheck-grammalecte] Grammalecte data not found.  Download it NOW?"))
@@ -247,6 +250,7 @@ other buffer by the copied word."
 ;;;; Synonyms and antonyms helper methods:
 
 (defun flycheck-grammalecte--extract-crisco-words (type)
+  "Extract all words for TYPE from the current buffer."
   (save-excursion
     (save-restriction
       (let ((results '()) content start end)
@@ -314,7 +318,7 @@ It adds information on how to close it."
   (setq-local
    header-line-format
    (format-message
-    "%s Quitter `q' ou `k', Copier avec `w'. Remplacer avec `mouse-1' ou `RET'."
+    "%s. Quitter `q' ou `k', Copier avec `w'. Remplacer avec `mouse-1' ou `RET'."
     title)))
 
 (defvar flycheck-grammalecte-mode-map
@@ -354,27 +358,15 @@ conjugation table."
     (display-line-numbers-mode -1))
   (goto-char (point-min)))
 
-
-;;;; Public methods:
-
-(defun flycheck-grammalecte-download-grammalecte ()
-  "Download, extract and install Grammalecte python program."
-  (interactive)
-  (flycheck-grammalecte--install-py-files
-   (flycheck-grammalecte--extract-zip
-    (flycheck-grammalecte--download-zip))))
-
-(add-hook 'flycheck-mode-hook
-          #'flycheck-grammalecte--download-grammalecte-if-needed)
-
 
 
 ;;;; Synonyms and antonyms public methods:
 
 ;;;###autoload
 (defun flycheck-grammalecte-find-synonyms (word)
-  "Find synonyms and antonyms for the given WORD.
+  "Find french synonyms and antonyms for the given WORD.
 This function will fetch data from the CRISCO¹ thesaurus.
+
 The found words are then displayed in a new buffer in another window.
 
 ¹ See URL `https://crisco2.unicaen.fr/des/synonymes/'"
@@ -401,17 +393,21 @@ The found words are then displayed in a new buffer in another window.
 
 ;;;###autoload
 (defun flycheck-grammalecte-find-synonyms-at-point ()
-  "Find synonyms and antonyms for the word at point."
+  "Find french synonyms and antonyms for the word at point."
   (interactive)
   (let ((word (thing-at-point 'word 'no-properties)))
     (if word
         (flycheck-grammalecte-find-synonyms word)
       (call-interactively 'flycheck-grammalecte-find-synonyms))))
 
+
+
+;;;; Public methods:
+
 ;;;###autoload
 (defun flycheck-grammalecte-conjugate-verb (verb)
   "Display the conjugation table for the given VERB."
-  (interactive "sVerb: ")
+  (interactive "sVerbe: ")
   (flycheck-grammalecte--download-grammalecte-if-needed t)
   (if (get-buffer "*Conjugaison*")
       (kill-buffer "*Conjugaison*"))
@@ -420,7 +416,7 @@ The found words are then displayed in a new buffer in another window.
       (insert
        (shell-command-to-string
         (format "python3 %s %s"
-                (expand-file-name "conjugueur.py" flycheck-grammalecte-directory)
+                (expand-file-name "conjugueur.py" flycheck-grammalecte--directory)
                 verb)))
       (goto-char (point-min))
       (while (re-search-forward "^\\* [^\n]+$" nil t)
@@ -443,6 +439,17 @@ The found words are then displayed in a new buffer in another window.
     (switch-to-buffer-other-window buffer)))
 
 
+(defun flycheck-grammalecte-download-grammalecte ()
+  "Download, extract and install Grammalecte python program."
+  (interactive)
+  (flycheck-grammalecte--install-py-files
+   (flycheck-grammalecte--extract-zip
+    (flycheck-grammalecte--download-zip))))
+
+(add-hook 'flycheck-mode-hook
+          #'flycheck-grammalecte--download-grammalecte-if-needed)
+
+
 
 ;;;; Checker definition:
 
@@ -455,7 +462,7 @@ The found words are then displayed in a new buffer in another window.
                          flycheck-grammalecte-filters))
         (grammalecte-bin (expand-file-name
                           "flycheck-grammalecte.py"
-                          flycheck-grammalecte-directory)))
+                          flycheck-grammalecte--directory)))
     (unless flycheck-grammalecte-report-spellcheck (push "-S" cmdline))
     (unless flycheck-grammalecte-report-grammar (push "-G" cmdline))
     (unless flycheck-grammalecte-report-apos (push "-A" cmdline))

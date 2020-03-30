@@ -39,6 +39,7 @@
 ;;; Code:
 
 (require 'flycheck)
+(require 'nxml-mode)
 
 ;;;; Configuration options:
 
@@ -247,6 +248,47 @@ other buffer by the copied word."
 
 
 
+;;;; Definition helper methods:
+
+(defun flycheck-grammalecte--extract-cnrtl-definition (start)
+  "Extract a definition from the current XML buffer at START."
+  (goto-char start)
+  (delete-region (point-min) (point))
+  (with-temp-message "" (nxml-mode))
+  (nxml-forward-element)
+  (delete-region (point) (point-max))
+  (libxml-parse-html-region (point-min) (point-max)))
+
+(defun flycheck-grammalecte--fetch-cnrtl-word (word)
+  "Fetch WORD definition, according to TLFi, on CNRTL."
+  (let ((url (format "http://www.cnrtl.fr/definition/%s" word))
+        (definitions '()) count start)
+    ;; Get initial definitions location, number of definitions and
+    ;; initial definition.
+    (with-current-buffer (url-retrieve-synchronously url t t)
+      (goto-char (point-min))
+      (if (search-forward "<div id=\"lexicontent\">" nil t)
+          (setq start (match-beginning 0))
+        (when flycheck-grammalecte--debug-mode
+          (display-warning "Définition non trouvée.")))
+      (if (re-search-backward "'/definition/[^/]+//\\([0-9]+\\)'" nil t)
+          (setq count (string-to-number (match-string 1)))
+        (when flycheck-grammalecte--debug-mode
+          (display-warning "Nombre de définitions non trouvé.")))
+      (when (and start count)
+        (push (flycheck-grammalecte--extract-cnrtl-definition start) definitions)
+        (kill-buffer (current-buffer))))
+    ;; Collect additional definitions.
+    (when (and start count)
+      (dotimes (i count)
+        (with-current-buffer
+            (url-retrieve-synchronously (format "%s/%d" url (1+ i)) t t)
+          (push (flycheck-grammalecte--extract-cnrtl-definition start) definitions)
+          (kill-buffer (current-buffer)))))
+    (reverse definitions)))
+
+
+
 ;;;; Synonyms and antonyms helper methods:
 
 (defun flycheck-grammalecte--extract-crisco-words (type)
@@ -360,6 +402,54 @@ conjugation table."
 
 
 
+;;;; Definition public methods:
+
+;;;###autoload
+(defun flycheck-grammalecte-define (word)
+  "Find definition for the french WORD.
+This function will fetch data from the CNRTL¹ website, in the TLFi².
+
+The found words are then displayed in a new buffer in another window.
+
+See URL `https://www.cnrtl.fr/definition/'.
+
+¹ « Centre National de Ressources Textuelles et Lexicales »
+² « Trésor de la Langue Française informatisé »."
+  (interactive "sMot: ")
+  (let* ((buffer-name (format "*Définition de %s*" word))
+         (buffer (get-buffer buffer-name)))
+    (unless buffer
+      (setq buffer (get-buffer-create buffer-name))
+      ;; Display all definitions in a dedicated buffer.
+      (with-current-buffer buffer
+        (let ((definitions (flycheck-grammalecte--fetch-cnrtl-word word)))
+          (if (seq-empty-p definitions)
+              (insert "Aucun résultat pour %s." word)
+            (dolist (d definitions)
+              (shr-insert-document d)
+              (insert "\n\n\n"))))
+        (special-mode)
+        (visual-line-mode)
+        (local-set-key "k" #'(lambda () (interactive) (quit-window t)))
+        (local-set-key "o" #'other-window)
+        (setq-local header-line-format
+                    (format-message "Définition de %s. Quitter `q' ou `k'."
+                                    word))
+        (goto-char (point-min))))
+    (pop-to-buffer buffer)))
+
+
+;;;###autoload
+(defun flycheck-grammalecte-define-at-point ()
+  "Find definitions for the french word at point."
+  (interactive)
+  (let ((word (thing-at-point 'word 'no-properties)))
+    (if word
+        (flycheck-grammalecte-define word)
+      (call-interactively 'flycheck-grammalecte-define))))
+
+
+
 ;;;; Synonyms and antonyms public methods:
 
 ;;;###autoload
@@ -431,7 +521,7 @@ The found words are then displayed in a new buffer in another window.
       (while (re-search-forward "^\\- \\([^ \n]+\\)$" nil t)
         (replace-match
          (propertize (match-string 1) 'mouse-face 'highlight
-                     'help-echo "mouse-1: Copier le mot")
+                     'help-echo "mouse-1: Remplacer par…")
          t t nil 1))
       (flycheck-grammalecte-mode)
       (flycheck-grammalecte--set-buffer-title

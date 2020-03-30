@@ -212,6 +212,36 @@ when current buffer major mode is not in `flycheck-grammalecte-enabled-modes'."
 Please run the command `flycheck-grammalecte-download-grammalecte'
 as soon as possible.")))))
 
+(defun flycheck-grammalecte--kill-ring-save-at-point (&optional pos replace)
+  "Copy the word at point or POS and paste it when REPLACE is non-nil.
+
+The word is taken from the synonyms result buffer at point or POS when
+POS is non-nil.
+
+When REPLACE is non-nil, it will replace the word at point in the
+other buffer by the copied word."
+  (unless pos (setq pos (point)))
+  (goto-char pos)
+  (when (string= "-" (string (char-after (line-beginning-position))))
+    (let ((beg (+ 2 (line-beginning-position))) ;; ignore the leading -
+          (end (line-end-position)))
+      (kill-ring-save beg end)
+      (if (not replace)
+          (message
+           "%s sauvé dans le kill-ring.  Utilisez `C-y' n'importe où pour l'utiliser."
+           (buffer-substring-no-properties beg end))
+        (quit-window t)
+        (flycheck-grammalecte--delete-word-at-point)
+        (yank)))))
+
+(defun flycheck-grammalecte--delete-word-at-point ()
+  "Delete the word around point, or region if one is active."
+  (let ((bounds (if (use-region-p)
+                    (cons (region-beginning) (region-end))
+                  (bounds-of-thing-at-point 'word))))
+    (when bounds
+      (delete-region (car bounds) (cdr bounds)))))
+
 
 
 ;;;; Special buffer major mode methods
@@ -221,19 +251,27 @@ as soon as possible.")))))
 It adds information on how to close it."
   (setq-local
    header-line-format
-   (concat title " Quitter ‘q’ ou ‘k’, Copier avec ‘mouse-1’ ou ‘RET’.")))
+   (format-message
+    "%s Quitter `q' ou `k', Copier avec `w'. Remplacer avec `mouse-1' ou `RET'."
+    title)))
 
 (defvar flycheck-grammalecte-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "k" #'(lambda () (interactive)(quit-window t)))
+    (define-key map "k"
+      #'(lambda () (interactive) (quit-window t)))
     (define-key map "o" #'other-window)
     (define-key map "q" #'quit-window)
+    (define-key map "w"
+      #'(lambda () (interactive)
+          (flycheck-grammalecte--kill-ring-save-at-point)))
     (define-key map (kbd "<mouse-1>")
       #'(lambda (event)
           (interactive "e")
-          (flycheck-grammalecte--kill-ring-save-at-point (posn-point (event-end event)))))
+          (flycheck-grammalecte--kill-ring-save-at-point
+           (posn-point (event-end event)) t)))
     (define-key map (kbd "<RET>")
-      #'(lambda () (interactive)(flycheck-grammalecte--kill-ring-save-at-point)))
+      #'(lambda () (interactive)
+          (flycheck-grammalecte--kill-ring-save-at-point (point) t)))
     map)
   "Keymap for `flycheck-grammalecte-mode'.")
 

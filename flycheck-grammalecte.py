@@ -13,7 +13,9 @@ the Free Software Foundation; either version 3, or (at your option)
 any later version.
 """
 
+import os
 import re
+import sys
 import fileinput
 import grammalecte
 import grammalecte.text as txt
@@ -135,6 +137,9 @@ def main(files, opts={}):
 
 
 if __name__ == "__main__":
+    if os.path.exists("debug"):
+        with open("debug", "a") as f:
+            f.write(sys.argv.__repr__())
     parser = ArgumentParser()
     parser.add_argument("-S", "--no-spellcheck", action="store_true",
                         help="Don't report spellcheck errors")

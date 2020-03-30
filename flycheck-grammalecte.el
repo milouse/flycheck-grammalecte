@@ -120,6 +120,9 @@ python files named `flycheck-grammalecte.el' and
 `flycheck-grammalecte.py' are kept.
 The default value is automatically computed from the included file.")
 
+(defvar flycheck-grammalecte--debug-mode nil
+  "Display some debug messages when non-nil.")
+
 
 
 ;;;; Helper methods:
@@ -391,6 +394,23 @@ Windows OS.
     (unless flycheck-grammalecte-report-nbsp (push "-N" cmdline))
     (unless flycheck-grammalecte-report-esp (push "-W" cmdline))
     (setq cmdline (nconc (list "python3" grammalecte-bin) filters cmdline))
+
+    (when flycheck-grammalecte--debug-mode
+      (let ((checker-path (expand-file-name
+                           "grammalecte/grammar_checker.py"
+                           flycheck-grammalecte--directory)))
+        (if (file-exists-p checker-path)
+            (message "[Flycheck Grammalecte] Found in %s" checker-path)
+          (message "[Flycheck Grammalecte] NOT FOUND")))
+      (message "[Flycheck Grammalecte] checker command: %s"
+               (mapconcat
+                #'(lambda (item)
+                    (cond ((symbolp item)
+                           (format "'%s" (symbol-name item)))
+                          ((stringp item)
+                           item)))
+                cmdline
+                " ")))
 
     ;; Now that we have all our variables, we can create the custom
     ;; checker.

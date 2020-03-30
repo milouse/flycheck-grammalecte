@@ -34,13 +34,14 @@ Grammalecte-fr-v$(GRAMVER): Grammalecte-fr-v$(GRAMVER).zip
 	mkdir -p Grammalecte-fr-v$(GRAMVER)
 	unzip -qo Grammalecte-fr-v$(GRAMVER).zip -d Grammalecte-fr-v$(GRAMVER)
 
-grammalecte: Grammalecte-fr-v$(GRAMVER)
+grammalecte:
+	[ ! -d Grammalecte-fr-v$(GRAMVER) ] && $(MAKE) Grammalecte-fr-v$(GRAMVER)
 	cp -R Grammalecte-fr-v$(GRAMVER)/grammalecte .
 
 clean:
-	rm -rf Grammalecte-fr-v$(GRAMVER) dash.el-master flycheck-master
+	rm -rf Grammalecte-fr-v$(GRAMVER)
 	rm -f debug "#example.org#"
 
 uninstall: clean
-	rm -rf grammalecte
+	rm -rf grammalecte dash.el-master flycheck-master
 	rm -f flycheck-grammalecte.elc

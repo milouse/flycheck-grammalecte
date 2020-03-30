@@ -379,19 +379,18 @@ Windows OS.
 (defun flycheck-grammalecte-setup ()
   "Build the flycheck checker, matching your taste."
   (flycheck-def-executable-var 'grammalecte "python3")
-  (let ((cmdline '("python3")))
-    (nconc cmdline (list
-                    (expand-file-name
-                     "flycheck-grammalecte.py"
-                     flycheck-grammalecte-directory)))
-    (unless flycheck-grammalecte-report-spellcheck (nconc cmdline (list "-S")))
-    (unless flycheck-grammalecte-report-grammar    (nconc cmdline (list "-G")))
-    (unless flycheck-grammalecte-report-apos       (nconc cmdline (list "-A")))
-    (unless flycheck-grammalecte-report-nbsp       (nconc cmdline (list "-N")))
-    (unless flycheck-grammalecte-report-esp        (nconc cmdline (list "-W")))
-    (dolist (filter flycheck-grammalecte-filters)
-      (nconc cmdline (list "-f" filter)))
-    (nconc cmdline (list 'source))
+  (let ((cmdline '(source))
+        (filters (mapcan #'(lambda (filter) (list "-f" filter))
+                         flycheck-grammalecte-filters))
+        (grammalecte-bin (expand-file-name
+                          "flycheck-grammalecte.py"
+                          flycheck-grammalecte-directory)))
+    (unless flycheck-grammalecte-report-spellcheck (push "-S" cmdline))
+    (unless flycheck-grammalecte-report-grammar (push "-G" cmdline))
+    (unless flycheck-grammalecte-report-apos (push "-A" cmdline))
+    (unless flycheck-grammalecte-report-nbsp (push "-N" cmdline))
+    (unless flycheck-grammalecte-report-esp (push "-W" cmdline))
+    (setq cmdline (nconc (list "python3" grammalecte-bin) filters cmdline))
 
     ;; Now that we have all our variables, we can create the custom
     ;; checker.

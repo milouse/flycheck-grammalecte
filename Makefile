@@ -39,7 +39,7 @@ grammalecte: Grammalecte-fr-v$(GRAMVER)
 
 clean:
 	rm -rf Grammalecte-fr-v$(GRAMVER) dash.el-master flycheck-master
-	rm -f debug
+	rm -f debug "#example.org#"
 
 uninstall: clean
 	rm -rf grammalecte

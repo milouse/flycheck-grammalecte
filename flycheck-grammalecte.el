@@ -279,7 +279,7 @@ other buffer by the copied word."
 
 (defun flycheck-grammalecte--fetch-cnrtl-word (word)
   "Fetch WORD definition, according to TLFi, on CNRTL."
-  (let ((url (format "http://www.cnrtl.fr/definition/%s" word))
+  (let ((url (format "https://www.cnrtl.fr/definition/%s" word))
         (definitions '()) count start)
     ;; Get initial definitions location, number of definitions and
     ;; initial definition.

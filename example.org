@@ -26,6 +26,8 @@ mensonge ? Merde ! J’en aie marre.
 \begin{flushright}
 \vspace{8cm}
 
+\section{Avec des faute}
+
 Le secret le mieux gardé de toute l'histoire a été trahi. La
 huitième colonne, prête à s'ouvrir, plonge le monde dans une peur
 sans fin. Seule, une poignée d'homme décidés peut arrêter ses
@@ -36,3 +38,14 @@ effets.
 \input{input/chapter1}
 
 \end{document}
+
+* Un peu de lisp
+
+Ceci est un test d’insertion d’un fragment de code.
+
+#+begin_src emacs-lisp
+(message "Hello %s" (symbol-name 'test))
+toto prout ? 'machin
+#+end_src
+
+tutu prout machin tatat l'éléphant

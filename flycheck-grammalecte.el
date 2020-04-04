@@ -94,7 +94,9 @@ Otherwise, it will ask for a yes-or-no confirmation."
   :type 'boolean
   :group 'flycheck-grammalecte)
 
-(defcustom flycheck-grammalecte-filters '("\\\\(\\w+)(?:\\[([^]]+)\\])?(?:{([^}]*)})?")
+(defcustom flycheck-grammalecte-filters
+  '("\\\\(?:title|(?:sub)*section){([^}]+)}"
+    "\\\\\\w+(?:\\[[^]]+\\])?(?:{[^}]*})?")
   "List patterns for which errors in matching texts must be ignored.
 
 These patterns must be python Regular Expressions¹.
@@ -107,7 +109,7 @@ formulas, one can use :
             \"\\\\begin{equation}.*?\\\\end{equation}\"))
 
 Filters are applied sequentially.  In practice all characters of
-the matching pattern are replaced by `&', which are ignored by
+the matching pattern are replaced by `█', which are ignored by
 grammalecte.
 
 ¹ See URL `https://docs.python.org/3.5/library/re.html#regular-expression-syntax'."

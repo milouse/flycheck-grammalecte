@@ -2,4 +2,4 @@
  :fetcher git
  :url "https://git.deparis.io/flycheck-grammalecte/"
  :branch "master"
- :files ("flycheck-grammalecte.el" "flycheck-grammalecte.py"))
+ :files ("flycheck-grammalecte.el" "flycheck-grammalecte.py" "conjugueur.py"))

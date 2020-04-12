@@ -126,6 +126,15 @@ python files named `flycheck-grammalecte.el' and
 
 The default value is automatically computed from the included file.")
 
+(defvar flycheck-grammalecte--grammalecte-directory
+  (expand-file-name "grammalecte" flycheck-grammalecte--directory)
+  "Location of the grammalecte python package.
+
+This variable may be changed if you already have grammalecte installed
+somewhere on your machine.
+
+The default value is a folder alongside this elisp package.")
+
 (defvar flycheck-grammalecte--debug-mode nil
   "Display some debug messages when non-nil.")
 
@@ -183,9 +192,7 @@ from EXTRACTED-FOLDER to their destination, alongside the other
 package files."
   (let ((source-folder
          (expand-file-name "grammalecte" extracted-folder))
-        (target-folder
-         (expand-file-name "grammalecte"
-                           flycheck-grammalecte--directory)))
+        (target-folder flycheck-grammalecte--grammalecte-directory))
     ;; Always do a clean update. Begin by removing old folder if it's
     ;; present.
     (when (file-directory-p target-folder)
@@ -207,8 +214,8 @@ If optional argument FORCE is non-nil, verification will occurs even
 when current buffer major mode is not in `flycheck-grammalecte-enabled-modes'."
   (when (or force (memq major-mode flycheck-grammalecte-enabled-modes))
     (unless (file-exists-p
-             (expand-file-name "grammalecte/grammar_checker.py"
-                               flycheck-grammalecte--directory))
+             (expand-file-name "grammar_checker.py"
+                               flycheck-grammalecte--grammalecte-directory))
       (if (or flycheck-grammalecte-download-without-asking
               (yes-or-no-p
                "[flycheck-grammalecte] Grammalecte data not found.  Download it NOW?"))

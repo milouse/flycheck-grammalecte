@@ -95,25 +95,55 @@ Otherwise, it will ask for a yes-or-no confirmation."
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-filters
-  '("\\\\(?:title|(?:sub)*section){([^}]+)}"
-    "\\\\\\w+(?:\\[[^]]+\\])?(?:{[^}]*})?")
-  "List patterns for which errors in matching texts must be ignored.
+  '("(?m)^# ?-*-.+$")
+  "Patterns for which errors in matching texts are ignored.
 
-These patterns must be python Regular Expressions¹.
+As these patterns will be used by the underlying python script,
+they must be python Regular Expressions (See URL
+`https://docs.python.org/3.5/library/re.html#regular-expression-syntax').
+
 Escape character `\\' must be doubled twice: one time for Emacs
 and one time for python.  For example, to exclude LaTeX math
 formulas, one can use :
 
     (setq flycheck-grammalecte-filters
           '(\"\\$.*?\\$\"
-            \"\\\\begin{equation}.*?\\\\end{equation}\"))
+            \"(?s)\\\\begin{equation}.*?\\\\end{equation}\"))
 
 Filters are applied sequentially.  In practice all characters of
 the matching pattern are replaced by `█', which are ignored by
 grammalecte.
 
-¹ See URL `https://docs.python.org/3.5/library/re.html#regular-expression-syntax'."
+This patterns are always sent to Grammalecte.  See the variable
+`flycheck-grammalecte-filters-by-mode' for mode-related patterns."
   :type '(repeat string)
+  :group 'flycheck-grammalecte)
+
+(defcustom flycheck-grammalecte-filters-by-mode
+  '((latex-mode "\\\\(?:title|(?:sub)*section){([^}]+)}"
+                "\\\\\\w+(?:\\[[^]]+\\])?(?:{[^}]*})?")
+    (org-mode "(?is)#\\+begin_src.+#\\+end_src"
+              "(?im)#\\+begin[_:].+$"
+              "(?im)#\\+end[_:].+$"
+              "(?m)^[ \t]*(?:DEADLINE|SCHEDULED):.+$"
+              "(?i)#\\+(?:title|caption):"
+              "(?i)#\\+(?:author|category|creator|date|email|header|keywords|language|name|options|attr_.+):.*$"))
+  "Filtering patterns by mode.
+
+Each element has the form (MODE PATTERNS...), where MODE must be
+a valid major mode and PATTERNS must be a list of regexp as
+described in the variable `flycheck-grammalecte-filters'.
+
+Patterns defined here will be added after the ones defined in
+`flycheck-grammalecte-filters' when their associated mode match
+the current buffer major mode when the function
+`flycheck-grammalecte-setup' is run.  That is to say, you must
+run `flycheck-grammalecte-setup' each time you switch major mode
+if you want to use this variable.
+
+    (add-hook 'org-mode-hook #'flycheck-grammalecte-setup)"
+  :type '(alist :key-type (function :tag "Mode")
+                :value-type (repeat string))
   :group 'flycheck-grammalecte)
 
 (defvar flycheck-grammalecte--directory
@@ -567,6 +597,11 @@ The found words are then displayed in a new buffer in another window.
         (grammalecte-bin (expand-file-name
                           "flycheck-grammalecte.py"
                           flycheck-grammalecte--directory)))
+    (dolist (mode-pattern flycheck-grammalecte-filters-by-mode)
+      (when (eq major-mode (car mode-pattern))
+        (mapc #'(lambda (filter)
+                  (setq filters (append filters (list "-f" filter))))
+              (cdr mode-pattern))))
     (unless flycheck-grammalecte-report-spellcheck (push "-S" cmdline))
     (unless flycheck-grammalecte-report-grammar (push "-G" cmdline))
     (unless flycheck-grammalecte-report-apos (push "-A" cmdline))

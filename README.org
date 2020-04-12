@@ -80,6 +80,10 @@ Here is a quick reference of the available variables:
      used. Default is ~’(org-mode text-mode mail-mode latex-mode)~. To
      add markdown mode use the following line for exemple:
      ~(add-to-list 'flycheck-grammalecte-enabled-modes 'markdown-mode)~
+- ~flycheck-grammalecte-filters~ :: Patterns for which errors in
+     matching texts are ignored. See its documentation for
+     details. There is also a ~flycheck-grammalecte~filters-by-mode~
+     variable, which allow to enable filters only for a given mode.
 
 ** Breaking changes
 

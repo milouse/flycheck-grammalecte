@@ -84,28 +84,6 @@ def _redact_text(pattern, text, repl="█"):
     return new_text
 
 
-def _cleanup_text(lines, filters):
-    text = "".join(lines)
-
-    # Add org mode related filters
-    filters += [r"(?is)#\+begin_src.+#\+end_src", r"(?im)#\+begin_.+$",
-                r"(?im)#\+end_.+$", r"(?i)#\+(?:title|caption):"]
-    filters.append(r"(?i)#\+(?:{}):".format("|".join([
-        "author", "category", "creator", "date", "email", "header",
-        "keywords", "language", "name", "options", "attr_.+"
-    ])))
-
-    # Do not report errors on Emacs magic comment line in org mode
-    filters.append(r"(?m)^# ?-*-.+$")
-
-    # Now that we have a line to inspect, we can cleanup it
-    for pattern in filters:
-        text = _redact_text(re.compile(pattern), text)
-
-    debug(text)
-    return text.splitlines()
-
-
 def _prepare_gramm_errors(gramm_err, document_offset, text_input):
     final_errors = []
     for i in list(gramm_err):
@@ -153,7 +131,16 @@ def find_errors(files, opts={}):
     """Read the file and run grammalecte on it"""
 
     document_offset, text_input = _split_input(files)
-    text_input = _cleanup_text(text_input, opts.get("filters", []))
+
+    # Cleanup text by redacting all matching patterns.
+    # Each line of text already end by a end-line marker, thus only join
+    # by empty string
+    raw_text = "".join(text_input)
+    for pattern in opts.get("filters", []):
+        raw_text = _redact_text(re.compile(pattern), raw_text)
+    debug(raw_text)
+    # Converting back text to list of lines
+    text_input = raw_text.splitlines()
 
     text, lineset = txt.createParagraphWithLines(
         list(enumerate(text_input))

@@ -110,6 +110,9 @@ formulas, one can use :
           '(\"\\$.*?\\$\"
             \"(?s)\\\\begin{equation}.*?\\\\end{equation}\"))
 
+For simple use case, you can try to use the function
+`flycheck-grammalecte--convert-elisp-rx-to-python'.
+
 Filters are applied sequentially.  In practice all characters of
 the matching pattern are replaced by `█', which are ignored by
 grammalecte.
@@ -171,6 +174,44 @@ The default value is a folder alongside this elisp package.")
 
 
 ;;;; Helper methods:
+
+(defun flycheck-grammalecte--convert-elisp-rx-to-python (regexp)
+  "Convert the given elisp REGEXP to a python 3 regular expression.
+
+For example, given the following REGEXP
+
+   \\\\(?:title\\|\\(?:sub\\)*section\\){\\([^}]+\\)}\\)
+
+This function will return
+
+    \\\\(?:title|(?:sub)*section){([^}]+)})
+
+See URL
+`https://docs.python.org/3.5/library/re.html#regular-expression-syntax'
+and Info node `(elisp)Syntax of Regular Expressions'."
+  (let ((convtable '(("\\\\(" . "(")
+                     ("\\\\)" . ")")
+                     ("\\\\|" . "|")
+                     ("\\\\" . "\\\\")
+                     ("\\[:alnum:\\]" . "\\w")
+                     ("\\[:space:\\]" . "\\s")
+                     ("\\[:blank:\\]" . "\\s")
+                     ("\\[:digit:\\]" . "\\d")
+                     ("\\[:word:\\]" . "\\w"))))
+    (when (and (string-match "\\[:\\([a-z]+\\):\\]" regexp)
+               (not (string= "digit" (match-string 1 regexp)))
+               (not (string= "word" (match-string 1 regexp))))
+      (signal 'invalid-regexp
+              (list (format
+                     "%s is not supported by python regular expressions"
+                     (match-string 0 regexp)))))
+    (dolist (convpattern convtable)
+      (setq regexp
+            (replace-regexp-in-string (car convpattern)
+                                      (cdr convpattern)
+                                      regexp t t)))
+    regexp))
+
 
 (defun flycheck-grammalecte--grammalecte-version ()
   "Return the upstream version of the flycheck-grammalecte package.

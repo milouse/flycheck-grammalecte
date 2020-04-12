@@ -150,53 +150,53 @@ the Grammalecte home page or if no version string is found in the page."
 
 (defun flycheck-grammalecte--download-zip ()
   "Download Grammalecte CLI zip file."
-  (let* ((fgm-zip-name
+  (let* ((zip-name
           (format "Grammalecte-fr-v%s.zip"
                   (flycheck-grammalecte--grammalecte-version)))
-         (fgm-dl-url
+         (dl-url
           (format "https://grammalecte.net/grammalecte/zip/%s"
-                  fgm-zip-name))
-         (fgm-zip-file (expand-file-name
-                        fgm-zip-name
-                        flycheck-grammalecte--directory)))
+                  zip-name))
+         (zip-file (expand-file-name
+                    zip-name
+                    flycheck-grammalecte--directory)))
     ;; Do not download it twice if it's still there for some reason…
-    (unless (file-exists-p fgm-zip-file)
-      (url-copy-file fgm-dl-url fgm-zip-file))
-    (message "Grammalecte downloaded to %s" fgm-zip-file)
-    fgm-zip-file))
+    (unless (file-exists-p zip-file)
+      (url-copy-file dl-url zip-file))
+    (message "Grammalecte downloaded to %s" zip-file)
+    zip-file))
 
-(defun flycheck-grammalecte--extract-zip (fgm-zip-file)
-  "Extract FGM-ZIP-FILE."
-  (let ((fgm-extracted-folder (file-name-sans-extension fgm-zip-file)))
-    ;; Unzip file given in parameters in `fgm-extracted-folder'.
+(defun flycheck-grammalecte--extract-zip (zip-file)
+  "Extract ZIP-FILE."
+  (let ((extracted-folder (file-name-sans-extension zip-file)))
+    ;; Unzip file given in parameters in `extracted-folder'.
     (call-process "unzip" nil nil nil
-                  fgm-zip-file (concat "-d" fgm-extracted-folder))
+                  zip-file (concat "-d" extracted-folder))
     ;; Remove the zip file
-    (delete-file fgm-zip-file)
-    (message "Grammalecte extracted to %s" fgm-extracted-folder)
-    fgm-extracted-folder))
+    (delete-file zip-file)
+    (message "Grammalecte extracted to %s" extracted-folder)
+    extracted-folder))
 
-(defun flycheck-grammalecte--install-py-files (fgm-extracted-folder)
-  "Install the interesting files from FGM-EXTRACTED-FOLDER.
+(defun flycheck-grammalecte--install-py-files (extracted-folder)
+  "Install the interesting files from EXTRACTED-FOLDER.
 Move the `grammalecte' subfolder, containing the necessary python files
-from FGM-EXTRACTED-FOLDER to their destination, alongside the other
+from EXTRACTED-FOLDER to their destination, alongside the other
 package files."
-  (let ((fgm-source-folder
-         (expand-file-name "grammalecte" fgm-extracted-folder))
-        (fgm-target-folder
+  (let ((source-folder
+         (expand-file-name "grammalecte" extracted-folder))
+        (target-folder
          (expand-file-name "grammalecte"
                            flycheck-grammalecte--directory)))
     ;; Always do a clean update. Begin by removing old folder if it's
     ;; present.
-    (when (file-directory-p fgm-target-folder)
-      (delete-directory fgm-target-folder t))
+    (when (file-directory-p target-folder)
+      (delete-directory target-folder t))
     ;; Extract the `grammalecte' subfolder from the extracted directory.
-    (when (file-exists-p fgm-source-folder)
-      (rename-file fgm-source-folder fgm-target-folder)
+    (when (file-exists-p source-folder)
+      (rename-file source-folder target-folder)
       ;; Do some cleanup
-      (delete-directory fgm-extracted-folder t))
-    (message "Grammalecte installed in %s" fgm-target-folder)
-    fgm-target-folder))
+      (delete-directory extracted-folder t))
+    (message "Grammalecte installed in %s" target-folder)
+    target-folder))
 
 (defun flycheck-grammalecte--download-grammalecte-if-needed (&optional force)
   "Install Grammalecte python package if it's required.

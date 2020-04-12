@@ -1,0 +1,36 @@
+* Version 1.1
+** Feature
+
+- Add a filters support to avoid checking of document parts, like LaTeX
+  expressions or org-mode code blocks. Features a good default list for
+  org-mode.
+- Introduce borders support to drop any content of a file *before* a
+  matching line
+- Add a debug mode
+- Add a script to ease opening a clean/neutral Emacs instance for test
+- Use w to copy word from the synonym buffer
+- Refactor synonyms methods by using only pure lisp
+- Add function to lookup words on CNRTL TLFi (french dictionary)
+- Add a way to use an external grammalecte python directory
+- Add a variable to store mode specific filters
+- Automatically call flycheck-grammalecte-setup after major-mode change
+- Add support for markdown-mode, message-mode and mu4e-compose-mode
+- Add a way to fix error at point or under mouse, using Grammalecte suggestions
+
+** Fixes
+
+- Use https for CNRTL URL
+- Add missing python script to melpa recipe
+- Use the same melpa recipe than upstream
+- Be sure to use python3 for the conjugueur script
+- correctly compute pattern length
+- Avoid a crash when filters list is empty
+- Call interactively find-synonyms when there is no word at point
+- Correctly match \begin{document} border in LaTeX document
+- Do not replace quotation mark in suggestions
+
+** Others
+
+- Big refactoring/improvement of python script
+- Require only a single input file for the grammar python script (drop
+  pipe style usage).

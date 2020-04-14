@@ -241,8 +241,8 @@ the Grammalecte home page or if no version string is found in the page."
                     flycheck-grammalecte--directory)))
     ;; Do not download it twice if it's still there for some reason…
     (unless (file-exists-p zip-file)
-      (url-copy-file dl-url zip-file))
-    (message "Grammalecte downloaded to %s" zip-file)
+      (url-copy-file dl-url zip-file)
+      (message "[Flycheck Grammalecte] Downloaded to %s" zip-file))
     zip-file))
 
 (defun flycheck-grammalecte--extract-zip (zip-file)
@@ -253,7 +253,7 @@ the Grammalecte home page or if no version string is found in the page."
                   zip-file (concat "-d" extracted-folder))
     ;; Remove the zip file
     (delete-file zip-file)
-    (message "Grammalecte extracted to %s" extracted-folder)
+    (message "[Flycheck Grammalecte] Extracted to %s" extracted-folder)
     extracted-folder))
 
 (defun flycheck-grammalecte--install-py-files (extracted-folder)
@@ -273,7 +273,7 @@ package files."
       (rename-file source-folder target-folder)
       ;; Do some cleanup
       (delete-directory extracted-folder t))
-    (message "Grammalecte installed in %s" target-folder)
+    (message "[Flycheck Grammalecte] Installed in %s" target-folder)
     target-folder))
 
 (defun flycheck-grammalecte--download-grammalecte-if-needed (&optional force)
@@ -655,9 +655,10 @@ The found words are then displayed in a new buffer in another window.
                            "grammalecte/grammar_checker.py"
                            flycheck-grammalecte--directory)))
         (if (file-exists-p checker-path)
-            (message "[Flycheck Grammalecte] Found in %s" checker-path)
-          (message "[Flycheck Grammalecte] NOT FOUND")))
-      (message "[Flycheck Grammalecte] checker command: %s"
+            (message "[Flycheck Grammalecte][DEBUG] Found in %s" checker-path)
+          (message "[Flycheck Grammalecte][DEBUG] NOT FOUND")))
+      (message "[Flycheck Grammalecte][DEBUG] Detected mode: %s" major-mode)
+      (message "[Flycheck Grammalecte][DEBUG] Checker command: %s"
                (mapconcat
                 #'(lambda (item)
                     (cond ((symbolp item)

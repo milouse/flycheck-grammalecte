@@ -37,7 +37,7 @@ def _split_input(files):
     # Read input from stdin or first arg.
     for line in fileinput.input(files=files):
         borders = ["^--text follows this line--",
-                   r"^\begin{document}"]
+                   r"^\\begin{document}"]
         border_match = False
         for b in borders:
             if re.search(b, line, re.I):

@@ -135,12 +135,13 @@ This patterns are always sent to Grammalecte.  See the variable
 (defcustom flycheck-grammalecte-filters-by-mode
   '((latex-mode "\\\\(?:title|(?:sub)*section){([^}]+)}"
                 "\\\\\\w+(?:\\[[^]]+\\])?(?:{[^}]*})?")
-    (org-mode "(?is)#\\+begin_src.+#\\+end_src"
-              "(?im)#\\+begin[_:].+$"
-              "(?im)#\\+end[_:].+$"
+    (org-mode "(?ims)^[ \t]*#\\+begin_src.+#\\+end_src"
+              "(?im)^[ \t]*#\\+begin[_:].+$"
+              "(?im)^[ \t]*#\\+end[_:].+$"
               "(?m)^[ \t]*(?:DEADLINE|SCHEDULED):.+$"
-              "(?i)#\\+(?:title|caption):"
-              "(?i)#\\+(?:author|category|creator|date|email|header|keywords|language|name|options|attr_.+):.*$"))
+              "(?m)^\\*+ .*[ \t]*(:[\\w:@]+:)[ \t]*$"
+              "(?im)^[ \t]*#\\+(?:caption|description|keywords|(?:sub)?title):"
+              "(?im)^[ \t]*#\\+(?!caption|description|keywords|(?:sub)?title)\\w+:.*$"))
   "Filtering patterns by mode.
 
 Each element has the form (MODE PATTERNS...), where MODE must be

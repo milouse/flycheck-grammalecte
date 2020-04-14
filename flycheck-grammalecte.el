@@ -148,14 +148,16 @@ Each element has the form (MODE PATTERNS...), where MODE must be
 a valid major mode and PATTERNS must be a list of regexp as
 described in the variable `flycheck-grammalecte-filters'.
 
-Patterns defined here will be added after the ones defined in
-`flycheck-grammalecte-filters' when their associated mode match
-the current buffer major mode when the function
-`flycheck-grammalecte-setup' is run.  That is to say, you must
-run `flycheck-grammalecte-setup' each time you switch major mode
-if you want to use this variable.
+Contrary to flycheck, we will use `derived-mode-p' to check if a
+filters list must be activated or not.  Thus you are not obliged
+to list all possible modes, as soon as one is an ancestor of
+another.
 
-    (add-hook 'org-mode-hook #'flycheck-grammalecte-setup)"
+Patterns defined here will be added after the ones defined in
+`flycheck-grammalecte-filters' when their associated mode matches
+the current buffer major mode, or is an ancestor of it.  This
+operation is only done once when the function
+`flycheck-grammalecte-setup' is run."
   :type '(alist :key-type (function :tag "Mode")
                 :value-type (repeat string))
   :group 'flycheck-grammalecte)
@@ -649,11 +651,10 @@ The found words are then displayed in a new buffer in another window.
         (grammalecte-bin (expand-file-name
                           "flycheck-grammalecte.py"
                           flycheck-grammalecte--directory)))
-    (dolist (mode-pattern flycheck-grammalecte-filters-by-mode)
-      (when (eq major-mode (car mode-pattern))
-        (mapc #'(lambda (filter)
-                  (setq filters (append filters (list "-f" filter))))
-              (cdr mode-pattern))))
+    (pcase-dolist (`(,mode . ,patterns) flycheck-grammalecte-filters-by-mode)
+      (when (derived-mode-p mode)
+        (dolist (filter patterns)
+          (nconc filters (list "-f" filter)))))
     (unless flycheck-grammalecte-report-spellcheck (push "-S" cmdline))
     (unless flycheck-grammalecte-report-grammar (push "-G" cmdline))
     (unless flycheck-grammalecte-report-apos (push "-A" cmdline))

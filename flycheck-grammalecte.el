@@ -162,6 +162,29 @@ operation is only done once when the function
                 :value-type (repeat string))
   :group 'flycheck-grammalecte)
 
+(defcustom flycheck-grammalecte-borders-by-mode
+  '((latex-mode . "^\\\\begin{document}$")
+    (mail-mode . "^--text follows this line--")
+    (message-mode . "^--text follows this line--"))
+  "Line patterns before which proofing must not occur for given mode.
+
+Each element is a cons-cell (MODE . PATTERN), where MODE must be
+a valid major mode and PATTERN must be a regexp as described in
+the variable `flycheck-grammalecte-filters'.
+
+For the given MODE, the corresponding PATTERN should match a line in the
+file being proofed.  All lines before this match will be ignored by the
+process.  This variable is used for example to avoid proofing mail
+headers or LaTeX documents header.
+
+Contrary to flycheck, we will use `derived-mode-p' to check if a
+border must be activated or not.  Thus you are not obliged to
+list all possible modes, as soon as one is an ancestor of
+another.  This activation is only done once when the function
+`flycheck-grammalecte-setup' is run."
+  :type '(repeat string)
+  :group 'flycheck-grammalecte)
+
 (defvar flycheck-grammalecte--directory
   (if load-file-name (file-name-directory load-file-name) default-directory)
   "Location of the flycheck-grammalecte package.
@@ -655,6 +678,9 @@ The found words are then displayed in a new buffer in another window.
       (when (derived-mode-p mode)
         (dolist (filter patterns)
           (nconc filters (list "-f" filter)))))
+    (pcase-dolist (`(,mode . ,border) flycheck-grammalecte-borders-by-mode)
+      (when (derived-mode-p mode)
+        (nconc filters (list "-b" border))))
     (unless flycheck-grammalecte-report-spellcheck (push "-S" cmdline))
     (unless flycheck-grammalecte-report-grammar (push "-G" cmdline))
     (unless flycheck-grammalecte-report-apos (push "-A" cmdline))

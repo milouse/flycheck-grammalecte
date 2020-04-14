@@ -29,28 +29,19 @@ def debug(msg):
         f.write(msg + "\n")
 
 
-def _split_input(input_file):
+def _compute_offset(input_lines, border):
     # At which line the real document begins?
     offset = 0
     text_input = []
-    with open(input_file, "r") as f:
-        input_lines = f.readlines()
     for line in input_lines:
-        borders = ["^--text follows this line--",
-                   r"^\\begin{document}"]
-        border_match = False
-        for b in borders:
-            if re.search(b, line, re.I):
-                border_match = True
-                break
-        if border_match:
+        if re.search(border, line, re.I):
             # Discard all previous lines, which are considered as
             # headers in some mode (latex, mail...)
             offset = len(text_input) + 1
             text_input = []
             continue
         text_input.append(line)
-    return offset, text_input
+    return offset, "".join(text_input)
 
 
 def _mask_matching_pattern(new_text, start, span, repl):
@@ -130,16 +121,24 @@ def _prepare_spell_errors(spell_err, document_offset):
 def find_errors(input_file, opts={}):
     """Read the file and run grammalecte on it"""
 
-    document_offset, text_input = _split_input(input_file)
+    with open(input_file, "r") as f:
+        lines = f.readlines()
+
+    border = opts.get("border")
+    if not border or border == "":
+        # No borders, simply join text lines
+        document_offset = 0
+        raw_text = "".join(lines)
+        debug("No border to detect")
+    else:
+        debug(str(border))  # May be None
+        document_offset, raw_text = _compute_offset(lines, border)
+        debug("Border found at {}".format(document_offset))
 
     # Cleanup text by redacting all matching patterns.
-    # Each line of text already end by a end-line marker, thus only join
-    # by empty string
-    raw_text = "".join(text_input)
     for pattern in opts.get("filters", []):
         raw_text = _redact_text(re.compile(pattern), raw_text)
     debug(raw_text)
-    # Converting back text to list of lines
     text_input = raw_text.splitlines()
 
     text, lineset = txt.createParagraphWithLines(
@@ -197,6 +196,8 @@ if __name__ == "__main__":
     parser.add_argument('-f', "--filters", action="append", default=[],
                         help="Filter pattern (regular expression "
                         "replaced before analysis)")
+    parser.add_argument('-b', "--border", help="Border pattern (line "
+                        "pattern before which proofing must not occur)")
     parser.add_argument('file', help="File to proofed")
 
     args = parser.parse_args()
@@ -206,7 +207,8 @@ if __name__ == "__main__":
         "no_apos": args.no_apostrophe,
         "no_nbsp": args.no_nbsp,
         "no_esp": args.no_space,
-        "filters": args.filters
+        "filters": args.filters,
+        "border": args.border
     }
     errors = find_errors(args.file, opts)
     for err in errors:

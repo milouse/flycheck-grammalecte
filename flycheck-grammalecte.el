@@ -680,5 +680,10 @@ See URL `https://grammalecte.net/'."
       :modes flycheck-grammalecte-enabled-modes)
     (add-to-list 'flycheck-checkers 'grammalecte)))
 
+(add-hook 'after-change-major-mode-hook
+          #'(lambda ()
+              (when (memq major-mode flycheck-grammalecte-enabled-modes)
+                (flycheck-grammalecte-setup))))
+
 (provide 'flycheck-grammalecte)
 ;;; flycheck-grammalecte.el ends here

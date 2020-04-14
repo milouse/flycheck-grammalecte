@@ -16,7 +16,6 @@ any later version.
 import os
 import re
 import sys
-import fileinput
 import grammalecte
 import grammalecte.text as txt
 from argparse import ArgumentParser
@@ -30,12 +29,13 @@ def debug(msg):
         f.write(msg + "\n")
 
 
-def _split_input(files):
+def _split_input(input_file):
     # At which line the real document begins?
     offset = 0
     text_input = []
-    # Read input from stdin or first arg.
-    for line in fileinput.input(files=files):
+    with open(input_file, "r") as f:
+        input_lines = f.readlines()
+    for line in input_lines:
         borders = ["^--text follows this line--",
                    r"^\\begin{document}"]
         border_match = False
@@ -127,10 +127,10 @@ def _prepare_spell_errors(spell_err, document_offset):
     return final_errors
 
 
-def find_errors(files, opts={}):
+def find_errors(input_file, opts={}):
     """Read the file and run grammalecte on it"""
 
-    document_offset, text_input = _split_input(files)
+    document_offset, text_input = _split_input(input_file)
 
     # Cleanup text by redacting all matching patterns.
     # Each line of text already end by a end-line marker, thus only join
@@ -197,13 +197,9 @@ if __name__ == "__main__":
     parser.add_argument('-f', "--filters", action="append", default=[],
                         help="Filter pattern (regular expression "
                         "replaced before analysis)")
-    parser.add_argument('files', metavar='FILE', nargs='*',
-                        help="files to read, if empty, stdin is used")
+    parser.add_argument('file', help="File to proofed")
 
     args = parser.parse_args()
-    # By default, fileinput will take all ARGV args. We need to filter
-    # files now.
-    files = args.files if len(args.files) > 0 else ('-', )
     opts = {
         "no_spell": args.no_spellcheck,
         "no_gramm": args.no_grammar,
@@ -212,7 +208,7 @@ if __name__ == "__main__":
         "no_esp": args.no_space,
         "filters": args.filters
     }
-    errors = find_errors(files, opts)
+    errors = find_errors(args.file, opts)
     for err in errors:
         msg = "{}|{}|{}|{}".format(*err)
         debug(msg)

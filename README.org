@@ -49,7 +49,7 @@ require ~flycheck-grammalecte~ to prefill its variables. For exemple:
 (with-eval-after-load 'flycheck
   (require 'flycheck-grammalecte)
   (setq flycheck-grammalecte-report-esp nil)
-  (add-to-list 'flycheck-grammalecte-enabled-modes 'markdown-mode)
+  (add-to-list 'flycheck-grammalecte-enabled-modes 'fountain-mode)
   (flycheck-grammalecte-setup))
 #+end_src
 
@@ -77,9 +77,10 @@ Here is a quick reference of the available variables:
      itself (like LaTeX, org-mode export…). Default is ~t~.
 - ~flycheck-grammalecte-enabled-modes~ :: This variable stores the list
      of major modes for which /flycheck-grammalecte/ must be
-     used. Default is ~’(org-mode text-mode mail-mode latex-mode)~. To
-     add markdown mode use the following line for exemple:
-     ~(add-to-list 'flycheck-grammalecte-enabled-modes 'markdown-mode)~
+     used. Default is ~’(latex-mode mail-mode markdown-mode message-mode
+     mu4e-compose-mode org-mode text-mode)~.
+     To add markdown mode use the following line for exemple:
+     ~(add-to-list 'flycheck-grammalecte-enabled-modes 'fountain-mode)~
 - ~flycheck-grammalecte-filters~ :: Patterns for which errors in
      matching texts are ignored. See its documentation for
      details. There is also a ~flycheck-grammalecte~filters-by-mode~

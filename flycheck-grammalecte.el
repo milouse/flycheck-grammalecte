@@ -79,11 +79,21 @@ Default is t."
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-enabled-modes
-  '(org-mode text-mode mail-mode latex-mode)
+  '(latex-mode
+    mail-mode
+    markdown-mode
+    message-mode
+    mu4e-compose-mode
+    org-mode
+    text-mode)
   "Major modes for which `flycheck-grammalecte' should be enabled.
 
-Default modes are `org-mode', `text-mode', `mail-mode' and
-`latex-mode'."
+Sadly, flycheck does not use `derived-mode-p' to check if it must
+be enabled or not in the current buffer.  Thus, be sure to set up
+a comprehensive mode list for your own usage.
+
+Default modes are `latex-mode', `mail-mode', `markdown-mode',
+`message-mode', `mu4e-compose-mode', `org-mode' and `text-mode'."
   :type '(repeat (function :tag "Mode"))
   :group 'flycheck-grammalecte)
 

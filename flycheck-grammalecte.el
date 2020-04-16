@@ -329,7 +329,7 @@ Windows OS.
     (with-current-buffer buffer
       (insert
        (shell-command-to-string
-        (format "python %s %s"
+        (format "python3 %s %s"
                 (expand-file-name "conjugueur.py" flycheck-grammalecte-directory)
                 verb)))
       (goto-char (point-min))

@@ -95,11 +95,11 @@ def _prepare_gramm_errors(gramm_err, document_offset, text_input):
             if i["nStartX"] == len(cur_line) and next_line == "":
                 continue
         message = i["sMessage"]
+        message = message.replace("“", "« ").replace("« ", "« ") \
+                         .replace("”", " »").replace(" »", " »")
         suggs = i.get("aSuggestions", [])
         if len(suggs) > 0:
             message += " ⇨ " + ", ".join(suggs)
-        message = message.replace("“", "« ").replace("« ", "« ") \
-                         .replace("”", " »").replace(" »", " »")
         cur_col = i["nStartX"] + 1
         real_line_nb = cur_line_nb + document_offset
         final_errors.append(

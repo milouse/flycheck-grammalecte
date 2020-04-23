@@ -78,21 +78,21 @@ def _redact_text(pattern, text, repl="█"):
 def _prepare_gramm_errors(gramm_err, document_offset, text_input):
     final_errors = []
     for i in list(gramm_err):
-        cur_line = text_input[i["nStartY"]]
-        cur_line_nb = i["nStartY"] + 1
+        start_line = text_input[i["nStartY"]]
+        start_line_nb = i["nStartY"] + 1
         if i["sType"] == "esp":
-            # Remove useless space warning for visual paragraph in
-            # text modes
-            if cur_line_nb > len(text_input):
-                # Weird, but maybe there is no blank line at the end
-                # of the file? Or some sort of buffer overflow?
+            # Remove useless space warning for visual paragraph in text
+            # modes
+            if start_line_nb > len(text_input):
+                # Weird, but maybe there is no blank line at the end of
+                # the file? Or some sort of buffer overflow?
                 next_line = ""
             else:
-                # cur_line_nb hold the human value of the current
-                # line, starting from 1. Thus this human value
-                # equals the next line index, starting from 0.
-                next_line = text_input[cur_line_nb].strip()
-            if i["nStartX"] == len(cur_line) and next_line == "":
+                # start_line_nb hold the human value of the current
+                # line, starting from 1. Thus this human value equals
+                # the next line index, starting from 0.
+                next_line = text_input[start_line_nb].strip()
+            if i["nStartX"] == len(start_line) and next_line == "":
                 continue
         message = i["sMessage"]
         message = message.replace("“", "« ").replace("« ", "« ") \
@@ -100,10 +100,14 @@ def _prepare_gramm_errors(gramm_err, document_offset, text_input):
         suggs = i.get("aSuggestions", [])
         if len(suggs) > 0:
             message += " ⇨ " + ", ".join(suggs)
-        cur_col = i["nStartX"] + 1
-        real_line_nb = cur_line_nb + document_offset
+        start_col = i["nStartX"] + 1
+        end_col = i["nEndX"] + 1
+        start_line_nb += document_offset
+        end_line_nb = i["nEndY"] + 1 + document_offset
         final_errors.append(
-            ("grammaire", real_line_nb, cur_col, message)
+            ("grammaire", message,
+             start_line_nb, end_line_nb,
+             start_col, end_col)
         )
     return final_errors
 
@@ -111,10 +115,16 @@ def _prepare_gramm_errors(gramm_err, document_offset, text_input):
 def _prepare_spell_errors(spell_err, document_offset):
     final_errors = []
     for i in list(spell_err):
-        real_line_nb = i["nStartY"] + 1 + document_offset
-        cur_col = i["nStartX"] + 1
-        err_msg = "« {} » absent du dictionnaire".format(i["sValue"])
-        final_errors.append(("orthographe", real_line_nb, cur_col, err_msg))
+        start_line_nb = i["nStartY"] + 1 + document_offset
+        end_line_nb = i["nEndY"] + 1 + document_offset
+        start_col = i["nStartX"] + 1
+        end_col = i["nEndX"] + 1
+        message = "« {} » absent du dictionnaire".format(i["sValue"])
+        final_errors.append(
+            ("orthographe", message,
+             start_line_nb, end_line_nb,
+             start_col, end_col)
+        )
     return final_errors
 
 
@@ -176,7 +186,7 @@ def find_errors(input_file, opts={}):
     if do_spell:
         final_errors += _prepare_spell_errors(spell_err, document_offset)
 
-    return sorted(final_errors, key=itemgetter(1, 2))
+    return sorted(final_errors, key=itemgetter(2, 4))
 
 
 if __name__ == "__main__":
@@ -212,6 +222,6 @@ if __name__ == "__main__":
     }
     errors = find_errors(args.file, opts)
     for err in errors:
-        msg = "{}|{}|{}|{}".format(*err)
+        msg = "{}|{}|{}|{}|{}|{}".format(*err)
         debug(msg)
         print(msg)

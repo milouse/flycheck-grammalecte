@@ -713,8 +713,10 @@ The found words are then displayed in a new buffer in another window.
 See URL `https://grammalecte.net/'."
       :command cmdline
       :error-patterns
-      '((warning line-start "grammaire|" line "|" column "|" (message) line-end)
-        (info line-start "orthographe|" line "|" column "|" (message) line-end))
+      '((warning line-start "grammaire|" (message) "|" line "|" end-line
+                 "|" column "|" end-column line-end)
+        (info line-start "orthographe|" (message) "|" line "|" end-line
+              "|" column "|" end-column line-end))
       :modes flycheck-grammalecte-enabled-modes)
     (add-to-list 'flycheck-checkers 'grammalecte)))
 

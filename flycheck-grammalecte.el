@@ -332,6 +332,23 @@ when current buffer major mode is not in `flycheck-grammalecte-enabled-modes'."
 Please run the command `flycheck-grammalecte-download-grammalecte'
 as soon as possible.")))))
 
+(defun flycheck-grammalecte--split-error-message (err)
+  "Split ERR message between actual message and suggestions."
+  (when err
+    (let* ((err-msg (split-string (flycheck-error-message err) "⇨" t " "))
+           (suggestions (split-string (cadr err-msg) "," t " ")))
+      (cons (car err-msg) suggestions))))
+
+(defun flycheck-grammalecte--fix-error (err repl &optional region)
+  "Replace the wrong REGION of ERR by REPL."
+  (when repl
+    ;; Grammalecte error provide precise region
+    (unless region
+      (setq region (flycheck-error-region-for-mode err major-mode)))
+    (when region
+      (delete-region (car region) (cdr region)))
+    (insert repl)))
+
 (defun flycheck-grammalecte--kill-ring-save-at-point (&optional pos replace)
   "Copy the word at point or POS and paste it when REPLACE is non-nil.
 
@@ -649,6 +666,42 @@ The found words are then displayed in a new buffer in another window.
          (format "Conjugaison de %s." verb))))
     (pop-to-buffer buffer)))
 
+(defun flycheck-grammalecte-correct-error-at-point (pos)
+  "Correct the first error encountered at POS.
+
+This method replace the word at POS by the first suggestion coming from
+flycheck, if any."
+  (interactive "d")
+  (let ((first-err (car-safe (flycheck-overlay-errors-at pos))))
+    (when first-err
+      (flycheck-grammalecte--fix-error
+       first-err
+       (cadr (flycheck-grammalecte--split-error-message first-err))))))
+
+(defun flycheck-grammalecte-correct-error-at-click (event)
+  "Popup a menu to help correct error under mouse pos defined in EVENT."
+  (interactive "e")
+  (save-excursion
+    (mouse-set-point event)
+    (let ((first-err (car-safe (flycheck-overlay-errors-at (point)))))
+      (when first-err
+        (let* ((region (flycheck-error-region-for-mode first-err major-mode))
+               (word (buffer-substring-no-properties (car region) (cdr region)))
+               (splitted-err (flycheck-grammalecte--split-error-message first-err))
+               (repl-menu (mapcar
+                           #'(lambda (repl) (list repl repl))
+                           (cdr splitted-err))))
+          ;; Add a reminder of the error message
+          (push (car splitted-err) repl-menu)
+          (flycheck-grammalecte--fix-error
+           first-err
+           (car-safe
+            (x-popup-menu
+             event
+             (list
+              (format "Corrections pour %s" word)
+              (cons "Suggestions de Grammalecte" repl-menu))))
+           region))))))
 
 (defun flycheck-grammalecte-download-grammalecte ()
   "Download, extract and install Grammalecte python program."
@@ -718,7 +771,12 @@ See URL `https://grammalecte.net/'."
         (info line-start "orthographe|" (message) "|" line "|" end-line
               "|" column "|" end-column line-end))
       :modes flycheck-grammalecte-enabled-modes)
-    (add-to-list 'flycheck-checkers 'grammalecte)))
+    (add-to-list 'flycheck-checkers 'grammalecte))
+  ;; Add our fixer to right click
+  (define-key flycheck-mode-map (kbd "<mouse-3>")
+    #'flycheck-grammalecte-correct-error-at-click)
+  (define-key flycheck-command-map "g"
+    #'flycheck-grammalecte-correct-error-at-point))
 
 (add-hook 'after-change-major-mode-hook
           #'(lambda ()

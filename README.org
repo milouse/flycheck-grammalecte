@@ -39,6 +39,11 @@ Finally, the last expected step is to download the
 Enable /flycheck/ in a buffer, which major mode is declared in
 ~flycheck-grammalecte-enabled-modes~, and voilà!
 
+To correct a word or expression at point, you can use the command
+~flycheck-grammalecte-correct-error-at-point~, which is bind to
+~C-c ! g~ by default[fn:1]. You can also right-click on it and a menu
+will popup to let you choose the better correction.
+
 If you are looking for a better word at some place, you can use the
 function ~flycheck-grammalecte-find-synonyms-at-point~ (which will take
 the word at point to find synonyms and antonyms) or the simpler
@@ -46,6 +51,9 @@ the word at point to find synonyms and antonyms) or the simpler
 before doing the search). Pro tip: these functions are available even in
 buffer, which major mode is not in the
 ~flycheck-grammalecte-enabled-modes~ list.
+
+[fn:1] In fact, it is bind only to ~g~ in the ~flycheck-command-map~,
+       ~C-c !~ being the flycheck default prefix.
 
 * Configuration
 

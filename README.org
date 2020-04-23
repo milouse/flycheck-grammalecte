@@ -34,6 +34,19 @@ Finally, the last expected step is to download the
 [[https://grammalecte.net/#download][CLI & Server upstream package]]. Just enter the following command:
 ~M-x flycheck-grammalecte-download-grammalecte~
 
+* Usage
+
+Enable /flycheck/ in a buffer, which major mode is declared in
+~flycheck-grammalecte-enabled-modes~, and voilà!
+
+If you are looking for a better word at some place, you can use the
+function ~flycheck-grammalecte-find-synonyms-at-point~ (which will take
+the word at point to find synonyms and antonyms) or the simpler
+~flycheck-grammalecte-find-synonyms~ (which will ask you for a word
+before doing the search). Pro tip: these functions are available even in
+buffer, which major mode is not in the
+~flycheck-grammalecte-enabled-modes~ list.
+
 * Configuration
 
 All options are accessibles with ~customize~. In GNU Emacs, enter
@@ -88,13 +101,6 @@ Here is a quick reference of the available variables:
 
 ** Breaking changes
 
-*** Version 0.9
-
-This version changes the default value of
-~flycheck-grammalecte-report-spellcheck~ to ~nil~, making now
-grammalecte to *not* report spellchecking errors. If you like the old
-behavior, you are now required to explicitely set this variable to ~t~.
-
 *** Version 1.0
 
 As you may have noticed, the most important change is the introduction
@@ -108,18 +114,12 @@ this package:
 (flycheck-grammalecte-setup)
 #+end_src
 
-* Usage
+*** Version 0.9
 
-Enable /flycheck/ in a buffer, which major mode is declared in
-~flycheck-grammalecte-enabled-modes~, and voilà!
-
-If you are looking for a better word at some place, you can use the
-function ~flycheck-grammalecte-find-synonyms-at-point~ (which will take
-the word at point to find synonyms and antonyms) or the simpler
-~flycheck-grammalecte-find-synonyms~ (which will ask you for a word
-before doing the search). Pro tip: these functions are available even in
-buffer, which major mode is not in the
-~flycheck-grammalecte-enabled-modes~ list.
+This version changes the default value of
+~flycheck-grammalecte-report-spellcheck~ to ~nil~, making now
+grammalecte to *not* report spellchecking errors. If you like the old
+behavior, you are now required to explicitely set this variable to ~t~.
 
 * Credits
 

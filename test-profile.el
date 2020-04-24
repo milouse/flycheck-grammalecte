@@ -8,3 +8,5 @@
 
 (load-file "flycheck-grammalecte.el")
 (flycheck-grammalecte-setup)
+
+(add-hook 'org-mode-hook #'flycheck-mode)

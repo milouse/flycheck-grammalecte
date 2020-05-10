@@ -336,7 +336,7 @@ as soon as possible.")))))
   "Split ERR message between actual message and suggestions."
   (when err
     (let* ((err-msg (split-string (flycheck-error-message err) "⇨" t " "))
-           (suggestions (split-string (cadr err-msg) "," t " ")))
+           (suggestions (split-string (or (cadr err-msg) "") "," t " ")))
       (cons (car err-msg) suggestions))))
 
 (defun flycheck-grammalecte--fix-error (err repl &optional region)

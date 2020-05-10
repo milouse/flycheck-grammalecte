@@ -13,37 +13,147 @@ the Free Software Foundation; either version 3, or (at your option)
 any later version.
 """
 
+import os
 import re
-import fileinput
+import sys
 import grammalecte
 import grammalecte.text as txt
 from argparse import ArgumentParser
+from operator import itemgetter
 
 
-def main(files, opts={}):
-    """Read the file and run grammalecte on it"""
+def debug(msg):
+    if not os.path.exists("debug"):
+        return
+    with open("debug", "a") as f:
+        f.write(msg + "\n")
 
-    # Read input from stdin or first arg.
+
+def _compute_offset(input_lines, border):
+    # At which line the real document begins?
+    offset = 0
     text_input = []
-    # At which list the real document begins?
-    document_offset = 0
-    for line in fileinput.input(files=files):
-        borders = ["^--text follows this line--",
-                   "^\begin{document}"]
-        border_match = False
-        for b in borders:
-            if re.search(b, line, re.I):
-                border_match = True
-                break
-        if border_match:
+    for line in input_lines:
+        if re.search(border, line, re.I):
             # Discard all previous lines, which are considered as
             # headers in some mode (latex, mail...)
-            document_offset = len(text_input) + 1
+            offset = len(text_input) + 1
             text_input = []
             continue
         text_input.append(line)
+    return offset, "".join(text_input)
+
+
+def _mask_matching_pattern(new_text, start, span, repl):
+    before = new_text[:start]
+    after = new_text[span[0]:]
+    mask = (span[0] - start) * repl
+    return (span[1], before + mask + after)
+
+
+def _redact_text(pattern, text, repl="█"):
+    new_text = text
+    for m in pattern.finditer(text):
+        nl_count = len(m[0].splitlines()) - 1
+        line_pad = "\n" * nl_count
+        group_nb = len(m.groups())
+        if group_nb == 0:
+            mask = (repl * len(m[0])) + line_pad
+            new_text = pattern.sub(mask, new_text, count=1)
+            continue
+        group_nb += 1  # Because matching groups are indexed from 1
+        beg = m.start()
+        for i in range(1, group_nb):
+            if m.group(i) is None:
+                continue
+            beg, new_text = _mask_matching_pattern(
+                new_text, beg, m.span(i), repl
+            )
+        new_text = _mask_matching_pattern(
+            new_text, beg, (m.end(), m.end()), repl
+        )[1] + line_pad
+    return new_text
+
+
+def _prepare_gramm_errors(gramm_err, document_offset, text_input):
+    final_errors = []
+    for i in list(gramm_err):
+        start_line = text_input[i["nStartY"]]
+        start_line_nb = i["nStartY"] + 1
+        if i["sType"] == "esp":
+            # Remove useless space warning for visual paragraph in text
+            # modes
+            if start_line_nb > len(text_input):
+                # Weird, but maybe there is no blank line at the end of
+                # the file? Or some sort of buffer overflow?
+                next_line = ""
+            else:
+                # start_line_nb hold the human value of the current
+                # line, starting from 1. Thus this human value equals
+                # the next line index, starting from 0.
+                next_line = text_input[start_line_nb].strip()
+            if i["nStartX"] == len(start_line) and next_line == "":
+                continue
+        message = i["sMessage"]
+        message = message.replace("“", "« ").replace("« ", "« ") \
+                         .replace("”", " »").replace(" »", " »")
+        suggs = i.get("aSuggestions", [])
+        if len(suggs) > 0:
+            message += " ⇨ " + ", ".join(suggs)
+        start_col = i["nStartX"] + 1
+        end_col = i["nEndX"] + 1
+        start_line_nb += document_offset
+        end_line_nb = i["nEndY"] + 1 + document_offset
+        final_errors.append(
+            ("grammaire", message,
+             start_line_nb, end_line_nb,
+             start_col, end_col)
+        )
+    return final_errors
+
+
+def _prepare_spell_errors(spell_err, document_offset):
+    final_errors = []
+    for i in list(spell_err):
+        start_line_nb = i["nStartY"] + 1 + document_offset
+        end_line_nb = i["nEndY"] + 1 + document_offset
+        start_col = i["nStartX"] + 1
+        end_col = i["nEndX"] + 1
+        message = "« {} » absent du dictionnaire".format(i["sValue"])
+        final_errors.append(
+            ("orthographe", message,
+             start_line_nb, end_line_nb,
+             start_col, end_col)
+        )
+    return final_errors
+
+
+def find_errors(input_file, opts={}):
+    """Read the file and run grammalecte on it"""
+
+    with open(input_file, "r") as f:
+        lines = f.readlines()
+
+    border = opts.get("border")
+    if not border or border == "":
+        # No borders, simply join text lines
+        document_offset = 0
+        raw_text = "".join(lines)
+        debug("No border to detect")
+    else:
+        debug(str(border))  # May be None
+        document_offset, raw_text = _compute_offset(lines, border)
+        debug("Border found at {}".format(document_offset))
+
+    # Cleanup text by redacting all matching patterns.
+    for pattern in opts.get("filters", []):
+        raw_text = _redact_text(re.compile(pattern), raw_text)
+    debug(raw_text)
+    text_input = raw_text.splitlines()
+
     text, lineset = txt.createParagraphWithLines(
-        list(enumerate(text_input)))
+        list(enumerate(text_input))
+    )
 
     do_gramm = not opts.get("no_gramm", False)
     do_spell = not opts.get("no_spell", False)
@@ -58,10 +168,7 @@ def main(files, opts={}):
         gc.gce.setOption("nbsp", not opts.get("no_nbsp", False))
         gc.gce.setOption("esp", not opts.get("no_esp", False))
         gc.gce.setOption("tab", not opts.get("no_esp", False))
-
-        gramm_err = gc.gce.parse(
-            text, "FR",
-            bDebug=False)
+        gramm_err = gc.gce.parse(text, "FR", bDebug=False)
 
     if do_spell:
         spell_err = gc.oSpellChecker.parseParagraph(text, False)
@@ -69,61 +176,22 @@ def main(files, opts={}):
     # Get colums and lines.
     gramm_err, spell_err = txt.convertToXY(gramm_err, spell_err, lineset)
 
-    org_keywords = [
-        "author", "caption", "category", "creator", "date", "email",
-        "header", "keywords", "language", "name", "options", "title",
-        "attr_.+"
-    ]
-    org_re = re.compile(
-        r"^#\+(?:{})\:".format("|".join(org_keywords)),
-        re.IGNORECASE)
-
-    # Output
     if do_gramm:
-        for i in list(gramm_err):
-            cur_line = text_input[i["nStartY"]]
-            if i["sType"] == "esp":
-                # Remove useless space warning for visual paragraph in
-                # text modes
-                next_line_no = i["nStartY"] + 1
-                if next_line_no > len(text_input):
-                    # Weird, but maybe there is no blank line at the end
-                    # of the file? Or some sort of buffer overflow?
-                    next_line = ""
-                else:
-                    next_line = text_input[next_line_no].strip()
-                if cur_line[i["nStartX"]] == "\n" and next_line == "":
-                    continue
-            elif i["sType"] == "nbsp":
-                # Remove some unwanted nbsp warnings
-                if cur_line[0:4] == "#-*-":
-                    continue
-                if org_re.search(cur_line) is not None:
-                    continue
-            message = i["sMessage"]
-            suggs = i.get("aSuggestions", [])
-            if len(suggs) > 0:
-                message += " ⇨ " + ", ".join(suggs)
-            message = message.replace("“", "« ").replace("« ", "« ") \
-                             .replace("”", " »").replace(" »", " »")
-            print("grammaire|{}|{}|{}"
-                  .format(i["nStartY"] + 1 + document_offset,
-                          i["nStartX"] + 1,
-                          message))
+        final_errors = _prepare_gramm_errors(
+            gramm_err, document_offset, text_input
+        )
+    else:
+        final_errors = []
 
     if do_spell:
-        for i in list(spell_err):
-            cur_line = text_input[i["nStartY"]]
-            if org_re.search(cur_line) is not None \
-               and i["sValue"] in org_keywords:
-                continue
-            print("orthographe|{}|{}|{}"
-                  .format(i["nStartY"] + 1 + document_offset,
-                          i["nStartX"] + 1,
-                          "« {} » absent du dictionnaire".format(i["sValue"])))
+        final_errors += _prepare_spell_errors(spell_err, document_offset)
+
+    return sorted(final_errors, key=itemgetter(2, 4))
 
 
 if __name__ == "__main__":
+    debug(sys.argv.__repr__())
+
     parser = ArgumentParser()
     parser.add_argument("-S", "--no-spellcheck", action="store_true",
                         help="Don't report spellcheck errors")
@@ -135,18 +203,25 @@ if __name__ == "__main__":
                         help="Don't report non-breakable spaces errors")
     parser.add_argument("-W", "--no-space", action="store_true",
                         help="Don't report useless spaces and tabs errors")
-    parser.add_argument('files', metavar='FILE', nargs='*',
-                        help="files to read, if empty, stdin is used")
+    parser.add_argument('-f', "--filters", action="append", default=[],
+                        help="Filter pattern (regular expression "
+                        "replaced before analysis)")
+    parser.add_argument('-b', "--border", help="Border pattern (line "
+                        "pattern before which proofing must not occur)")
+    parser.add_argument('file', help="File to proofed")
 
     args = parser.parse_args()
-    # By default, fileinput will take all ARGV args. We need to filter
-    # files now.
-    files = args.files if len(args.files) > 0 else ('-', )
     opts = {
         "no_spell": args.no_spellcheck,
         "no_gramm": args.no_grammar,
         "no_apos": args.no_apostrophe,
         "no_nbsp": args.no_nbsp,
-        "no_esp": args.no_space
+        "no_esp": args.no_space,
+        "filters": args.filters,
+        "border": args.border
     }
-    main(files, opts)
+    errors = find_errors(args.file, opts)
+    for err in errors:
+        msg = "{}|{}|{}|{}|{}|{}".format(*err)
+        debug(msg)
+        print(msg)

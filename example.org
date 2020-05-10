@@ -8,3 +8,44 @@ menteur partout.
 Je suit sidéré par la brutales arrogance de cette homme-là. Quelle
 salopard! Un escrocs de la pire espece Quant sera t’il châtiés pour ses
 mensonge ? Merde ! J’en aie marre.
+
+* Un peu de latex
+
+\documentclass[twoside,12pt]{book}
+\usepackage{edeparisarticle}
+
+\title{Code Raphaël}
+\author{Étienne Deparis}
+\date{23 avril 2004}
+
+\begin{document}
+\input{input/couverture}
+\tableofcontents
+\cleardoublepage
+
+\begin{flushright}
+\vspace{8cm}
+
+\section{Avec des faute}
+
+Le secret le mieux gardé de toute l'histoire a été trahi. La
+huitième colonne, prête à s'ouvrir, plonge le monde dans une peur
+sans fin. Seule, une poignée d'homme décidés peut arrêter ses
+effets.
+
+\end{flushright}
+
+\input{input/chapter1}
+
+\end{document}
+
+* Un peu de lisp
+
+Ceci est un test d’insertion d’un fragment de code.
+
+#+begin_src emacs-lisp
+(message "Hello %s" (symbol-name 'test))
+toto prout ? 'machin
+#+end_src
+
+tutu prout machin tatat l'éléphant

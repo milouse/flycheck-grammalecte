@@ -34,6 +34,27 @@ Finally, the last expected step is to download the
 [[https://grammalecte.net/#download][CLI & Server upstream package]]. Just enter the following command:
 ~M-x flycheck-grammalecte-download-grammalecte~
 
+* Usage
+
+Enable /flycheck/ in a buffer, which major mode is declared in
+~flycheck-grammalecte-enabled-modes~, and voilà!
+
+To correct a word or expression at point, you can use the command
+~flycheck-grammalecte-correct-error-at-point~, which is bind to
+~C-c ! g~ by default[fn:1]. You can also right-click on it and a menu
+will popup to let you choose the better correction.
+
+If you are looking for a better word at some place, you can use the
+function ~flycheck-grammalecte-find-synonyms-at-point~ (which will take
+the word at point to find synonyms and antonyms) or the simpler
+~flycheck-grammalecte-find-synonyms~ (which will ask you for a word
+before doing the search). Pro tip: these functions are available even in
+buffer, which major mode is not in the
+~flycheck-grammalecte-enabled-modes~ list.
+
+[fn:1] In fact, it is bind only to ~g~ in the ~flycheck-command-map~,
+       ~C-c !~ being the flycheck default prefix.
+
 * Configuration
 
 All options are accessibles with ~customize~. In GNU Emacs, enter
@@ -49,7 +70,7 @@ require ~flycheck-grammalecte~ to prefill its variables. For exemple:
 (with-eval-after-load 'flycheck
   (require 'flycheck-grammalecte)
   (setq flycheck-grammalecte-report-esp nil)
-  (add-to-list 'flycheck-grammalecte-enabled-modes 'markdown-mode)
+  (add-to-list 'flycheck-grammalecte-enabled-modes 'fountain-mode)
   (flycheck-grammalecte-setup))
 #+end_src
 
@@ -77,18 +98,16 @@ Here is a quick reference of the available variables:
      itself (like LaTeX, org-mode export…). Default is ~t~.
 - ~flycheck-grammalecte-enabled-modes~ :: This variable stores the list
      of major modes for which /flycheck-grammalecte/ must be
-     used. Default is ~’(org-mode text-mode mail-mode latex-mode)~. To
-     add markdown mode use the following line for exemple:
-     ~(add-to-list 'flycheck-grammalecte-enabled-modes 'markdown-mode)~
+     used. Default is ~’(latex-mode mail-mode markdown-mode message-mode
+     mu4e-compose-mode org-mode text-mode)~.
+     To add markdown mode use the following line for exemple:
+     ~(add-to-list 'flycheck-grammalecte-enabled-modes 'fountain-mode)~
+- ~flycheck-grammalecte-filters~ :: Patterns for which errors in
+     matching texts are ignored. See its documentation for
+     details. There is also a ~flycheck-grammalecte~filters-by-mode~
+     variable, which allow to enable filters only for a given mode.
 
 ** Breaking changes
-
-*** Version 0.9
-
-This version changes the default value of
-~flycheck-grammalecte-report-spellcheck~ to ~nil~, making now
-grammalecte to *not* report spellchecking errors. If you like the old
-behavior, you are now required to explicitely set this variable to ~t~.
 
 *** Version 1.0
 
@@ -103,18 +122,12 @@ this package:
 (flycheck-grammalecte-setup)
 #+end_src
 
-* Usage
+*** Version 0.9
 
-Enable /flycheck/ in a buffer, which major mode is declared in
-~flycheck-grammalecte-enabled-modes~, and voilà!
-
-If you are looking for a better word at some place, you can use the
-function ~flycheck-grammalecte-find-synonyms-at-point~ (which will take
-the word at point to find synonyms and antonyms) or the simpler
-~flycheck-grammalecte-find-synonyms~ (which will ask you for a word
-before doing the search). Pro tip: these functions are available even in
-buffer, which major mode is not in the
-~flycheck-grammalecte-enabled-modes~ list.
+This version changes the default value of
+~flycheck-grammalecte-report-spellcheck~ to ~nil~, making now
+grammalecte to *not* report spellchecking errors. If you like the old
+behavior, you are now required to explicitely set this variable to ~t~.
 
 * Credits
 

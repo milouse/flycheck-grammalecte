@@ -1,2 +1,6 @@
+Grammalecte-fr*
+dash.el*
+flycheck*
 grammalecte
 *.elc
+debug

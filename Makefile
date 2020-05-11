@@ -39,7 +39,7 @@ grammalecte:
 	cp -R Grammalecte-fr-v$(GRAMVER)/grammalecte .
 
 clean:
-	rm -rf Grammalecte-fr-v$(GRAMVER)
+	rm -rf Grammalecte-fr-v*
 	rm -f debug "#example.org#"
 
 uninstall: clean

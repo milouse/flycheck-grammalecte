@@ -339,12 +339,28 @@ as soon as possible.")))))
            (suggestions (split-string (or (cadr err-msg) "") "," t " ")))
       (cons (car err-msg) suggestions))))
 
+(defun flycheck-grammalecte--error-region-for-major-mode (err)
+  "Return the best region for ERR and MAJOR-MODE.
+
+If current flycheck version is >= 32, it calls
+`flycheck-error-region-for-mode'. For older version, it just returns
+`bounds-of-thing-at-point' for 'word."
+  (let ((flycheck-version-number (string-to-number (flycheck-version nil))))
+    (if (>= flycheck-version-number 32)
+        ;; Grammalecte error provide precise region, but it's only
+        ;; understood by flycheck >= 32.
+        (flycheck-error-region-for-mode err major-mode)
+      (display-warning
+       "flycheck-grammalecte"
+       (format "Le remplacement au clic n'est vraiment efficace qu'à partir de flycheck >= 32 (vous utilisez la version %s)."
+               flycheck-version-number))
+      (bounds-of-thing-at-point 'word))))
+
 (defun flycheck-grammalecte--fix-error (err repl &optional region)
   "Replace the wrong REGION of ERR by REPL."
   (when repl
-    ;; Grammalecte error provide precise region
     (unless region
-      (setq region (flycheck-error-region-for-mode err major-mode)))
+      (setq region (flycheck-grammalecte--error-region-for-major-mode err)))
     (when region
       (delete-region (car region) (cdr region)))
     (insert repl)))
@@ -685,7 +701,7 @@ flycheck, if any."
     (mouse-set-point event)
     (let ((first-err (car-safe (flycheck-overlay-errors-at (point)))))
       (when first-err
-        (let* ((region (flycheck-error-region-for-mode first-err major-mode))
+        (let* ((region (flycheck-grammalecte--error-region-for-major-mode first-err))
                (word (buffer-substring-no-properties (car region) (cdr region)))
                (splitted-err (flycheck-grammalecte--split-error-message first-err))
                (repl-menu (mapcar
@@ -726,7 +742,18 @@ flycheck, if any."
                          flycheck-grammalecte-filters))
         (grammalecte-bin (expand-file-name
                           "flycheck-grammalecte.py"
-                          flycheck-grammalecte--directory)))
+                          flycheck-grammalecte--directory))
+        (flycheck-grammalecte--error-patterns
+         (if (< (string-to-number (flycheck-version nil)) 32)
+             '((warning line-start "grammaire|" (message) "|" line "|"
+                        (1+ digit) "|" column "|" (1+ digit) line-end)
+               (info line-start "orthographe|" (message) "|" line "|"
+                     (1+ digit) "|" column "|" (1+ digit) line-end))
+           '((warning line-start "grammaire|" (message) "|" line "|" end-line
+                      "|" column "|" end-column line-end)
+             (info line-start "orthographe|" (message) "|" line "|" end-line
+                   "|" column "|" end-column line-end)))))
+
     (pcase-dolist (`(,mode . ,patterns) flycheck-grammalecte-filters-by-mode)
       (when (derived-mode-p mode)
         (dolist (filter patterns)
@@ -757,7 +784,9 @@ flycheck, if any."
                           ((stringp item)
                            item)))
                 cmdline
-                " ")))
+                " "))
+      (message "[Flycheck Grammalecte][DEBUG] Flycheck error-patterns %s"
+               flycheck-grammalecte--error-patterns))
 
     ;; Now that we have all our variables, we can create the custom
     ;; checker.
@@ -765,14 +794,11 @@ flycheck, if any."
       "Grammalecte syntax checker for french language
 See URL `https://grammalecte.net/'."
       :command cmdline
-      :error-patterns
-      '((warning line-start "grammaire|" (message) "|" line "|" end-line
-                 "|" column "|" end-column line-end)
-        (info line-start "orthographe|" (message) "|" line "|" end-line
-              "|" column "|" end-column line-end))
+      :error-patterns flycheck-grammalecte--error-patterns
       :modes flycheck-grammalecte-enabled-modes)
     (add-to-list 'flycheck-checkers 'grammalecte))
-  ;; Add our fixer to right click
+
+  ;; Add our fixers to right click and C-c ! g
   (define-key flycheck-mode-map (kbd "<mouse-3>")
     #'flycheck-grammalecte-correct-error-at-click)
   (define-key flycheck-command-map "g"

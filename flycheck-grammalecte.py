@@ -83,7 +83,7 @@ def _prepare_gramm_errors(gramm_err, document_offset, text_input):
         if i["sType"] == "esp":
             # Remove useless space warning for visual paragraph in text
             # modes
-            if start_line_nb > len(text_input):
+            if start_line_nb >= len(text_input):
                 # Weird, but maybe there is no blank line at the end of
                 # the file? Or some sort of buffer overflow?
                 next_line = ""

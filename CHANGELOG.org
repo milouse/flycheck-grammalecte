@@ -1,3 +1,15 @@
+* Version 1.2
+** Feature
+
+- Enable again Grammalecte spell suggestions
+- Improve a little Makefile
+
+** Fixes
+
+- Avoid a crash when suggestions list is empty
+- Avoid a crash when exploring errors at end of file
+- Support flycheck version < 32
+
 * Version 1.1
 ** Feature
 

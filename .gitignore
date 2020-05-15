@@ -1,6 +1,8 @@
 Grammalecte-fr*
 dash.el*
+epl*
 flycheck*
+pkg-info*
 grammalecte
 *.elc
 debug

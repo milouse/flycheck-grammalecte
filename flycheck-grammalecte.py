@@ -83,7 +83,7 @@ def _prepare_gramm_errors(gramm_err, document_offset, text_input):
         if i["sType"] == "esp":
             # Remove useless space warning for visual paragraph in text
             # modes
-            if start_line_nb > len(text_input):
+            if start_line_nb >= len(text_input):
                 # Weird, but maybe there is no blank line at the end of
                 # the file? Or some sort of buffer overflow?
                 next_line = ""
@@ -120,6 +120,9 @@ def _prepare_spell_errors(spell_err, document_offset):
         start_col = i["nStartX"] + 1
         end_col = i["nEndX"] + 1
         message = "« {} » absent du dictionnaire".format(i["sValue"])
+        suggs = i.get("aSuggestions", [])
+        if len(suggs) > 0:
+            message += " ⇨ " + ", ".join(suggs)
         final_errors.append(
             ("orthographe", message,
              start_line_nb, end_line_nb,
@@ -171,7 +174,7 @@ def find_errors(input_file, opts={}):
         gramm_err = gc.gce.parse(text, "FR", bDebug=False)
 
     if do_spell:
-        spell_err = gc.oSpellChecker.parseParagraph(text, False)
+        spell_err = gc.oSpellChecker.parseParagraph(text, True)
 
     # Get colums and lines.
     gramm_err, spell_err = txt.convertToXY(gramm_err, spell_err, lineset)

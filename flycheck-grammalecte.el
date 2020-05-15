@@ -7,7 +7,7 @@
 ;; Author: Guilhem Doulcier <guilhem.doulcier@espci.fr>
 ;;         Étienne Deparis <etienne@depar.is>
 ;; Created: 21 February 2017
-;; Version: 1.1
+;; Version: 1.2
 ;; Package-Requires: ((emacs "25.1") (flycheck "26"))
 ;; Keywords: i18n, text
 ;; Homepage: https://git.deparis.io/flycheck-grammalecte/
@@ -336,13 +336,12 @@ as soon as possible.")))))
   "Split ERR message between actual message and suggestions."
   (when err
     (let* ((err-msg (split-string (flycheck-error-message err) "⇨" t " "))
-           (suggestions (split-string (cadr err-msg) "," t " ")))
+           (suggestions (split-string (or (cadr err-msg) "") "," t " ")))
       (cons (car err-msg) suggestions))))
 
 (defun flycheck-grammalecte--fix-error (err repl &optional region)
   "Replace the wrong REGION of ERR by REPL."
   (when repl
-    ;; Grammalecte error provide precise region
     (unless region
       (setq region (flycheck-error-region-for-mode err major-mode)))
     (when region
@@ -726,7 +725,10 @@ flycheck, if any."
                          flycheck-grammalecte-filters))
         (grammalecte-bin (expand-file-name
                           "flycheck-grammalecte.py"
-                          flycheck-grammalecte--directory)))
+                          flycheck-grammalecte--directory))
+        (flycheck-version-number (string-to-number (flycheck-version nil)))
+        flycheck-grammalecte--error-patterns)
+
     (pcase-dolist (`(,mode . ,patterns) flycheck-grammalecte-filters-by-mode)
       (when (derived-mode-p mode)
         (dolist (filter patterns)
@@ -740,6 +742,17 @@ flycheck, if any."
     (unless flycheck-grammalecte-report-nbsp (push "-N" cmdline))
     (unless flycheck-grammalecte-report-esp (push "-W" cmdline))
     (setq cmdline (nconc (list "python3" grammalecte-bin) filters cmdline))
+
+    (setq flycheck-grammalecte--error-patterns
+          (if (< flycheck-version-number 32)
+              '((warning line-start "grammaire|" (message) "|" line "|"
+                         (1+ digit) "|" column "|" (1+ digit) line-end)
+                (info line-start "orthographe|" (message) "|" line "|"
+                      (1+ digit) "|" column "|" (1+ digit) line-end))
+            '((warning line-start "grammaire|" (message) "|" line "|" end-line
+                       "|" column "|" end-column line-end)
+              (info line-start "orthographe|" (message) "|" line "|" end-line
+                    "|" column "|" end-column line-end))))
 
     (when flycheck-grammalecte--debug-mode
       (let ((checker-path (expand-file-name
@@ -757,7 +770,9 @@ flycheck, if any."
                           ((stringp item)
                            item)))
                 cmdline
-                " ")))
+                " "))
+      (message "[Flycheck Grammalecte][DEBUG] Flycheck error-patterns %s"
+               flycheck-grammalecte--error-patterns))
 
     ;; Now that we have all our variables, we can create the custom
     ;; checker.
@@ -765,18 +780,29 @@ flycheck, if any."
       "Grammalecte syntax checker for french language
 See URL `https://grammalecte.net/'."
       :command cmdline
-      :error-patterns
-      '((warning line-start "grammaire|" (message) "|" line "|" end-line
-                 "|" column "|" end-column line-end)
-        (info line-start "orthographe|" (message) "|" line "|" end-line
-              "|" column "|" end-column line-end))
+      :error-patterns flycheck-grammalecte--error-patterns
       :modes flycheck-grammalecte-enabled-modes)
-    (add-to-list 'flycheck-checkers 'grammalecte))
-  ;; Add our fixer to right click
-  (define-key flycheck-mode-map (kbd "<mouse-3>")
-    #'flycheck-grammalecte-correct-error-at-click)
-  (define-key flycheck-command-map "g"
-    #'flycheck-grammalecte-correct-error-at-point))
+    (add-to-list 'flycheck-checkers 'grammalecte)
+
+    (if (< flycheck-version-number 32)
+        (let ((warn-user-about-flycheck
+               #'(lambda (_arg)
+                   (display-warning
+                    "flycheck-grammalecte"
+                    (format "Le remplacement des erreurs ne fonctionne qu'avec flycheck >= 32 (vous utilisez la version %s)."
+                            flycheck-version-number)))))
+          ;; Desactivate corrections methods
+          (advice-add 'flycheck-grammalecte-correct-error-at-click
+                      :override
+                      warn-user-about-flycheck)
+          (advice-add 'flycheck-grammalecte-correct-error-at-point
+                      :override
+                      warn-user-about-flycheck))
+      ;; Add our fixers to right click and C-c ! g
+      (define-key flycheck-mode-map (kbd "<mouse-3>")
+        #'flycheck-grammalecte-correct-error-at-click)
+      (define-key flycheck-command-map "g"
+        #'flycheck-grammalecte-correct-error-at-point))))
 
 (add-hook 'after-change-major-mode-hook
           #'(lambda ()

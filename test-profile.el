@@ -7,6 +7,7 @@
 (add-to-list 'load-path "flycheck-master")
 
 (setq make-backup-files nil
+      auto-save-default nil
       visible-bell t
       org-startup-folded "showeverything"
       flycheck-grammalecte--debug-mode t)

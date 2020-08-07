@@ -10,7 +10,7 @@
 ;; Version: 1.3
 ;; Package-Requires: ((emacs "25.1") (flycheck "26"))
 ;; Keywords: i18n, text
-;; Homepage: https://git.deparis.io/flycheck-grammalecte/
+;; Homepage: https://git.umaneti.net/flycheck-grammalecte/
 
 ;;; Commentary:
 

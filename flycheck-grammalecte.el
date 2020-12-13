@@ -98,7 +98,7 @@ Default modes are `latex-mode', `mail-mode', `markdown-mode',
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-download-without-asking nil
-  "Download grammalecte upstream package without asking if non-nil.
+  "Download Grammalecte upstream package without asking if non-nil.
 
 Otherwise, it will ask for a yes-or-no confirmation."
   :type 'boolean
@@ -197,9 +197,9 @@ The default value is automatically computed from the included file.")
 
 (defvar flycheck-grammalecte--grammalecte-directory
   (expand-file-name "grammalecte" flycheck-grammalecte--directory)
-  "Location of the grammalecte python package.
+  "Location of the Grammalecte python package.
 
-This variable may be changed if you already have grammalecte installed
+This variable may be changed if you already have Grammalecte installed
 somewhere on your machine.
 
 The default value is a folder alongside this elisp package.")
@@ -250,7 +250,7 @@ and Info node `(elisp)Syntax of Regular Expressions'."
 
 
 (defun flycheck-grammalecte--grammalecte-version ()
-  "Return the upstream version of the flycheck-grammalecte package.
+  "Return the upstream version of Grammalecte.
 Signal a `file-error' error if something wrong happen while retrieving
 the Grammalecte home page or if no version string is found in the page."
   (let* ((url "https://grammalecte.net/index.html")
@@ -275,7 +275,7 @@ the Grammalecte home page or if no version string is found in the page."
          (zip-file (expand-file-name
                     zip-name
                     flycheck-grammalecte--directory)))
-    ;; Do not download it twice if it's still there for some reason…
+    ;; Do not download it twice if it's still there for some reason...
     (unless (file-exists-p zip-file)
       (url-copy-file dl-url zip-file)
       (message "[Flycheck Grammalecte] Downloaded to %s" zip-file))

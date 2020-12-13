@@ -275,11 +275,15 @@ the Grammalecte home page or if no version string is found in the page."
         (signal 'file-error
                 (list url "No version number found on grammalecte website"))))))
 
-(defun flycheck-grammalecte--download-zip ()
-  "Download Grammalecte CLI zip file."
-  (let* ((zip-name
-          (format "Grammalecte-fr-v%s.zip"
-                  (flycheck-grammalecte--grammalecte-upstream-version)))
+(defun flycheck-grammalecte--download-zip (&optional grammalecte-version)
+  "Download Grammalecte CLI zip file.
+If given, this function will try to download the GRAMMALECTE-VERSION
+of the python package."
+  (let* ((up-version (if (or (not grammalecte-version)
+                             (string= grammalecte-version "last"))
+                         (flycheck-grammalecte--grammalecte-upstream-version)
+                       grammalecte-version))
+         (zip-name (format "Grammalecte-fr-v%s.zip" up-version))
          (dl-url
           (format "https://grammalecte.net/grammalecte/zip/%s"
                   zip-name))
@@ -336,12 +340,12 @@ when current buffer major mode is not in `flycheck-grammalecte-enabled-modes'."
       (if (not (stringp local-version))
           ;; It seems there is no currently downloaded Grammalecte
           ;; package. Force install it, as nothing will work without it.
-          (flycheck-grammalecte-download-grammalecte)
+          (flycheck-grammalecte-download-grammalecte upstream-version)
         (when (and (string-version-lessp local-version upstream-version)
                    (or flycheck-grammalecte-download-without-asking
                        (yes-or-no-p
                         "[flycheck-grammalecte] Grammalecte is out of date.  Download it NOW?")))
-          (flycheck-grammalecte-download-grammalecte))))))
+          (flycheck-grammalecte-download-grammalecte upstream-version))))))
 
 (defun flycheck-grammalecte--split-error-message (err)
   "Split ERR message between actual message and suggestions."
@@ -714,14 +718,17 @@ flycheck, if any."
            region))))))
 
 ;;;###autoload
-(defun flycheck-grammalecte-download-grammalecte ()
+(defun flycheck-grammalecte-download-grammalecte (grammalecte-version)
   "Download, extract and install Grammalecte python program.
+This function will try to download the GRAMMALECTE-VERSION
+of the python package.  If GRAMMALECTE-VERSION is \"last\", the last version
+of the package will be downloaded.
 This function can also be used at any time to upgrade the
 Grammalecte python program."
-  (interactive)
+  (interactive "sVersion: ")
   (flycheck-grammalecte--install-py-files
    (flycheck-grammalecte--extract-zip
-    (flycheck-grammalecte--download-zip))))
+    (flycheck-grammalecte--download-zip grammalecte-version))))
 
 (add-hook 'flycheck-mode-hook
           #'flycheck-grammalecte--download-grammalecte-if-needed)

@@ -8,7 +8,7 @@
 ;;         Étienne Deparis <etienne@depar.is>
 ;; Created: 21 February 2017
 ;; Version: 1.3
-;; Package-Requires: ((emacs "25.1") (flycheck "26"))
+;; Package-Requires: ((emacs "26.1") (flycheck "26"))
 ;; Keywords: i18n, text
 ;; Homepage: https://git.umaneti.net/flycheck-grammalecte/
 
@@ -331,17 +331,17 @@ if the current buffer major mode is present in the
 If optional argument FORCE is non-nil, verification will occurs even
 when current buffer major mode is not in `flycheck-grammalecte-enabled-modes'."
   (when (or force (memq major-mode flycheck-grammalecte-enabled-modes))
-    (unless (file-exists-p
-             (expand-file-name "grammar_checker.py"
-                               flycheck-grammalecte--grammalecte-directory))
-      (if (or flycheck-grammalecte-download-without-asking
-              (yes-or-no-p
-               "[flycheck-grammalecte] Grammalecte data not found.  Download it NOW?"))
+    (let ((local-version (flycheck-grammalecte--grammalecte-version))
+          (upstream-version (flycheck-grammalecte--grammalecte-upstream-version)))
+      (if (not (stringp local-version))
+          ;; It seems there is no currently downloaded Grammalecte
+          ;; package. Force install it, as nothing will work without it.
           (flycheck-grammalecte-download-grammalecte)
-        (display-warning "flycheck-grammalecte"
-                         "Grammalecte will fail if used.
-Please run the command `flycheck-grammalecte-download-grammalecte'
-as soon as possible.")))))
+        (when (and (string-version-lessp local-version upstream-version)
+                   (or flycheck-grammalecte-download-without-asking
+                       (yes-or-no-p
+                        "[flycheck-grammalecte] Grammalecte is out of date.  Download it NOW?")))
+          (flycheck-grammalecte-download-grammalecte))))))
 
 (defun flycheck-grammalecte--split-error-message (err)
   "Split ERR message between actual message and suggestions."

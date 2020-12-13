@@ -269,7 +269,7 @@ the Grammalecte home page or if no version string is found in the page."
     (with-current-buffer buffer
       (goto-char (point-min))
       (if (re-search-forward
-           "^ +<p id=\"version_num\">\\([0-9.]+\\)</p>$"
+           "<p id=\"version_num\">\\([0-9.]+\\)</p>"
            nil t) ;; Parse all downloaded data and avoid error
           (match-string 1)
         (signal 'file-error

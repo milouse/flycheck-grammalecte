@@ -713,8 +713,11 @@ flycheck, if any."
               (cons "Suggestions de Grammalecte" repl-menu))))
            region))))))
 
+;;;###autoload
 (defun flycheck-grammalecte-download-grammalecte ()
-  "Download, extract and install Grammalecte python program."
+  "Download, extract and install Grammalecte python program.
+This function can also be used at any time to upgrade the
+Grammalecte python program."
   (interactive)
   (flycheck-grammalecte--install-py-files
    (flycheck-grammalecte--extract-zip

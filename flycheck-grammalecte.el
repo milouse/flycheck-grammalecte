@@ -250,6 +250,17 @@ and Info node `(elisp)Syntax of Regular Expressions'."
 
 
 (defun flycheck-grammalecte--grammalecte-version ()
+  "Return the currently installed Grammalecte version."
+  (let ((fg-version
+         (shell-command-to-string
+          "python -c \"from grammalecte.fr.gc_engine import __version__;print(__version__)\"")))
+    ;; Only return a version number if we got something which looks like a
+    ;; version number (else it may be a python crash when Grammalecte is not
+    ;; yet downloaded)
+    (when (string-match "^[0-9.]+$" fg-version)
+      (match-string 0 fg-version))))
+
+(defun flycheck-grammalecte--grammalecte-upstream-version ()
   "Return the upstream version of Grammalecte.
 Signal a `file-error' error if something wrong happen while retrieving
 the Grammalecte home page or if no version string is found in the page."
@@ -268,7 +279,7 @@ the Grammalecte home page or if no version string is found in the page."
   "Download Grammalecte CLI zip file."
   (let* ((zip-name
           (format "Grammalecte-fr-v%s.zip"
-                  (flycheck-grammalecte--grammalecte-version)))
+                  (flycheck-grammalecte--grammalecte-upstream-version)))
          (dl-url
           (format "https://grammalecte.net/grammalecte/zip/%s"
                   zip-name))

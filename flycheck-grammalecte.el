@@ -593,7 +593,7 @@ See URL `https://www.cnrtl.fr/definition/'.
       (with-current-buffer buffer
         (let ((definitions (flycheck-grammalecte--fetch-cnrtl-word word)))
           (if (seq-empty-p definitions)
-              (insert "Aucun résultat pour %s." word)
+              (insert (format "Aucun résultat pour %s." word))
             (dolist (d definitions)
               (shr-insert-document d)
               (insert "\n\n\n"))))

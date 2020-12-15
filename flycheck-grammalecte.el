@@ -269,6 +269,7 @@ print(__version__)" flycheck-grammalecte--directory))
 Signal a `file-error' error if something wrong happen while retrieving
 the Grammalecte home page or if no version string is found in the page."
   (let* ((url "https://grammalecte.net/index.html")
+         (inhibit-message t) ;; Do not display url-retrieve messages
          (buffer (url-retrieve-synchronously url)))
     (with-current-buffer buffer
       (goto-char (point-min))
@@ -423,10 +424,11 @@ other buffer by the copied word."
   "Extract a definition from the current XML buffer at START."
   (goto-char start)
   (delete-region (point-min) (point))
-  (with-temp-message "" (nxml-mode))
-  (nxml-forward-element)
-  (delete-region (point) (point-max))
-  (libxml-parse-html-region (point-min) (point-max)))
+  (let ((inhibit-message t)) ;; Silences nxml-mode messages
+    (nxml-mode)
+    (nxml-forward-element)
+    (delete-region (point) (point-max))
+    (libxml-parse-html-region (point-min) (point-max))))
 
 (defun flycheck-grammalecte--fetch-cnrtl-word (word)
   "Fetch WORD definition, according to TLFi, on CNRTL."

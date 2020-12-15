@@ -792,12 +792,9 @@ Grammalecte python program."
       (message "[Flycheck Grammalecte][DEBUG] Checker command: %s"
                (mapconcat
                 #'(lambda (item)
-                    (cond ((symbolp item)
-                           (format "'%s" (symbol-name item)))
-                          ((stringp item)
-                           item)))
-                cmdline
-                " "))
+                    (cond ((symbolp item) (format "'%s" (symbol-name item)))
+                          ((stringp item) item)))
+                cmdline " "))
       (message "[Flycheck Grammalecte][DEBUG] Flycheck error-patterns %s"
                flycheck-grammalecte--error-patterns))
 

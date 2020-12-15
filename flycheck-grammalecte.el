@@ -251,9 +251,13 @@ and Info node `(elisp)Syntax of Regular Expressions'."
 
 (defun flycheck-grammalecte--grammalecte-version ()
   "Return the currently installed Grammalecte version."
-  (let ((fg-version
-         (shell-command-to-string
-          "python -c \"from grammalecte.fr.gc_engine import __version__;print(__version__)\"")))
+  (let* ((python-script (format "import os
+os.chdir(os.path.expanduser('%s'));
+from grammalecte.fr.gc_engine import __version__
+print(__version__)" flycheck-grammalecte--directory))
+         (fg-version
+          (shell-command-to-string
+           (format "python3 -c \"%s\"" python-script))))
     ;; Only return a version number if we got something which looks like a
     ;; version number (else it may be a python crash when Grammalecte is not
     ;; yet downloaded)

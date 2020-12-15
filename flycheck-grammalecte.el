@@ -439,11 +439,11 @@ other buffer by the copied word."
       (if (search-forward "<div id=\"lexicontent\">" nil t)
           (setq start (match-beginning 0))
         (when flycheck-grammalecte--debug-mode
-          (display-warning "Définition non trouvée.")))
+          (display-warning 'flycheck-grammalecte "Définition non trouvée.")))
       (if (re-search-backward "'/definition/[^/]+//\\([0-9]+\\)'" nil t)
           (setq count (string-to-number (match-string 1)))
         (when flycheck-grammalecte--debug-mode
-          (display-warning "Nombre de définitions non trouvé.")))
+          (display-warning 'flycheck-grammalecte "Nombre de définitions non trouvé.")))
       (when (and start count)
         (push (flycheck-grammalecte--extract-cnrtl-definition start) definitions)
         (kill-buffer (current-buffer))))
@@ -472,7 +472,7 @@ other buffer by the copied word."
             (setq start (match-beginning 0))
           (when flycheck-grammalecte--debug-mode
             (display-warning
-             "flycheck-grammalecte"
+             'flycheck-grammalecte
              (format "Début de liste des %s non trouvée." type))))
         (if (re-search-forward
              (format "<!-- ?Fin liste des %s ?-->" type)
@@ -480,7 +480,7 @@ other buffer by the copied word."
             (setq end (match-beginning 0))
           (when flycheck-grammalecte--debug-mode
             (display-warning
-             "flycheck-grammalecte"
+             'flycheck-grammalecte
              (format "Fin de liste des %s non trouvée." type))))
         (when (and start end)
           (narrow-to-region start end)
@@ -813,7 +813,7 @@ See URL `https://grammalecte.net/'."
         (let ((warn-user-about-flycheck
                #'(lambda (_arg)
                    (display-warning
-                    "flycheck-grammalecte"
+                    'flycheck-grammalecte
                     (format "Le remplacement des erreurs ne fonctionne qu'avec flycheck >= 32 (vous utilisez la version %s)."
                             flycheck-version-number)))))
           ;; Desactivate corrections methods

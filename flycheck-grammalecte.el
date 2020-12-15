@@ -191,7 +191,8 @@ another.  This activation is only done once when the function
 
 This variable must point to the directory where the emacs-lisp and
 python files named `flycheck-grammalecte.el' and
-`flycheck-grammalecte.py' are kept.
+`flycheck-grammalecte.py' are kept.  It must end with a / (see
+`file-name-as-directory').
 
 The default value is automatically computed from the included file.")
 
@@ -201,6 +202,8 @@ The default value is automatically computed from the included file.")
 
 This variable may be changed if you already have Grammalecte installed
 somewhere on your machine.
+
+This variable value must not end with a / (see `directory-file-name').
 
 The default value is a folder alongside this elisp package.")
 
@@ -248,13 +251,28 @@ and Info node `(elisp)Syntax of Regular Expressions'."
                                       regexp t t)))
     regexp))
 
+(defun flycheck-grammalecte--augment-pythonpath-if-needed ()
+  "Augment PYTHONPATH with the install directory of grammalecte.
+If the parent directory of `flycheck-grammalecte--grammalecte-directory'
+is not this elisp package installation directory, then add the former in
+the PYTHONPATH environment variable in order to make python scripts work
+as expected."
+  (let ((grammalecte-parent-path
+         (file-name-directory
+          (directory-file-name flycheck-grammalecte--grammalecte-directory)))
+        (current-pythonpath (or (getenv "PYTHONPATH") "")))
+    (unless (or (string-match-p grammalecte-parent-path current-pythonpath)
+                (string= grammalecte-parent-path flycheck-grammalecte--directory))
+      (setenv "PYTHONPATH"
+              (if (string= current-pythonpath "")
+                  grammalecte-parent-path
+                (format "%s:%s" grammalecte-parent-path current-pythonpath))))))
 
 (defun flycheck-grammalecte--grammalecte-version ()
   "Return the currently installed Grammalecte version."
-  (let* ((python-script (format "import os
-os.chdir(os.path.expanduser('%s'));
-from grammalecte.fr.gc_engine import __version__
-print(__version__)" flycheck-grammalecte--directory))
+  (flycheck-grammalecte--augment-pythonpath-if-needed)
+  (let* ((python-script "from grammalecte.fr.gc_engine import __version__
+print(__version__)")
          (fg-version
           (shell-command-to-string
            (format "python3 -c \"%s\"" python-script))))
@@ -673,6 +691,7 @@ The found words are then displayed in a new buffer in another window.
          (buffer (get-buffer buffer-name)))
     (unless buffer
       (flycheck-grammalecte--download-grammalecte-if-needed t)
+      (flycheck-grammalecte--augment-pythonpath-if-needed)
       (setq buffer (get-buffer-create buffer-name))
       (with-current-buffer buffer
         (insert
@@ -783,8 +802,8 @@ Grammalecte python program."
 
     (when flycheck-grammalecte--debug-mode
       (let ((checker-path (expand-file-name
-                           "grammalecte/grammar_checker.py"
-                           flycheck-grammalecte--directory)))
+                           "grammar_checker.py"
+                           flycheck-grammalecte--grammalecte-directory)))
         (if (file-exists-p checker-path)
             (message "[Flycheck Grammalecte][DEBUG] Found in %s" checker-path)
           (message "[Flycheck Grammalecte][DEBUG] NOT FOUND")))
@@ -797,6 +816,9 @@ Grammalecte python program."
                 cmdline " "))
       (message "[Flycheck Grammalecte][DEBUG] Flycheck error-patterns %s"
                flycheck-grammalecte--error-patterns))
+
+    ;; Be sure grammalecte python module is accessible
+    (flycheck-grammalecte--augment-pythonpath-if-needed)
 
     ;; Now that we have all our variables, we can create the custom
     ;; checker.

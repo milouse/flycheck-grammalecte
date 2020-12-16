@@ -801,21 +801,32 @@ Grammalecte python program."
                     "|" column "|" end-column line-end))))
 
     (when flycheck-grammalecte--debug-mode
-      (let ((checker-path (expand-file-name
+      (let ((grammalecte-version (flycheck-grammalecte--grammalecte-version))
+            (checker-path (expand-file-name
                            "grammar_checker.py"
                            flycheck-grammalecte--grammalecte-directory)))
         (if (file-exists-p checker-path)
-            (message "[Flycheck Grammalecte][DEBUG] Found in %s" checker-path)
-          (message "[Flycheck Grammalecte][DEBUG] NOT FOUND")))
-      (message "[Flycheck Grammalecte][DEBUG] Detected mode: %s" major-mode)
-      (message "[Flycheck Grammalecte][DEBUG] Checker command: %s"
+            (display-warning 'flycheck-grammalecte
+                             (format "Version %s found in %s"
+                                     grammalecte-version checker-path)
+                             :debug)
+          (display-warning 'flycheck-grammalecte "NOT FOUND")))
+      (display-warning 'flycheck-grammalecte
+                       (format "Detected mode: %s" major-mode)
+                       :debug)
+      (display-warning
+       'flycheck-grammalecte
+       (format "Checker command: %s"
                (mapconcat
                 #'(lambda (item)
                     (cond ((symbolp item) (format "'%s" (symbol-name item)))
                           ((stringp item) item)))
                 cmdline " "))
-      (message "[Flycheck Grammalecte][DEBUG] Flycheck error-patterns %s"
-               flycheck-grammalecte--error-patterns))
+       :debug)
+      (display-warning 'flycheck-grammalecte
+                       (format "Flycheck error-patterns %s"
+                               flycheck-grammalecte--error-patterns)
+                       :debug))
 
     ;; Be sure grammalecte python module is accessible
     (flycheck-grammalecte--augment-pythonpath-if-needed)

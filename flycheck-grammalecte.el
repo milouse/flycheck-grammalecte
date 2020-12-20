@@ -141,7 +141,8 @@ This patterns are always sent to Grammalecte.  See the variable
               "(?m)^[ \t]*(?:DEADLINE|SCHEDULED):.+$"
               "(?m)^\\*+ .*[ \t]*(:[\\w:@]+:)[ \t]*$"
               "(?im)^[ \t]*#\\+(?:caption|description|keywords|(?:sub)?title):"
-              "(?im)^[ \t]*#\\+(?!caption|description|keywords|(?:sub)?title)\\w+:.*$"))
+              "(?im)^[ \t]*#\\+(?!caption|description|keywords|(?:sub)?title)\\w+:.*$")
+    (message-mode "(?m)^[ \t]*(?:[\\w_.]+>|[]>|]).*"))
   "Filtering patterns by mode.
 
 Each element has the form (MODE PATTERNS...), where MODE must be

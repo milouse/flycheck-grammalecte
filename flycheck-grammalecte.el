@@ -185,8 +185,7 @@ another.  This activation is only done once when the function
   :type '(repeat string)
   :group 'flycheck-grammalecte)
 
-(defvar flycheck-grammalecte--directory
-  (if load-file-name (file-name-directory load-file-name) default-directory)
+(defconst flycheck-grammalecte--directory (file-name-directory load-file-name)
   "Location of the flycheck-grammalecte package.
 
 This variable must point to the directory where the emacs-lisp and
@@ -196,7 +195,7 @@ python files named `flycheck-grammalecte.el' and
 
 The default value is automatically computed from the included file.")
 
-(defvar flycheck-grammalecte--grammalecte-directory
+(defcustom flycheck-grammalecte-grammalecte-directory
   (expand-file-name "grammalecte" flycheck-grammalecte--directory)
   "Location of the Grammalecte python package.
 
@@ -205,7 +204,9 @@ somewhere on your machine.
 
 This variable value must not end with a / (see `directory-file-name').
 
-The default value is a folder alongside this elisp package.")
+The default value is a folder alongside this elisp package."
+  :type 'directory
+  :group 'flycheck-grammalecte)
 
 (defvar flycheck-grammalecte--debug-mode nil
   "Display some debug messages when non-nil.")
@@ -253,13 +254,13 @@ and Info node `(elisp)Syntax of Regular Expressions'."
 
 (defun flycheck-grammalecte--augment-pythonpath-if-needed ()
   "Augment PYTHONPATH with the install directory of grammalecte.
-If the parent directory of `flycheck-grammalecte--grammalecte-directory'
+If the parent directory of `flycheck-grammalecte-grammalecte-directory'
 is not this elisp package installation directory, then add the former in
 the PYTHONPATH environment variable in order to make python scripts work
 as expected."
   (let ((grammalecte-parent-path
          (file-name-directory
-          (directory-file-name flycheck-grammalecte--grammalecte-directory)))
+          (directory-file-name flycheck-grammalecte-grammalecte-directory)))
         (current-pythonpath (or (getenv "PYTHONPATH") "")))
     (unless (or (string-match-p grammalecte-parent-path current-pythonpath)
                 (string= grammalecte-parent-path flycheck-grammalecte--directory))
@@ -337,7 +338,7 @@ from EXTRACTED-FOLDER to their destination, alongside the other
 package files."
   (let ((source-folder
          (expand-file-name "grammalecte" extracted-folder))
-        (target-folder flycheck-grammalecte--grammalecte-directory))
+        (target-folder flycheck-grammalecte-grammalecte-directory))
     ;; Always do a clean update. Begin by removing old folder if it's
     ;; present.
     (when (file-directory-p target-folder)
@@ -804,7 +805,7 @@ Grammalecte python program."
       (let ((grammalecte-version (flycheck-grammalecte--grammalecte-version))
             (checker-path (expand-file-name
                            "grammar_checker.py"
-                           flycheck-grammalecte--grammalecte-directory)))
+                           flycheck-grammalecte-grammalecte-directory)))
         (if (file-exists-p checker-path)
             (display-warning 'flycheck-grammalecte
                              (format "Version %s found in %s"

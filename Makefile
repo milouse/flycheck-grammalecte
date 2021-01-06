@@ -2,7 +2,7 @@ GRAMVER = $(shell curl -s https://grammalecte.net/index.html | sed -n 's|^ *<p i
 
 EMACS=emacs -Q --batch -nw
 
-.PHONY: build clean uninstall
+.PHONY: build clean demo uninstall
 
 .INTERMEDIATE: Grammalecte-fr-v$(GRAMVER).zip dash.zip epl.zip flycheck.zip pkg-info.zip
 
@@ -59,3 +59,7 @@ clean:
 uninstall: clean
 	rm -rf grammalecte dash.el-master flycheck-master pkg-info-master epl-master
 	rm -f flycheck-grammalecte.elc
+
+demo: build
+	touch debug
+	emacs -Q --debug-init -l test-profile.el example.org

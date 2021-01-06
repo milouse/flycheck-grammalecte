@@ -7,10 +7,10 @@
 ;; Author: Guilhem Doulcier <guilhem.doulcier@espci.fr>
 ;;         Étienne Deparis <etienne@depar.is>
 ;; Created: 21 February 2017
-;; Version: 1.2
-;; Package-Requires: ((emacs "25.1") (flycheck "26"))
+;; Version: 1.3
+;; Package-Requires: ((emacs "26.1") (flycheck "26"))
 ;; Keywords: i18n, text
-;; Homepage: https://git.deparis.io/flycheck-grammalecte/
+;; Homepage: https://git.umaneti.net/flycheck-grammalecte/
 
 ;;; Commentary:
 
@@ -98,7 +98,7 @@ Default modes are `latex-mode', `mail-mode', `markdown-mode',
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-download-without-asking nil
-  "Download grammalecte upstream package without asking if non-nil.
+  "Download Grammalecte upstream package without asking if non-nil.
 
 Otherwise, it will ask for a yes-or-no confirmation."
   :type 'boolean
@@ -141,7 +141,8 @@ This patterns are always sent to Grammalecte.  See the variable
               "(?m)^[ \t]*(?:DEADLINE|SCHEDULED):.+$"
               "(?m)^\\*+ .*[ \t]*(:[\\w:@]+:)[ \t]*$"
               "(?im)^[ \t]*#\\+(?:caption|description|keywords|(?:sub)?title):"
-              "(?im)^[ \t]*#\\+(?!caption|description|keywords|(?:sub)?title)\\w+:.*$"))
+              "(?im)^[ \t]*#\\+(?!caption|description|keywords|(?:sub)?title)\\w+:.*$")
+    (message-mode "(?m)^[ \t]*(?:[\\w_.]+>|[]>|]).*"))
   "Filtering patterns by mode.
 
 Each element has the form (MODE PATTERNS...), where MODE must be
@@ -185,24 +186,28 @@ another.  This activation is only done once when the function
   :type '(repeat string)
   :group 'flycheck-grammalecte)
 
-(defvar flycheck-grammalecte--directory
-  (if load-file-name (file-name-directory load-file-name) default-directory)
+(defconst flycheck-grammalecte--directory (file-name-directory load-file-name)
   "Location of the flycheck-grammalecte package.
 
 This variable must point to the directory where the emacs-lisp and
 python files named `flycheck-grammalecte.el' and
-`flycheck-grammalecte.py' are kept.
+`flycheck-grammalecte.py' are kept.  It must end with a / (see
+`file-name-as-directory').
 
 The default value is automatically computed from the included file.")
 
-(defvar flycheck-grammalecte--grammalecte-directory
+(defcustom flycheck-grammalecte-grammalecte-directory
   (expand-file-name "grammalecte" flycheck-grammalecte--directory)
-  "Location of the grammalecte python package.
+  "Location of the Grammalecte python package.
 
-This variable may be changed if you already have grammalecte installed
+This variable may be changed if you already have Grammalecte installed
 somewhere on your machine.
 
-The default value is a folder alongside this elisp package.")
+This variable value must not end with a / (see `directory-file-name').
+
+The default value is a folder alongside this elisp package."
+  :type 'directory
+  :group 'flycheck-grammalecte)
 
 (defvar flycheck-grammalecte--debug-mode nil
   "Display some debug messages when non-nil.")
@@ -248,34 +253,69 @@ and Info node `(elisp)Syntax of Regular Expressions'."
                                       regexp t t)))
     regexp))
 
+(defun flycheck-grammalecte--augment-pythonpath-if-needed ()
+  "Augment PYTHONPATH with the install directory of grammalecte.
+If the parent directory of `flycheck-grammalecte-grammalecte-directory'
+is not this elisp package installation directory, then add the former in
+the PYTHONPATH environment variable in order to make python scripts work
+as expected."
+  (let ((grammalecte-parent-path
+         (file-name-directory
+          (directory-file-name flycheck-grammalecte-grammalecte-directory)))
+        (current-pythonpath (or (getenv "PYTHONPATH") "")))
+    (unless (or (string-match-p grammalecte-parent-path current-pythonpath)
+                (string= grammalecte-parent-path flycheck-grammalecte--directory))
+      (setenv "PYTHONPATH"
+              (if (string= current-pythonpath "")
+                  grammalecte-parent-path
+                (format "%s:%s" grammalecte-parent-path current-pythonpath))))))
 
 (defun flycheck-grammalecte--grammalecte-version ()
-  "Return the upstream version of the flycheck-grammalecte package.
+  "Return the currently installed Grammalecte version."
+  (flycheck-grammalecte--augment-pythonpath-if-needed)
+  (let* ((python-script "from grammalecte.fr.gc_engine import __version__
+print(__version__)")
+         (fg-version
+          (shell-command-to-string
+           (format "python3 -c \"%s\"" python-script))))
+    ;; Only return a version number if we got something which looks like a
+    ;; version number (else it may be a python crash when Grammalecte is not
+    ;; yet downloaded)
+    (when (string-match "^[0-9.]+$" fg-version)
+      (match-string 0 fg-version))))
+
+(defun flycheck-grammalecte--grammalecte-upstream-version ()
+  "Return the upstream version of Grammalecte.
 Signal a `file-error' error if something wrong happen while retrieving
 the Grammalecte home page or if no version string is found in the page."
   (let* ((url "https://grammalecte.net/index.html")
+         (inhibit-message t) ;; Do not display url-retrieve messages
          (buffer (url-retrieve-synchronously url)))
     (with-current-buffer buffer
       (goto-char (point-min))
       (if (re-search-forward
-           "^ +<p id=\"version_num\">\\([0-9.]+\\)</p>$"
+           "<p id=\"version_num\">\\([0-9.]+\\)</p>"
            nil t) ;; Parse all downloaded data and avoid error
           (match-string 1)
         (signal 'file-error
                 (list url "No version number found on grammalecte website"))))))
 
-(defun flycheck-grammalecte--download-zip ()
-  "Download Grammalecte CLI zip file."
-  (let* ((zip-name
-          (format "Grammalecte-fr-v%s.zip"
-                  (flycheck-grammalecte--grammalecte-version)))
+(defun flycheck-grammalecte--download-zip (&optional grammalecte-version)
+  "Download Grammalecte CLI zip file.
+If given, this function will try to download the GRAMMALECTE-VERSION
+of the python package."
+  (let* ((up-version (if (or (not grammalecte-version)
+                             (string= grammalecte-version "last"))
+                         (flycheck-grammalecte--grammalecte-upstream-version)
+                       grammalecte-version))
+         (zip-name (format "Grammalecte-fr-v%s.zip" up-version))
          (dl-url
           (format "https://grammalecte.net/grammalecte/zip/%s"
                   zip-name))
          (zip-file (expand-file-name
                     zip-name
                     flycheck-grammalecte--directory)))
-    ;; Do not download it twice if it's still there for some reason…
+    ;; Do not download it twice if it's still there for some reason...
     (unless (file-exists-p zip-file)
       (url-copy-file dl-url zip-file)
       (message "[Flycheck Grammalecte] Downloaded to %s" zip-file))
@@ -299,7 +339,7 @@ from EXTRACTED-FOLDER to their destination, alongside the other
 package files."
   (let ((source-folder
          (expand-file-name "grammalecte" extracted-folder))
-        (target-folder flycheck-grammalecte--grammalecte-directory))
+        (target-folder flycheck-grammalecte-grammalecte-directory))
     ;; Always do a clean update. Begin by removing old folder if it's
     ;; present.
     (when (file-directory-p target-folder)
@@ -320,17 +360,17 @@ if the current buffer major mode is present in the
 If optional argument FORCE is non-nil, verification will occurs even
 when current buffer major mode is not in `flycheck-grammalecte-enabled-modes'."
   (when (or force (memq major-mode flycheck-grammalecte-enabled-modes))
-    (unless (file-exists-p
-             (expand-file-name "grammar_checker.py"
-                               flycheck-grammalecte--grammalecte-directory))
-      (if (or flycheck-grammalecte-download-without-asking
-              (yes-or-no-p
-               "[flycheck-grammalecte] Grammalecte data not found.  Download it NOW?"))
-          (flycheck-grammalecte-download-grammalecte)
-        (display-warning "flycheck-grammalecte"
-                         "Grammalecte will fail if used.
-Please run the command `flycheck-grammalecte-download-grammalecte'
-as soon as possible.")))))
+    (let ((local-version (flycheck-grammalecte--grammalecte-version))
+          (upstream-version (flycheck-grammalecte--grammalecte-upstream-version)))
+      (if (not (stringp local-version))
+          ;; It seems there is no currently downloaded Grammalecte
+          ;; package. Force install it, as nothing will work without it.
+          (flycheck-grammalecte-download-grammalecte upstream-version)
+        (when (and (string-version-lessp local-version upstream-version)
+                   (or flycheck-grammalecte-download-without-asking
+                       (yes-or-no-p
+                        "[flycheck-grammalecte] Grammalecte is out of date.  Download it NOW?")))
+          (flycheck-grammalecte-download-grammalecte upstream-version))))))
 
 (defun flycheck-grammalecte--split-error-message (err)
   "Split ERR message between actual message and suggestions."
@@ -404,10 +444,11 @@ other buffer by the copied word."
   "Extract a definition from the current XML buffer at START."
   (goto-char start)
   (delete-region (point-min) (point))
-  (with-temp-message "" (nxml-mode))
-  (nxml-forward-element)
-  (delete-region (point) (point-max))
-  (libxml-parse-html-region (point-min) (point-max)))
+  (let ((inhibit-message t)) ;; Silences nxml-mode messages
+    (nxml-mode)
+    (nxml-forward-element)
+    (delete-region (point) (point-max))
+    (libxml-parse-html-region (point-min) (point-max))))
 
 (defun flycheck-grammalecte--fetch-cnrtl-word (word)
   "Fetch WORD definition, according to TLFi, on CNRTL."
@@ -420,11 +461,11 @@ other buffer by the copied word."
       (if (search-forward "<div id=\"lexicontent\">" nil t)
           (setq start (match-beginning 0))
         (when flycheck-grammalecte--debug-mode
-          (display-warning "Définition non trouvée.")))
+          (display-warning 'flycheck-grammalecte "Définition non trouvée.")))
       (if (re-search-backward "'/definition/[^/]+//\\([0-9]+\\)'" nil t)
           (setq count (string-to-number (match-string 1)))
         (when flycheck-grammalecte--debug-mode
-          (display-warning "Nombre de définitions non trouvé.")))
+          (display-warning 'flycheck-grammalecte "Nombre de définitions non trouvé.")))
       (when (and start count)
         (push (flycheck-grammalecte--extract-cnrtl-definition start) definitions)
         (kill-buffer (current-buffer))))
@@ -453,7 +494,7 @@ other buffer by the copied word."
             (setq start (match-beginning 0))
           (when flycheck-grammalecte--debug-mode
             (display-warning
-             "flycheck-grammalecte"
+             'flycheck-grammalecte
              (format "Début de liste des %s non trouvée." type))))
         (if (re-search-forward
              (format "<!-- ?Fin liste des %s ?-->" type)
@@ -461,7 +502,7 @@ other buffer by the copied word."
             (setq end (match-beginning 0))
           (when flycheck-grammalecte--debug-mode
             (display-warning
-             "flycheck-grammalecte"
+             'flycheck-grammalecte
              (format "Fin de liste des %s non trouvée." type))))
         (when (and start end)
           (narrow-to-region start end)
@@ -574,7 +615,7 @@ See URL `https://www.cnrtl.fr/definition/'.
       (with-current-buffer buffer
         (let ((definitions (flycheck-grammalecte--fetch-cnrtl-word word)))
           (if (seq-empty-p definitions)
-              (insert "Aucun résultat pour %s." word)
+              (insert (format "Aucun résultat pour %s." word))
             (dolist (d definitions)
               (shr-insert-document d)
               (insert "\n\n\n"))))
@@ -652,6 +693,7 @@ The found words are then displayed in a new buffer in another window.
          (buffer (get-buffer buffer-name)))
     (unless buffer
       (flycheck-grammalecte--download-grammalecte-if-needed t)
+      (flycheck-grammalecte--augment-pythonpath-if-needed)
       (setq buffer (get-buffer-create buffer-name))
       (with-current-buffer buffer
         (insert
@@ -702,12 +744,18 @@ flycheck, if any."
               (cons "Suggestions de Grammalecte" repl-menu))))
            region))))))
 
-(defun flycheck-grammalecte-download-grammalecte ()
-  "Download, extract and install Grammalecte python program."
-  (interactive)
+;;;###autoload
+(defun flycheck-grammalecte-download-grammalecte (grammalecte-version)
+  "Download, extract and install Grammalecte python program.
+This function will try to download the GRAMMALECTE-VERSION
+of the python package.  If GRAMMALECTE-VERSION is \"last\", the last version
+of the package will be downloaded.
+This function can also be used at any time to upgrade the
+Grammalecte python program."
+  (interactive "sVersion: ")
   (flycheck-grammalecte--install-py-files
    (flycheck-grammalecte--extract-zip
-    (flycheck-grammalecte--download-zip))))
+    (flycheck-grammalecte--download-zip grammalecte-version))))
 
 (add-hook 'flycheck-mode-hook
           #'flycheck-grammalecte--download-grammalecte-if-needed)
@@ -755,24 +803,35 @@ flycheck, if any."
                     "|" column "|" end-column line-end))))
 
     (when flycheck-grammalecte--debug-mode
-      (let ((checker-path (expand-file-name
-                           "grammalecte/grammar_checker.py"
-                           flycheck-grammalecte--directory)))
+      (let ((grammalecte-version (flycheck-grammalecte--grammalecte-version))
+            (checker-path (expand-file-name
+                           "grammar_checker.py"
+                           flycheck-grammalecte-grammalecte-directory)))
         (if (file-exists-p checker-path)
-            (message "[Flycheck Grammalecte][DEBUG] Found in %s" checker-path)
-          (message "[Flycheck Grammalecte][DEBUG] NOT FOUND")))
-      (message "[Flycheck Grammalecte][DEBUG] Detected mode: %s" major-mode)
-      (message "[Flycheck Grammalecte][DEBUG] Checker command: %s"
+            (display-warning 'flycheck-grammalecte
+                             (format "Version %s found in %s"
+                                     grammalecte-version checker-path)
+                             :debug)
+          (display-warning 'flycheck-grammalecte "NOT FOUND")))
+      (display-warning 'flycheck-grammalecte
+                       (format "Detected mode: %s" major-mode)
+                       :debug)
+      (display-warning
+       'flycheck-grammalecte
+       (format "Checker command: %s"
                (mapconcat
                 #'(lambda (item)
-                    (cond ((symbolp item)
-                           (format "'%s" (symbol-name item)))
-                          ((stringp item)
-                           item)))
-                cmdline
-                " "))
-      (message "[Flycheck Grammalecte][DEBUG] Flycheck error-patterns %s"
-               flycheck-grammalecte--error-patterns))
+                    (cond ((symbolp item) (format "'%s" (symbol-name item)))
+                          ((stringp item) item)))
+                cmdline " "))
+       :debug)
+      (display-warning 'flycheck-grammalecte
+                       (format "Flycheck error-patterns %s"
+                               flycheck-grammalecte--error-patterns)
+                       :debug))
+
+    ;; Be sure grammalecte python module is accessible
+    (flycheck-grammalecte--augment-pythonpath-if-needed)
 
     ;; Now that we have all our variables, we can create the custom
     ;; checker.
@@ -788,7 +847,7 @@ See URL `https://grammalecte.net/'."
         (let ((warn-user-about-flycheck
                #'(lambda (_arg)
                    (display-warning
-                    "flycheck-grammalecte"
+                    'flycheck-grammalecte
                     (format "Le remplacement des erreurs ne fonctionne qu'avec flycheck >= 32 (vous utilisez la version %s)."
                             flycheck-version-number)))))
           ;; Desactivate corrections methods

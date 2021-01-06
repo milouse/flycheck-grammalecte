@@ -8,7 +8,7 @@ somewhere under your ~.emacs.d~ folder.
 
 #+begin_src emacs-lisp
 cd ~/.emacs.d
-git clone https://git.deparis.io/flycheck-grammalecte
+git clone https://git.umaneti.net/flycheck-grammalecte
 #+end_src
 
 On GNU/Linux and Mac OS, you can benefit of a ~Makefile~, which will

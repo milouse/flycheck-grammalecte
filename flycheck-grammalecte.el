@@ -38,8 +38,23 @@
 
 ;;; Code:
 
-(require 'flycheck)
-(require 'nxml-mode)
+(require 'seq)
+
+;; We do not directly requires nxml-mode or flycheck to ease this file
+;; compiling and also the possibility to call it from the exterior, for
+;; example to download grammalecte in an emacs subprocess without much
+;; dependencies.
+(declare-function nxml-forward-element "nxml-mode")
+(declare-function flycheck-error-message "flycheck")
+(declare-function flycheck-error-region-for-mode "flycheck")
+(declare-function flycheck-def-executable-var "flycheck")
+(declare-function flycheck-define-command-checker "flycheck")
+(declare-function flycheck-overlay-errors-at "flycheck")
+(declare-function flycheck-version "flycheck")
+(eval-when-compile
+  (defvar flycheck-checkers)
+  (defvar flycheck-mode-map)
+  (defvar flycheck-command-map))
 
 ;;;; Configuration options:
 
@@ -485,6 +500,7 @@ other buffer by the copied word."
 
 (defun flycheck-grammalecte--extract-cnrtl-definition (start)
   "Extract a definition from the current XML buffer at START."
+  (require 'nxml-mode)
   (goto-char start)
   (delete-region (point-min) (point))
   (let ((inhibit-message t)) ;; Silences nxml-mode messages
@@ -863,6 +879,7 @@ program."
 ;;;###autoload
 (defun flycheck-grammalecte-setup ()
   "Build the flycheck checker, matching your taste."
+  (require 'flycheck)
   (flycheck-def-executable-var 'grammalecte "python3")
   (let ((cmdline '(source))
         (filters (mapcan #'(lambda (filter) (list "-f" filter))

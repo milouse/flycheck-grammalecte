@@ -1,6 +1,6 @@
 EMACS=emacs -Q --batch -nw
 
-.PHONY: build clean demo uninstall
+.PHONY: build clean cleanall demo
 
 .INTERMEDIATE: dash.zip epl.zip flycheck.zip pkg-info.zip
 
@@ -15,11 +15,13 @@ clean:
 	rm -rf Grammalecte-fr-v*
 	rm -f debug "#example.org#"
 
-uninstall: clean
+cleanall: clean
 	rm -rf grammalecte dash.el-master flycheck-master pkg-info-master epl-master
 	rm -f flycheck-grammalecte.elc
 
-demo: build grammalecte flycheck-master/flycheck.el
+demo: grammalecte demo-no-grammalecte
+
+demo-no-grammalecte: build flycheck-master/flycheck.el
 	touch debug
 	emacs -Q --debug-init -l test-profile.el example.org
 

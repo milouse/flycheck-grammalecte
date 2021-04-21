@@ -24,12 +24,6 @@ cleanall: clean
 	rm -rf grammalecte dash.el-master flycheck-master pkg-info-master epl-master
 	rm -f $(TARGETS)
 
-demo: grammalecte demo-no-grammalecte
-
-demo-no-grammalecte: build
-	touch debug
-	emacs -Q --debug-init -l test-profile.el example.org
-
 grammalecte:
 	$(EMACS) -l grammalecte.el \
 		--eval '(grammalecte-download-grammalecte "last")'
@@ -39,6 +33,24 @@ dash.zip:
 
 dash.el-master/dash.el: dash.zip
 	unzip -qo dash.zip
+
+flycheck.zip:
+	curl -Lso flycheck.zip https://github.com/flycheck/flycheck/archive/master.zip
+
+flycheck-master/flycheck.el: dash.el-master/dash.el flycheck.zip
+	unzip -qo flycheck.zip
+	touch flycheck-master/flycheck.el
+
+######### Demo related targets
+
+demo: grammalecte demo-no-grammalecte
+
+demo-no-grammalecte: build pkg-info-master/pkg-info.el
+	touch debug
+	emacs -Q -L dash.el-master -L flycheck-master \
+		-L epl-master -L pkg-info-master --eval "(require 'pkg-info)" \
+		-L $(PWD) --debug-init \
+		-l test-profile.el example.org
 
 epl.zip:
 	curl -Lso epl.zip https://github.com/cask/epl/archive/master.zip
@@ -52,10 +64,3 @@ pkg-info.zip:
 pkg-info-master/pkg-info.el: epl-master/epl.el pkg-info.zip
 	unzip -qo pkg-info.zip
 	touch pkg-info-master/pkg-info.el
-
-flycheck.zip:
-	curl -Lso flycheck.zip https://github.com/flycheck/flycheck/archive/master.zip
-
-flycheck-master/flycheck.el: dash.el-master/dash.el pkg-info-master/pkg-info.el flycheck.zip
-	unzip -qo flycheck.zip
-	touch flycheck-master/flycheck.el

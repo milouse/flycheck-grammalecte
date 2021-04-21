@@ -97,13 +97,6 @@ Default modes are `latex-mode', `mail-mode', `markdown-mode',
   :type '(repeat (function :tag "Mode"))
   :group 'flycheck-grammalecte)
 
-(defcustom flycheck-grammalecte-download-without-asking nil
-  "Download Grammalecte upstream package without asking if non-nil.
-
-Otherwise, it will ask for a yes-or-no confirmation."
-  :type 'boolean
-  :group 'flycheck-grammalecte)
-
 (defcustom flycheck-grammalecte-filters
   '("(?m)^# ?-*-.+$")
   "Patterns for which errors in matching texts are ignored.
@@ -209,6 +202,27 @@ The default value is a folder alongside this elisp package."
   :type 'directory
   :group 'flycheck-grammalecte)
 
+(defcustom flycheck-grammalecte-download-without-asking nil
+  "Download Grammalecte upstream package without asking if non-nil.
+
+Otherwise, it will ask for a yes-or-no confirmation."
+  :type 'boolean
+  :group 'flycheck-grammalecte)
+
+(defcustom flycheck-grammalecte-check-upstream-timestamp nil
+  "Timestamp of the last attempt to check upstream version of Grammalecte.
+
+This timestamp must be a float, as returned by `float-time'."
+  :type 'float
+  :group 'flycheck-grammalecte)
+
+(defcustom flycheck-grammalecte-check-upstream-version-delay 10
+  "Minimal delay in days before checking again upstream for a new release.
+
+If this value is nil, 0 or negative, no check will never be attempt."
+  :type 'integer
+  :group 'flycheck-grammalecte)
+
 (defvar flycheck-grammalecte--debug-mode nil
   "Display some debug messages when non-nil.")
 
@@ -290,10 +304,13 @@ print(__version__)")
 
 Signal a `file-error' error if something wrong happen while retrieving
 the Grammalecte home page or if no version string is found in the page."
-  (let* ((url "https://grammalecte.net/index.html")
-         (inhibit-message t) ;; Do not display url-retrieve messages
-         (buffer (url-retrieve-synchronously url)))
-    (with-current-buffer buffer
+  (let ((url "https://grammalecte.net/index.html")
+        (inhibit-message t)) ;; Do not display url-retrieve messages
+    ;; Save the new version check timestamp
+    (setq flycheck-grammalecte-check-upstream-timestamp (float-time))
+    (customize-save-variable 'flycheck-grammalecte-check-upstream-timestamp
+                             flycheck-grammalecte-check-upstream-timestamp)
+    (with-current-buffer (url-retrieve-synchronously url)
       (goto-char (point-min))
       (if (re-search-forward
            "<p id=\"version_num\">\\([0-9.]+\\)</p>"
@@ -363,19 +380,39 @@ This method checks if the python package is already installed and
 if the current buffer major mode is present in the
 `flycheck-grammalecte-enabled-modes' list.
 
-If optional argument FORCE is non-nil, verification will occurs even
-when current buffer major mode is not in `flycheck-grammalecte-enabled-modes'."
-  (when (or force (memq major-mode flycheck-grammalecte-enabled-modes))
+If optional argument FORCE is non-nil, verification will occurs
+even when current buffer major mode is not in
+`flycheck-grammalecte-enabled-modes'.
+
+This function will only run if
+`flycheck-grammalecte-check-upstream-version-delay' is non-nil
+and greater than 0.
+
+If `flycheck-grammalecte-check-upstream-timestamp' is nil, the
+function will run, no matter the above delay value (as soon as it
+is not nil or 0).  Otherwise, it will only run if there is more
+than `flycheck-grammalecte-check-upstream-version-delay' days
+since the value of
+`flycheck-grammalecte-check-upstream-timestamp'."
+  (when (and (integerp flycheck-grammalecte-check-upstream-version-delay)
+             (> 0 flycheck-grammalecte-check-upstream-version-delay)
+             (or force (memq major-mode flycheck-grammalecte-enabled-modes))
+             (or (not flycheck-grammalecte-check-upstream-timestamp)
+                 (> (- (float-time) flycheck-grammalecte-check-upstream-timestamp)
+                    (* 86400 flycheck-grammalecte-check-upstream-version-delay))))
     (let ((local-version (flycheck-grammalecte--grammalecte-version))
           (upstream-version (flycheck-grammalecte--grammalecte-upstream-version)))
-      (if (not (stringp local-version))
+      (when (stringp upstream-version)
+        (if (stringp local-version)
+            ;; It seems we have a local version of grammalecte.
+            ;; Compare it with upstream
+            (when (and (string-version-lessp local-version upstream-version)
+                       (or flycheck-grammalecte-download-without-asking
+                           (yes-or-no-p
+                            "[flycheck-grammalecte] Grammalecte is out of date.  Download it NOW?")))
+              (flycheck-grammalecte-download-grammalecte upstream-version))
           ;; It seems there is no currently downloaded Grammalecte
           ;; package. Force install it, as nothing will work without it.
-          (flycheck-grammalecte-download-grammalecte upstream-version)
-        (when (and (string-version-lessp local-version upstream-version)
-                   (or flycheck-grammalecte-download-without-asking
-                       (yes-or-no-p
-                        "[flycheck-grammalecte] Grammalecte is out of date.  Download it NOW?")))
           (flycheck-grammalecte-download-grammalecte upstream-version))))))
 
 (defun flycheck-grammalecte--split-error-message (err)

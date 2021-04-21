@@ -1,4 +1,5 @@
 EMACS=emacs -Q --batch -nw
+TARGETS=grammalecte.elc flycheck-grammalecte.elc
 
 .PHONY: build clean cleanall demo
 
@@ -6,10 +7,14 @@ EMACS=emacs -Q --batch -nw
 
 all: build
 
-build: flycheck-grammalecte.elc
+build: $(TARGETS)
 
-flycheck-grammalecte.elc:
-	$(EMACS) -f batch-byte-compile flycheck-grammalecte.el
+grammalecte.elc:
+	$(EMACS) -f batch-byte-compile grammalecte.el
+
+flycheck-grammalecte.elc: flycheck-master/flycheck.el
+	$(EMACS) -L dash.el-master -L flycheck-master -L $(PWD) \
+			 -f batch-byte-compile flycheck-grammalecte.el
 
 clean:
 	rm -rf Grammalecte-fr-v*
@@ -17,17 +22,17 @@ clean:
 
 cleanall: clean
 	rm -rf grammalecte dash.el-master flycheck-master pkg-info-master epl-master
-	rm -f flycheck-grammalecte.elc
+	rm -f $(TARGETS)
 
 demo: grammalecte demo-no-grammalecte
 
-demo-no-grammalecte: build flycheck-master/flycheck.el
+demo-no-grammalecte: build
 	touch debug
 	emacs -Q --debug-init -l test-profile.el example.org
 
 grammalecte:
-	$(EMACS) -l flycheck-grammalecte.el \
-		--eval '(flycheck-grammalecte-download-grammalecte "last")'
+	$(EMACS) -l grammalecte.el \
+		--eval '(grammalecte-download-grammalecte "last")'
 
 dash.zip:
 	curl -Lso dash.zip https://github.com/magnars/dash.el/archive/master.zip

@@ -49,7 +49,7 @@ Grammalecte-fr-v$(GRAMVER): Grammalecte-fr-v$(GRAMVER).zip
 	unzip -qo Grammalecte-fr-v$(GRAMVER).zip -d Grammalecte-fr-v$(GRAMVER)
 
 grammalecte:
-	[ ! -d Grammalecte-fr-v$(GRAMVER) ] && $(MAKE) Grammalecte-fr-v$(GRAMVER)
+	[ ! -d Grammalecte-fr-v$(GRAMVER) ] && $(MAKE) Grammalecte-fr-v$(GRAMVER) || true
 	cp -R Grammalecte-fr-v$(GRAMVER)/grammalecte .
 
 clean:

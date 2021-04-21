@@ -547,6 +547,74 @@ other buffer by the copied word."
                                 'help-echo "mouse-1: Remplacer par…")))
       words "\n"))))
 
+(defvar-local flycheck-grammalecte-looked-up-type nil
+  "What kind of word was looked up by the user to open the current buffer.
+
+Can be either `synonyms', `conjugate', or `define'.  When non-nil, the
+corresponding looked-up word must be available in
+`flycheck-grammalecte-looked-up-word'.")
+
+(defvar-local flycheck-grammalecte-looked-up-word nil
+  "The word currently consulted by the user in the current buffer.")
+
+(defun flycheck-grammalecte--revert-synonyms (word)
+  "Revert current buffer with the found synonyms for WORD."
+  (let ((buffer-read-only nil)
+        (found-words (flycheck-grammalecte--fetch-crisco-words word)))
+    (erase-buffer)
+    (setq flycheck-grammalecte-looked-up-type 'synonym
+          flycheck-grammalecte-looked-up-word word)
+    (insert (propertize (format "* Synonymes de %s" word)
+                        'face 'org-level-1) "\n\n")
+    (flycheck-grammalecte--propertize-crisco-words
+     (plist-get found-words :synonymes))
+    (insert "\n\n" (propertize (format "* Antonymes de %s" word)
+                               'face 'org-level-1) "\n\n")
+    (flycheck-grammalecte--propertize-crisco-words
+     (plist-get found-words :antonymes))
+    (insert "\n"))) ;; Avoid ugly last button
+
+(defun flycheck-grammalecte--revert-conjugate (verb)
+  "Revert current buffer with the found conjugation for VERB."
+  (let ((buffer-read-only nil))
+    (erase-buffer)
+    (setq flycheck-grammalecte-looked-up-type 'conjugate
+          flycheck-grammalecte-looked-up-word verb)
+    (flycheck-grammalecte--download-grammalecte-if-needed t)
+    (flycheck-grammalecte--augment-pythonpath-if-needed)
+    (insert
+     (shell-command-to-string
+      (format "python3 %s %s"
+              (expand-file-name "conjugueur.py" flycheck-grammalecte--directory)
+              verb)))
+    (flycheck-grammalecte--propertize-conjugation-buffer)))
+
+(defun flycheck-grammalecte--revert-define (word)
+  "Revert current buffer with the found definitions for WORD."
+  (let ((buffer-read-only nil)
+        (definitions (flycheck-grammalecte--fetch-cnrtl-word word)))
+    (erase-buffer)
+    (setq flycheck-grammalecte-looked-up-type 'define
+          flycheck-grammalecte-looked-up-word word)
+    (if (seq-empty-p definitions)
+        (insert (format "Aucun résultat pour %s." word))
+      (dolist (d definitions)
+        (shr-insert-document d)
+        (insert "\n\n\n")))))
+
+(defun flycheck-grammalecte--revert-buffer (&optional _ignore-auto _noconfirm)
+  "Replace the current buffer content by an up-to-date one.
+
+Replace it either by a refreshed list of synonyms or conjugation table."
+  ;; We are working on a read only buffer, thus deactivate it first
+  (when flycheck-grammalecte-looked-up-word
+    (let ((revert-func
+           (intern
+            (concat "flycheck-grammalecte--revert-"
+                    (symbol-name flycheck-grammalecte-looked-up-type)))))
+      (when (fboundp revert-func)
+        (funcall revert-func flycheck-grammalecte-looked-up-word)))))
+
 
 
 ;;;; Special buffer major mode methods
@@ -607,8 +675,8 @@ Click \\[flycheck-grammalecte-mouse-save-and-replace] to replace the word at
   point in the buffer you came from by the one you just click in the
   flycheck-grammalecte buffer.  The word is not removed from the `kill-ring'."
   (buffer-disable-undo)
-  (setq buffer-read-only t
-        show-trailing-whitespace nil)
+  (setq show-trailing-whitespace nil
+        revert-buffer-function #'flycheck-grammalecte--revert-buffer)
   (when (bound-and-true-p global-linum-mode)
     (linum-mode -1))
   (when (and (fboundp 'nlinum-mode)
@@ -616,8 +684,7 @@ Click \\[flycheck-grammalecte-mouse-save-and-replace] to replace the word at
     (nlinum-mode -1))
   (when (and (fboundp 'display-line-numbers-mode)
              (bound-and-true-p global-display-line-numbers-mode))
-    (display-line-numbers-mode -1))
-  (goto-char (point-min)))
+    (display-line-numbers-mode -1)))
 
 
 
@@ -636,27 +703,12 @@ See URL `https://www.cnrtl.fr/definition/'.
 ¹ « Centre National de Ressources Textuelles et Lexicales »
 ² « Trésor de la Langue Française informatisé »."
   (interactive "sMot: ")
-  (let* ((buffer-name (format "*Définition de %s*" word))
-         (buffer (get-buffer buffer-name)))
-    (unless buffer
-      (setq buffer (get-buffer-create buffer-name))
-      ;; Display all definitions in a dedicated buffer.
-      (with-current-buffer buffer
-        (let ((definitions (flycheck-grammalecte--fetch-cnrtl-word word)))
-          (if (seq-empty-p definitions)
-              (insert (format "Aucun résultat pour %s." word))
-            (dolist (d definitions)
-              (shr-insert-document d)
-              (insert "\n\n\n"))))
-        (special-mode)
-        (visual-line-mode)
-        (local-set-key "k" #'(lambda () (interactive) (quit-window t)))
-        (local-set-key "o" #'other-window)
-        (setq-local header-line-format
-                    (format-message "Définition de %s. Quitter `q' ou `k'."
-                                    word))
-        (goto-char (point-min))))
-    (pop-to-buffer buffer)))
+  (pop-to-buffer (get-buffer-create (format "*Définition de %s*" word)))
+  (setq header-line-format (format-message "Définition de %s." word))
+  (special-mode)
+  (visual-line-mode)
+  (flycheck-grammalecte--revert-define word)
+  (goto-char (point-min)))
 
 
 ;;;###autoload
@@ -682,25 +734,12 @@ The found words are then displayed in a new buffer in another window.
 
 ¹ See URL `https://crisco2.unicaen.fr/des/synonymes/'"
   (interactive "sMot: ")
-  (let* ((buffer-name (format "*Synonymes de %s*" word))
-         (buffer (get-buffer buffer-name)))
-    (unless buffer
-      (setq buffer (get-buffer-create buffer-name))
-      (let ((found-words (flycheck-grammalecte--fetch-crisco-words word)))
-        (with-current-buffer buffer
-          (insert (propertize (format "* Synonymes de %s" word)
-                              'face 'org-level-1) "\n\n")
-          (flycheck-grammalecte--propertize-crisco-words
-           (plist-get found-words :synonymes))
-          (insert "\n\n" (propertize (format "* Antonymes de %s" word)
-                                     'face 'org-level-1) "\n\n")
-          (flycheck-grammalecte--propertize-crisco-words
-           (plist-get found-words :antonymes))
-          (insert "\n") ;; Avoid ugly last button
-          (flycheck-grammalecte-mode)
-          (flycheck-grammalecte--set-buffer-title
-           "Sélection de synonymes ou d'antonymes."))))
-    (pop-to-buffer buffer)))
+  (pop-to-buffer (get-buffer-create (format "*Synonymes de %s*" word)))
+  (flycheck-grammalecte--set-buffer-title
+   "Sélection de synonymes ou d'antonymes.")
+  (flycheck-grammalecte-mode)
+  (flycheck-grammalecte--revert-synonyms word)
+  (goto-char (point-min)))
 
 ;;;###autoload
 (defun flycheck-grammalecte-find-synonyms-at-point ()
@@ -719,23 +758,11 @@ The found words are then displayed in a new buffer in another window.
 (defun flycheck-grammalecte-conjugate-verb (verb)
   "Display the conjugation table for the given VERB."
   (interactive "sVerbe: ")
-  (let* ((buffer-name (format "*Conjugaison de %s*" verb))
-         (buffer (get-buffer buffer-name)))
-    (unless buffer
-      (flycheck-grammalecte--download-grammalecte-if-needed t)
-      (flycheck-grammalecte--augment-pythonpath-if-needed)
-      (setq buffer (get-buffer-create buffer-name))
-      (with-current-buffer buffer
-        (insert
-         (shell-command-to-string
-          (format "python3 %s %s"
-                  (expand-file-name "conjugueur.py" flycheck-grammalecte--directory)
-                  verb)))
-        (flycheck-grammalecte--propertize-conjugation-buffer)
-        (flycheck-grammalecte-mode)
-        (flycheck-grammalecte--set-buffer-title
-         (format "Conjugaison de %s." verb))))
-    (pop-to-buffer buffer)))
+  (pop-to-buffer (get-buffer-create (format "*Conjugaison de %s*" verb)))
+  (flycheck-grammalecte--set-buffer-title (format "Conjugaison de %s." verb))
+  (flycheck-grammalecte-mode)
+  (flycheck-grammalecte--revert-conjugate verb)
+  (goto-char (point-min)))
 
 (defun flycheck-grammalecte-correct-error-at-point (pos)
   "Correct the first error encountered at POS.

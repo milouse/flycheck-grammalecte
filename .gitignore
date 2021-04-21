@@ -5,4 +5,5 @@ flycheck-master
 pkg-info-master
 debug
 grammalecte
+grammalecte-loaddefs.el
 __pycache__

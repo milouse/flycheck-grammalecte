@@ -1,13 +1,23 @@
 EMACS=emacs -Q --batch -nw
 TARGETS=grammalecte.elc flycheck-grammalecte.elc
 
-.PHONY: build clean cleanall demo
+.PHONY: autoloads build clean cleanall demo
 
 .INTERMEDIATE: dash.zip epl.zip flycheck.zip pkg-info.zip
 
 all: build
 
 build: $(TARGETS)
+
+autoloads: grammalecte-loaddefs.el
+
+grammalecte-loaddefs.el:
+	$(EMACS) -L $(PWD) \
+		--eval "(setq-default backup-inhibited t)" \
+		--eval "(setq generated-autoload-file \"$(PWD)/grammalecte-loaddefs.el\")" \
+		--eval "(update-directory-autoloads \"$(PWD)\")"
+	sed -i "s/^;;; Code:$$/;;; Code:\n\n(add-to-list 'load-path (directory-file-name (or (file-name-directory #$$) (car load-path))))/" \
+		$(PWD)/grammalecte-loaddefs.el
 
 grammalecte.elc:
 	$(EMACS) -f batch-byte-compile grammalecte.el
@@ -22,7 +32,7 @@ clean:
 
 cleanall: clean
 	rm -rf grammalecte dash.el-master flycheck-master pkg-info-master epl-master
-	rm -f $(TARGETS)
+	rm -f $(TARGETS) grammalecte-loaddefs.el
 
 grammalecte:
 	$(EMACS) -l grammalecte.el \
@@ -45,12 +55,11 @@ flycheck-master/flycheck.el: dash.el-master/dash.el flycheck.zip
 
 demo: grammalecte demo-no-grammalecte
 
-demo-no-grammalecte: build pkg-info-master/pkg-info.el
+demo-no-grammalecte: build autoloads pkg-info-master/pkg-info.el
 	touch debug
 	emacs -Q -L dash.el-master -L flycheck-master \
 		-L epl-master -L pkg-info-master --eval "(require 'pkg-info)" \
-		-L $(PWD) --debug-init \
-		-l test-profile.el example.org
+		-l grammalecte-loaddefs.el -l test-profile.el example.org
 
 epl.zip:
 	curl -Lso epl.zip https://github.com/cask/epl/archive/master.zip

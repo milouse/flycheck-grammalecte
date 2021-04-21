@@ -561,30 +561,51 @@ It adds information on how to close it."
     "%s. Quitter `q' ou `k', Copier avec `w'. Remplacer avec `mouse-1' ou `RET'."
     title)))
 
+(defun flycheck-grammalecte-kill-ring-save ()
+  "Save word at point in `kill-ring'."
+  (interactive)
+  (flycheck-grammalecte--kill-ring-save-at-point))
+
+(defun flycheck-grammalecte-mouse-save-and-replace (event)
+  "Replace word by the one focused by EVENT mouse click.
+
+The word is not removed from the `kill-ring'."
+  (interactive "e")
+  (flycheck-grammalecte--kill-ring-save-at-point
+   (posn-point (event-end event)) t))
+
+(defun flycheck-grammalecte-save-and-replace ()
+  "Replace word in other buffer by the one at point.
+
+The word is not removed from the `kill-ring'."
+  (interactive)
+  (flycheck-grammalecte--kill-ring-save-at-point (point) t))
+
 (defvar flycheck-grammalecte-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "k"
-      #'(lambda () (interactive) (quit-window t)))
     (define-key map "o" #'other-window)
-    (define-key map "q" #'quit-window)
-    (define-key map "w"
-      #'(lambda () (interactive)
-          (flycheck-grammalecte--kill-ring-save-at-point)))
+    (define-key map "w" #'flycheck-grammalecte-kill-ring-save)
     (define-key map (kbd "<mouse-1>")
-      #'(lambda (event)
-          (interactive "e")
-          (flycheck-grammalecte--kill-ring-save-at-point
-           (posn-point (event-end event)) t)))
-    (define-key map (kbd "<RET>")
-      #'(lambda () (interactive)
-          (flycheck-grammalecte--kill-ring-save-at-point (point) t)))
+      #'flycheck-grammalecte-mouse-save-and-replace)
+    (define-key map (kbd "<RET>") #'flycheck-grammalecte-save-and-replace)
     map)
   "Keymap for `flycheck-grammalecte-mode'.")
 
 (define-derived-mode flycheck-grammalecte-mode special-mode
   "Flycheck Grammalecte mode"
   "Major mode used to display results of a synonym research or
-conjugation table."
+conjugation table.
+The buffer is read-only.
+Type o to go back to your previous buffer.
+Type \\[flycheck-grammalecte-kill-ring-save] to copy word at point in the
+  flycheck-grammalecte buffer in the `kill-ring' (and let you do whatever you
+  want with it after).
+Type \\[flycheck-grammalecte-save-and-replace] to replace the word at point in
+  the buffer you came from by the one at point in the flycheck-grammalecte
+  buffer.  The word is not removed from the `kill-ring'.
+Click \\[flycheck-grammalecte-mouse-save-and-replace] to replace the word at
+  point in the buffer you came from by the one you just click in the
+  flycheck-grammalecte buffer.  The word is not removed from the `kill-ring'."
   (buffer-disable-undo)
   (setq buffer-read-only t
         show-trailing-whitespace nil)

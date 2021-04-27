@@ -6,6 +6,8 @@
       org-startup-folded "showeverything"
       flycheck-grammalecte--debug-mode t)
 
-(flycheck-grammalecte-setup)
+(with-eval-after-load 'flycheck
+  (flycheck-grammalecte-setup))
 
+(require 'flycheck)
 (add-hook 'org-mode-hook #'flycheck-mode)

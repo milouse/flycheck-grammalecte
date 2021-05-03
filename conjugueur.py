@@ -41,10 +41,20 @@ if __name__ == "__main__":
             continue
         print("** " + data["label"] + "\n")
         if k == ":P":
-            print(data[":"])
+            if k in data:
+                # Newer version of Grammalecte (2.1.1+)
+                print(data[k])
+            else:
+                # Older version
+                print(data[":"])
         if k == ":Q":
             print("À conjuguer avec l’auxiliaire *{}* :\n".format(v.sVerbAux))
-            print_forms(data, [":Q1", ":Q2", ":Q3", ":Q4"])
+            if ":m:s" in data:
+                # Newer version of Grammalecte (2.1.1+)
+                print_forms(data, [":f:s", ":f:p", ":m:s", ":m:p"])
+            else:
+                # Older version
+                print_forms(data, [":Q3", ":Q4", ":Q1", ":Q2"])
         else:
             print_forms(data, [":1s", ":2s", ":3s", ":1p", ":2p", ":3p"])
         print()

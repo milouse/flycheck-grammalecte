@@ -482,7 +482,8 @@ Replace it either by a refreshed list of synonyms or conjugation table."
             (concat "grammalecte--revert-"
                     (symbol-name grammalecte-looked-up-type)))))
       (when (fboundp revert-func)
-        (funcall revert-func grammalecte-looked-up-word)))))
+        (funcall revert-func grammalecte-looked-up-word)
+        (goto-char (point-min))))))
 
 (defun grammalecte--set-buffer-title (title)
   "Decorate the current buffer `header-line-format', prefixed by TITLE.

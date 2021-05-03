@@ -39,7 +39,30 @@
 ;;; Code:
 
 (require 'flycheck)
+
+;; Version 1.5 introduced a major refactoring
+(mapc #'(lambda (spec)
+          (define-obsolete-variable-alias (car spec) (cadr spec) "1.5"))
+      '((flycheck-grammalecte--directory grammalecte--site-directory)
+        (flycheck-grammalecte-grammalecte-directory grammalecte-python-package-directory)
+        (flycheck-grammalecte-download-without-asking grammalecte-download-without-asking)
+        (flycheck-grammalecte-mode-map grammalecte-mode-map)))
+
 (require 'grammalecte)
+
+(mapc #'(lambda (spec)
+          (define-obsolete-function-alias (car spec) (cadr spec) "1.5"))
+      '((flycheck-grammalecte--grammalecte-version grammalecte--version)
+        (flycheck-grammalecte--grammalecte-upstream-version grammalecte--upstream-version)
+        (flycheck-grammalecte-kill-ring-save grammalecte-kill-ring-save)
+        (flycheck-grammalecte-save-and-replace grammalecte-save-and-replace)
+        (flycheck-grammalecte-define grammalecte-define)
+        (flycheck-grammalecte-define-at-point grammalecte-define-at-point)
+        (flycheck-grammalecte-find-synonyms grammalecte-find-synonyms)
+        (flycheck-grammalecte-find-synonyms-at-point grammalecte-find-synonyms-at-point)
+        (flycheck-grammalecte-conjugate-verb grammalecte-conjugate-verb)
+        (flycheck-grammalecte-download-grammalecte grammalecte-download-grammalecte)))
+
 
 ;; Make the compile happy about grammalecte lib
 (declare-function grammalecte--version "grammalecte")

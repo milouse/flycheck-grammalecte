@@ -241,16 +241,17 @@ since the value of
           (grammalecte-download-grammalecte upstream-version))))))
 
 ;;;###autoload
-(defun grammalecte-download-grammalecte (grammalecte-version)
+(defun grammalecte-download-grammalecte (&optional grammalecte-version)
   "Download, extract and install Grammalecte python program.
 
-This function will try to download the GRAMMALECTE-VERSION of the python
-package.  If GRAMMALECTE-VERSION is \"last\", the last version of the package
-will be downloaded.
+If GRAMMALECTE-VERSION is non-nil, this function will try to download the
+GRAMMALECTE-VERSION of the python package.  If GRAMMALECTE-VERSION is nil or
+equal \"last\", the last version of the package will be downloaded.
 
 This function can also be used at any time to upgrade the Grammalecte python
 program."
-  (interactive "sVersion: ")
+  (interactive)
+  (unless grammalecte-version (setq grammalecte-version "last"))
   (grammalecte--install-py-files
    (grammalecte--extract-zip
     (grammalecte--download-zip grammalecte-version))))

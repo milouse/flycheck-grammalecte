@@ -35,8 +35,7 @@ cleanall: clean
 	rm -f $(TARGETS) grammalecte-loaddefs.el
 
 grammalecte:
-	$(EMACS) -l grammalecte.el \
-		--eval '(grammalecte-download-grammalecte "last")'
+	$(EMACS) -l grammalecte.el -f grammalecte-download-grammalecte
 
 dash.zip:
 	curl -Lso dash.zip https://github.com/magnars/dash.el/archive/master.zip

@@ -59,30 +59,35 @@
   "Report spellcheck errors if non-nil.
 Default is nil.  You should use `flyspell' instead."
   :type 'boolean
+  :package-version "0.2"
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-report-grammar t
   "Report grammar errors if non-nil.
 Default is t."
   :type 'boolean
+  :package-version "0.2"
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-report-apos t
   "Report apostrophe errors if non-nil.
 Default is t."
   :type 'boolean
+  :package-version "0.2"
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-report-nbsp t
   "Report non-breakable spaces errors if non-nil.
 Default is t."
   :type 'boolean
+  :package-version "0.2"
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-report-esp t
   "Report useless spaces and tabs errors if non-nil.
 Default is t."
   :type 'boolean
+  :package-version "0.6"
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-enabled-modes
@@ -102,6 +107,7 @@ a comprehensive mode list for your own usage.
 Default modes are `latex-mode', `mail-mode', `markdown-mode',
 `message-mode', `mu4e-compose-mode', `org-mode' and `text-mode'."
   :type '(repeat (function :tag "Mode"))
+  :package-version "0.2"
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-filters
@@ -130,6 +136,7 @@ grammalecte.
 This patterns are always sent to Grammalecte.  See the variable
 `flycheck-grammalecte-filters-by-mode' for mode-related patterns."
   :type '(repeat string)
+  :package-version "1.1"
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-filters-by-mode
@@ -161,6 +168,7 @@ operation is only done once when the function
 `flycheck-grammalecte-setup' is run."
   :type '(alist :key-type (function :tag "Mode")
                 :value-type (repeat string))
+  :package-version "1.1"
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-borders-by-mode
@@ -184,6 +192,7 @@ list all possible modes, as soon as one is an ancestor of
 another.  This activation is only done once when the function
 `flycheck-grammalecte-setup' is run."
   :type '(repeat string)
+  :package-version "1.1"
   :group 'flycheck-grammalecte)
 
 (defvar flycheck-grammalecte--debug-mode nil

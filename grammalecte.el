@@ -67,6 +67,7 @@ This variable value must not end with a / (see `directory-file-name').
 
 The default value is a folder alongside this elisp package."
   :type 'directory
+  :package-version "1.5"
   :group 'grammalecte)
 
 (defcustom grammalecte-download-without-asking nil
@@ -74,6 +75,7 @@ The default value is a folder alongside this elisp package."
 
 Otherwise, it will ask for a yes-or-no confirmation."
   :type 'boolean
+  :package-version "1.5"
   :group 'grammalecte)
 
 (defcustom grammalecte-check-upstream-timestamp nil
@@ -81,6 +83,7 @@ Otherwise, it will ask for a yes-or-no confirmation."
 
 This timestamp must be a float, as returned by `float-time'."
   :type 'float
+  :package-version "1.5"
   :group 'grammalecte)
 
 (defcustom grammalecte-check-upstream-version-delay 10
@@ -88,6 +91,7 @@ This timestamp must be a float, as returned by `float-time'."
 
 If this value is nil, 0 or negative, no check will never be attempt."
   :type 'integer
+  :package-version "1.5"
   :group 'grammalecte)
 
 (defvar grammalecte--debug-mode nil

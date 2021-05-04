@@ -38,7 +38,7 @@ config file:
 
 Finally, the last expected step is to download the
 [[https://grammalecte.net/#download][CLI & Server upstream package]]. Just enter the following command:
-~M-x flycheck-grammalecte-download-grammalecte~
+~M-x grammalecte-download-grammalecte~
 
 * Usage
 
@@ -114,6 +114,32 @@ Here is a quick reference of the available variables:
      variable, which allow to enable filters only for a given mode.
 
 ** Breaking changes
+
+*** Version 1.5
+
+This version comes with a big refactoring, separating Flycheck only stuff from
+other usefull functions in two different lisp packages: ~flycheck-grammalecte~
+and ~grammalecte~. A long list of variables and functions, which were
+previously prefixed by ~flycheck-grammalecte-~ are now prefixed with
+~grammalecte-~ and have been moved in a dedicated file. Here is the list of
+the most common ones you may already have interacted with:
+
+- variables:
+  + ~flycheck-grammalecte--directory~ renamed as ~grammalecte--site-directory~
+  + ~flycheck-grammalecte-grammalecte-directory~ renamed as ~grammalecte-python-package-directory~
+  + ~flycheck-grammalecte-download-without-asking~ renamed as ~grammalecte-download-without-asking~
+  + ~flycheck-grammalecte-mode-map~ renamed as ~grammalecte-mode-map~
+- functions:
+  + ~flycheck-grammalecte--grammalecte-version~ renamed as ~grammalecte--version~
+  + ~flycheck-grammalecte--grammalecte-upstream-version~ renamed as ~grammalecte--upstream-version~
+  + ~flycheck-grammalecte-kill-ring-save~ renamed as ~grammalecte-kill-ring-save~
+  + ~flycheck-grammalecte-save-and-replace~ renamed as ~grammalecte-save-and-replace~
+  + ~flycheck-grammalecte-define~ renamed as ~grammalecte-define~
+  + ~flycheck-grammalecte-define-at-point~ renamed as ~grammalecte-define-at-point~
+  + ~flycheck-grammalecte-find-synonyms~ renamed as ~grammalecte-find-synonyms~
+  + ~flycheck-grammalecte-find-synonyms-at-point~ renamed as ~grammalecte-find-synonyms-at-point~
+  + ~flycheck-grammalecte-conjugate-verb~ renamed as ~grammalecte-conjugate-verb~
+  + ~flycheck-grammalecte-download-grammalecte~ renamed as ~grammalecte-download-grammalecte~
 
 *** Version 1.0
 

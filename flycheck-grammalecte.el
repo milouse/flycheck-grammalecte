@@ -404,7 +404,7 @@ flycheck, if any."
         (filters (mapcan #'(lambda (filter) (list "-f" filter))
                          flycheck-grammalecte-filters))
         (grammalecte-bin (expand-file-name
-                          "flycheck-grammalecte.py"
+                          "flycheck_grammalecte.py"
                           grammalecte--site-directory))
         (grammalecte-version (grammalecte--version)))
 

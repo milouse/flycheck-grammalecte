@@ -51,7 +51,7 @@
 
 This variable must point to the directory where the emacs-lisp and
 python files named `grammalecte.el', `flycheck-grammalecte.el' and
-`flycheck-grammalecte.py' are kept.  It must end with a / (see
+`flycheck_grammalecte.py' are kept.  It must end with a / (see
 `file-name-as-directory').
 
 The default value is automatically computed from the included file.")

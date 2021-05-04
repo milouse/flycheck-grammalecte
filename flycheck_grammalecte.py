@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""flycheck-grammalecte.py
+"""flycheck_grammalecte.py
 
 This script is the glue that link flycheck syntax checker for emacs
 and the grammalecte http://www.dicollecte.org/grammalecte/ syntax

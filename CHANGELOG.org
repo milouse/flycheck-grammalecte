@@ -1,3 +1,20 @@
+* Version 1.4
+
+** Fixes
+
+- Avoid a crash in conjugueur.py after upstream fix
+- Avoid a crash in Makefile
+
+** Documentation
+
+- Indent code blocks in README
+
+** Other
+
+- Add links to help me through funding
+- Leave rooms in docstrings
+- Cleanup gitignore
+
 * Version 1.3
 ** Feature
 

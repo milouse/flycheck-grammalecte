@@ -1,8 +1,9 @@
-Grammalecte-fr*
-dash.el*
-epl*
-flycheck*
-pkg-info*
-grammalecte
 *.elc
+dash.el-master
+epl-master
+flycheck-master
+pkg-info-master
 debug
+grammalecte
+__pycache__
+Grammalecte-fr-v*

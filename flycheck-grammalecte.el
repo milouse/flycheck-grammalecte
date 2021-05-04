@@ -316,14 +316,8 @@ and Info node `(elisp)Syntax of Regular Expressions'."
       (define-key flycheck-command-map "g"
         #'flycheck-grammalecte-correct-error-at-point))))
 
-(defun flycheck-grammalecte--display-debug-info (version cmdline)
-  "Display some debug information like VERSION and CMDLINE."
-  (if version
-      (display-warning 'flycheck-grammalecte
-                       (format "Version %s found in %s"
-                               version grammalecte-python-package-directory)
-                       :debug)
-    (display-warning 'flycheck-grammalecte "NOT FOUND"))
+(defun flycheck-grammalecte--display-debug-info (cmdline)
+  "Display some debug information around CMDLINE."
   (display-warning
    'flycheck-grammalecte
    (format "Checker command: %s"
@@ -338,19 +332,37 @@ and Info node `(elisp)Syntax of Regular Expressions'."
                            flycheck-grammalecte--error-patterns)
                    :debug))
 
-(defun flycheck-grammalecte--warn-missing-grammalecte ()
-  "Display a message to the user that Grammalecte has not been installed.
+(defun flycheck-grammalecte--retry-setup (&optional _version)
+  "Try to call again `flycheck-grammalecte-setup'.
 
-This function also wrap `grammalecte-download-grammalecte' with an advice to
-run again `flycheck-grammalecte-setup' in case a successfull download is
-attempted."
-  (message "[Flycheck Grammalecte] Grammalecte is not installed. Please run
-`grammalecte-download-grammalecte' to install it.")
-  (advice-add 'grammalecte-download-grammalecte :after-while
-              #'(lambda (&rest _version)
-                  (flycheck-grammalecte-setup)
-                  (when (memq major-mode flycheck-grammalecte-enabled-modes)
-                    (flycheck-buffer)))))
+This function is expected to be called as an advice to
+`grammalecte-download-grammalecte'.
+
+As soon as it is called, the advice is removed (as the setup function may
+create it again if needed)."
+  ;; Self-remove from advices if I was there.
+  (when (advice-member-p #'flycheck-grammalecte--retry-setup
+                         'grammalecte-download-grammalecte)
+    (advice-remove 'grammalecte-download-grammalecte
+                   #'flycheck-grammalecte--retry-setup))
+  (flycheck-reset-enabled-checker 'grammalecte))
+
+(defun flycheck-grammalecte--verify-setup (_)
+  "Validate the Grammalecte setup.
+
+This function is used internally by flycheck to determine wether
+flycheck-grammalecte can be used or not."
+  (let ((version (grammalecte--version)))
+    (unless version
+      (advice-add 'grammalecte-download-grammalecte :after-while
+                  #'flycheck-grammalecte--retry-setup))
+    (list (flycheck-verification-result-new
+           :label "Grammalecte"
+           :message (if version
+                        (format "version %s found in %s"
+                                version grammalecte-python-package-directory)
+                      "Not found.  Please run `grammalecte-download-grammalecte' to install it.")
+           :face (if version 'success '(bold error))))))
 
 
 
@@ -405,8 +417,7 @@ flycheck, if any."
                          flycheck-grammalecte-filters))
         (grammalecte-bin (expand-file-name
                           "flycheck_grammalecte.py"
-                          grammalecte--site-directory))
-        (grammalecte-version (grammalecte--version)))
+                          grammalecte--site-directory)))
 
     ;; Finish to build filters list
     (pcase-dolist (`(,mode . ,patterns) flycheck-grammalecte-filters-by-mode)
@@ -427,25 +438,24 @@ flycheck, if any."
 
     ;; Print out some debug information
     (when flycheck-grammalecte--debug-mode
-      (flycheck-grammalecte--display-debug-info grammalecte-version cmdline))
+      (flycheck-grammalecte--display-debug-info cmdline))
 
-    ;; Only setup flycheck-grammalecte when grammalecte has been found
-    (if (not grammalecte-version)
-        (flycheck-grammalecte--warn-missing-grammalecte)
-      ;; Be sure grammalecte python module is accessible
-      (grammalecte--augment-pythonpath-if-needed)
+    ;; Be sure grammalecte python module is accessible
+    (grammalecte--augment-pythonpath-if-needed)
 
-      ;; Now that we have all our variables, we can create the custom
-      ;; checker.
-      (flycheck-def-executable-var 'grammalecte "python3")
-      (flycheck-define-command-checker 'grammalecte
-        "Grammalecte syntax checker for french language
+    ;; Now that we have all our variables, we can create the custom
+    ;; checker.
+    (flycheck-def-executable-var 'grammalecte "python3")
+    (flycheck-define-command-checker 'grammalecte
+      "Grammalecte syntax checker for french language
 See URL `https://grammalecte.net/'."
-        :command cmdline
-        :error-patterns flycheck-grammalecte--error-patterns
-        :modes flycheck-grammalecte-enabled-modes)
-      (add-to-list 'flycheck-checkers 'grammalecte)
-      (flycheck-grammalecte--patch-flycheck-mode-map))))
+      :command cmdline
+      :error-patterns flycheck-grammalecte--error-patterns
+      :modes flycheck-grammalecte-enabled-modes
+      :enabled #'grammalecte--version
+      :verify #'flycheck-grammalecte--verify-setup)
+    (add-to-list 'flycheck-checkers 'grammalecte)
+    (flycheck-grammalecte--patch-flycheck-mode-map)))
 
 
 (provide 'flycheck-grammalecte)

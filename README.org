@@ -8,6 +8,12 @@ for other languages.
 
 [[./demo.gif]]
 
+#+html: <a href="https://liberapay.com/milouse/donate"><img alt="Support using Liberapay" src="https://img.shields.io/badge/Liberapay-Support_me-yellow?logo=liberapay"/></a>
+#+html: <a href="https://paypal.me/milouse"><img alt="Support using Paypal" src="https://img.shields.io/badge/Paypal-Support_me-00457C?logo=paypal&labelColor=lightgray"/></a>
+
+You can help me a lot by giving me some tip, either through [[https://liberapay.com/milouse][Liberapay]] or
+[[https://paypal.me/milouse][Paypal]]. Thank you very much!
+
 * Installation
 
 [[https://stable.melpa.org/#/flycheck-grammalecte][file:https://stable.melpa.org/packages/flycheck-grammalecte-badge.svg]]
@@ -26,8 +32,8 @@ To enable it, simply add the following line somewhere in your GNU Emacs
 config file:
 
 #+begin_src emacs-lisp
-(with-eval-after-load 'flycheck
-  (flycheck-grammalecte-setup))
+  (with-eval-after-load 'flycheck
+    (flycheck-grammalecte-setup))
 #+end_src
 
 Finally, the last expected step is to download the
@@ -67,11 +73,11 @@ file. Configuration must occurs *before* calling
 require ~flycheck-grammalecte~ to prefill its variables. For exemple:
 
 #+begin_src emacs-lisp
-(with-eval-after-load 'flycheck
-  (require 'flycheck-grammalecte)
-  (setq flycheck-grammalecte-report-esp nil)
-  (add-to-list 'flycheck-grammalecte-enabled-modes 'fountain-mode)
-  (flycheck-grammalecte-setup))
+  (with-eval-after-load 'flycheck
+    (setq flycheck-grammalecte-report-esp nil)
+    (require 'flycheck-grammalecte)
+    (add-to-list 'flycheck-grammalecte-enabled-modes 'fountain-mode)
+    (flycheck-grammalecte-setup))
 #+end_src
 
 Here is a quick reference of the available variables:
@@ -98,7 +104,7 @@ Here is a quick reference of the available variables:
      itself (like LaTeX, org-mode export…). Default is ~t~.
 - ~flycheck-grammalecte-enabled-modes~ :: This variable stores the list
      of major modes for which /flycheck-grammalecte/ must be
-     used. Default is ~’(latex-mode mail-mode markdown-mode message-mode
+     used. Default is ~'(latex-mode mail-mode markdown-mode message-mode
      mu4e-compose-mode org-mode text-mode)~.
      To add markdown mode use the following line for exemple:
      ~(add-to-list 'flycheck-grammalecte-enabled-modes 'fountain-mode)~
@@ -119,7 +125,7 @@ required now to add the following line *after* your customization to
 this package:
 
 #+begin_src emacs-lisp
-(flycheck-grammalecte-setup)
+  (flycheck-grammalecte-setup)
 #+end_src
 
 *** Version 0.9

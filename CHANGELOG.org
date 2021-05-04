@@ -1,3 +1,54 @@
+* Version 1.4
+
+** Fixes
+
+- Avoid a crash in conjugueur.py after upstream fix
+- Avoid a crash in Makefile
+
+** Documentation
+
+- Indent code blocks in README
+
+** Other
+
+- Add links to help me through funding
+- Leave rooms in docstrings
+- Cleanup gitignore
+
+* Version 1.3
+** Feature
+
+- Add a new function to get current Grammalecte version
+- Make flycheck-grammalecte-download-grammalecte an autoloaded function
+- Make download of grammalecte if needed more smart
+- Avoid to fetch upstream index page multiple times
+- Allow grammalecte to be installed outside this package folder
+- Add a new default filter for message-mode
+
+** Fixes
+
+- Make ~flycheck-grammalecte--grammalecte-version~ work
+- Correctly use ~display-warning~ function
+- Wrap a forgotten string in a ~format~ function call
+
+** Documentation
+
+- Migrate ~git.deparis.io~ to ~git.umaneti.net~
+- Clean some comments
+
+** Test
+
+- Avoid auto-save-default folder creation
+
+** Other
+
+- Be more lax on the upstream version discovery regexp
+- Better silence verbose operations
+- Compress a lambda function
+- Move ~start_emacs_test.sh~ content in Makefile
+- Replace custom ~message~ call by proper ~display-warning~
+- Change scope of package-related variables
+
 * Version 1.2
 ** Feature
 

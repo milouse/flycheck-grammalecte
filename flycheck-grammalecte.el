@@ -7,7 +7,7 @@
 ;; Author: Guilhem Doulcier <guilhem.doulcier@espci.fr>
 ;;         Étienne Deparis <etienne@depar.is>
 ;; Created: 21 February 2017
-;; Version: 1.3
+;; Version: 1.4
 ;; Package-Requires: ((emacs "26.1") (flycheck "26"))
 ;; Keywords: i18n, text
 ;; Homepage: https://git.umaneti.net/flycheck-grammalecte/
@@ -255,6 +255,7 @@ and Info node `(elisp)Syntax of Regular Expressions'."
 
 (defun flycheck-grammalecte--augment-pythonpath-if-needed ()
   "Augment PYTHONPATH with the install directory of grammalecte.
+
 If the parent directory of `flycheck-grammalecte-grammalecte-directory'
 is not this elisp package installation directory, then add the former in
 the PYTHONPATH environment variable in order to make python scripts work
@@ -286,6 +287,7 @@ print(__version__)")
 
 (defun flycheck-grammalecte--grammalecte-upstream-version ()
   "Return the upstream version of Grammalecte.
+
 Signal a `file-error' error if something wrong happen while retrieving
 the Grammalecte home page or if no version string is found in the page."
   (let* ((url "https://grammalecte.net/index.html")
@@ -302,6 +304,7 @@ the Grammalecte home page or if no version string is found in the page."
 
 (defun flycheck-grammalecte--download-zip (&optional grammalecte-version)
   "Download Grammalecte CLI zip file.
+
 If given, this function will try to download the GRAMMALECTE-VERSION
 of the python package."
   (let* ((up-version (if (or (not grammalecte-version)
@@ -334,6 +337,7 @@ of the python package."
 
 (defun flycheck-grammalecte--install-py-files (extracted-folder)
   "Install the interesting files from EXTRACTED-FOLDER.
+
 Move the `grammalecte' subfolder, containing the necessary python files
 from EXTRACTED-FOLDER to their destination, alongside the other
 package files."
@@ -354,9 +358,11 @@ package files."
 
 (defun flycheck-grammalecte--download-grammalecte-if-needed (&optional force)
   "Install Grammalecte python package if it's required.
+
 This method checks if the python package is already installed and
 if the current buffer major mode is present in the
 `flycheck-grammalecte-enabled-modes' list.
+
 If optional argument FORCE is non-nil, verification will occurs even
 when current buffer major mode is not in `flycheck-grammalecte-enabled-modes'."
   (when (or force (memq major-mode flycheck-grammalecte-enabled-modes))
@@ -547,6 +553,7 @@ other buffer by the copied word."
 
 (defun flycheck-grammalecte--set-buffer-title (title)
   "Decorate the current buffer `header-line-format', prefixed by TITLE.
+
 It adds information on how to close it."
   (setq-local
    header-line-format
@@ -598,6 +605,7 @@ conjugation table."
 ;;;###autoload
 (defun flycheck-grammalecte-define (word)
   "Find definition for the french WORD.
+
 This function will fetch data from the CNRTL¹ website, in the TLFi².
 
 The found words are then displayed in a new buffer in another window.
@@ -646,6 +654,7 @@ See URL `https://www.cnrtl.fr/definition/'.
 ;;;###autoload
 (defun flycheck-grammalecte-find-synonyms (word)
   "Find french synonyms and antonyms for the given WORD.
+
 This function will fetch data from the CRISCO¹ thesaurus.
 
 The found words are then displayed in a new buffer in another window.
@@ -747,11 +756,13 @@ flycheck, if any."
 ;;;###autoload
 (defun flycheck-grammalecte-download-grammalecte (grammalecte-version)
   "Download, extract and install Grammalecte python program.
-This function will try to download the GRAMMALECTE-VERSION
-of the python package.  If GRAMMALECTE-VERSION is \"last\", the last version
-of the package will be downloaded.
-This function can also be used at any time to upgrade the
-Grammalecte python program."
+
+This function will try to download the GRAMMALECTE-VERSION of the python
+package.  If GRAMMALECTE-VERSION is \"last\", the last version of the package
+will be downloaded.
+
+This function can also be used at any time to upgrade the Grammalecte python
+program."
   (interactive "sVersion: ")
   (flycheck-grammalecte--install-py-files
    (flycheck-grammalecte--extract-zip

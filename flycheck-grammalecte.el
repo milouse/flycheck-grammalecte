@@ -43,7 +43,8 @@
 ;; Version 1.5 introduced a major refactoring
 (mapc #'(lambda (spec)
           (define-obsolete-variable-alias (car spec) (cadr spec) "1.5"))
-      '((flycheck-grammalecte--directory grammalecte--site-directory)
+      '((flycheck-grammalecte--debug-mode grammalecte--debug-mode)
+        (flycheck-grammalecte--directory grammalecte--site-directory)
         (flycheck-grammalecte-grammalecte-directory grammalecte-python-package-directory)
         (flycheck-grammalecte-download-without-asking grammalecte-download-without-asking)
         (flycheck-grammalecte-mode-map grammalecte-mode-map)))
@@ -218,9 +219,6 @@ another.  This activation is only done once when the function
   :package-version "1.1"
   :group 'flycheck-grammalecte)
 
-(defvar flycheck-grammalecte--debug-mode nil
-  "Display some debug messages when non-nil.")
-
 (defconst flycheck-grammalecte--error-patterns
   (if (< (string-to-number (flycheck-version nil)) 32)
       '((warning line-start "grammaire|" (message) "|" line "|"
@@ -316,22 +314,6 @@ and Info node `(elisp)Syntax of Regular Expressions'."
       (define-key flycheck-command-map "g"
         #'flycheck-grammalecte-correct-error-at-point))))
 
-(defun flycheck-grammalecte--display-debug-info (cmdline)
-  "Display some debug information around CMDLINE."
-  (display-warning
-   'flycheck-grammalecte
-   (format "Checker command: %s"
-           (mapconcat
-            #'(lambda (item)
-                (cond ((symbolp item) (format "'%s" (symbol-name item)))
-                      ((stringp item) item)))
-            cmdline " "))
-   :debug)
-  (display-warning 'flycheck-grammalecte
-                   (format "Flycheck error-patterns %s"
-                           flycheck-grammalecte--error-patterns)
-                   :debug))
-
 (defun flycheck-grammalecte--retry-setup (&optional _version)
   "Try to call again `flycheck-grammalecte-setup'.
 
@@ -347,15 +329,26 @@ create it again if needed)."
                    #'flycheck-grammalecte--retry-setup))
   (flycheck-reset-enabled-checker 'grammalecte))
 
+(defun flycheck-grammalecte--prepare-arg-list (arg items)
+  "Build an arguments list for ARG from ITEMS elements.
+
+This function may return nil if the current context does not allow any of the
+ITEMS element to be used as argument."
+  (let (arguments)
+    (pcase-dolist (`(,mode . ,patterns) items)
+      (when (derived-mode-p mode)
+        (let (result)
+          (when (dolist (elem patterns result)
+                  (setq result (nconc result (list arg elem))))
+            (setq arguments (nconc arguments result))))))
+    arguments))
+
 (defun flycheck-grammalecte--verify-setup (_)
   "Validate the Grammalecte setup.
 
 This function is used internally by flycheck to determine wether
 flycheck-grammalecte can be used or not."
   (let ((version (grammalecte--version)))
-    (unless version
-      (advice-add 'grammalecte-download-grammalecte :after-while
-                  #'flycheck-grammalecte--retry-setup))
     (list (flycheck-verification-result-new
            :label "Grammalecte"
            :message (if version
@@ -412,33 +405,26 @@ flycheck, if any."
 ;;;###autoload
 (defun flycheck-grammalecte-setup ()
   "Build the flycheck checker, matching your taste."
-  (let ((cmdline '(source))
-        (filters (mapcan #'(lambda (filter) (list "-f" filter))
-                         flycheck-grammalecte-filters))
-        (grammalecte-bin (expand-file-name
-                          "flycheck_grammalecte.py"
-                          grammalecte--site-directory)))
+  (let ((cmdline `("python3"
+                   ,(expand-file-name "flycheck_grammalecte.py"
+                                      grammalecte--site-directory)
+                   ,(unless flycheck-grammalecte-report-spellcheck "-S")
+                   ,(unless flycheck-grammalecte-report-grammar "-G")
+                   ,(unless flycheck-grammalecte-report-apos "-A")
+                   ,(unless flycheck-grammalecte-report-nbsp "-N")
+                   ,(unless flycheck-grammalecte-report-esp "-W")
+                   (option-list "-f" flycheck-grammalecte-filters)
+                   (eval (flycheck-grammalecte--prepare-arg-list
+                          "-f" flycheck-grammalecte-filters-by-mode))
+                   (eval (flycheck-grammalecte--prepare-arg-list
+                          "-b" flycheck-grammalecte-borders-by-mode))
+                   source)))
 
-    ;; Finish to build filters list
-    (pcase-dolist (`(,mode . ,patterns) flycheck-grammalecte-filters-by-mode)
-      (when (derived-mode-p mode)
-        (dolist (filter patterns)
-          (nconc filters (list "-f" filter)))))
-    (pcase-dolist (`(,mode . ,border) flycheck-grammalecte-borders-by-mode)
-      (when (derived-mode-p mode)
-        (nconc filters (list "-b" border))))
-
-    ;; Finish to build cmdline
-    (unless flycheck-grammalecte-report-spellcheck (push "-S" cmdline))
-    (unless flycheck-grammalecte-report-grammar (push "-G" cmdline))
-    (unless flycheck-grammalecte-report-apos (push "-A" cmdline))
-    (unless flycheck-grammalecte-report-nbsp (push "-N" cmdline))
-    (unless flycheck-grammalecte-report-esp (push "-W" cmdline))
-    (setq cmdline (nconc (list "python3" grammalecte-bin) filters cmdline))
-
-    ;; Print out some debug information
-    (when flycheck-grammalecte--debug-mode
-      (flycheck-grammalecte--display-debug-info cmdline))
+    ;; If grammalecte is not available, add a little advice to
+    ;; `grammalecte-download-grammalecte'
+    (unless (grammalecte--version)
+      (advice-add 'grammalecte-download-grammalecte :after-while
+                  #'flycheck-grammalecte--retry-setup))
 
     ;; Be sure grammalecte python module is accessible
     (grammalecte--augment-pythonpath-if-needed)
@@ -449,7 +435,7 @@ flycheck, if any."
     (flycheck-define-command-checker 'grammalecte
       "Grammalecte syntax checker for french language
 See URL `https://grammalecte.net/'."
-      :command cmdline
+      :command (seq-remove #'null cmdline)
       :error-patterns flycheck-grammalecte--error-patterns
       :modes flycheck-grammalecte-enabled-modes
       :enabled #'grammalecte--version

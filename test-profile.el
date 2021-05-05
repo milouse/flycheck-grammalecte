@@ -4,7 +4,7 @@
       warning-minimum-level :debug
       warning-minimum-log-level :debug
       org-startup-folded "showeverything"
-      flycheck-grammalecte--debug-mode t)
+      grammalecte--debug-mode t)
 
 (with-eval-after-load 'flycheck
   (flycheck-grammalecte-setup))

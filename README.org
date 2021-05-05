@@ -125,6 +125,7 @@ previously prefixed by ~flycheck-grammalecte-~ are now prefixed with
 the most common ones you may already have interacted with:
 
 - variables:
+  + ~flycheck-grammalecte--debug-mode~ renamed as ~grammalecte--debug-mode~
   + ~flycheck-grammalecte--directory~ renamed as ~grammalecte--site-directory~
   + ~flycheck-grammalecte-grammalecte-directory~ renamed as ~grammalecte-python-package-directory~
   + ~flycheck-grammalecte-download-without-asking~ renamed as ~grammalecte-download-without-asking~

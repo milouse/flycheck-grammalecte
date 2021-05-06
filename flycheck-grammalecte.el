@@ -219,6 +219,34 @@ another.  This activation is only done once when the function
   :package-version "1.1"
   :group 'flycheck-grammalecte)
 
+(defcustom flycheck-grammalecte-predicate nil
+  "A function to determine whether flycheck-grammalecte should be used.
+
+This function is called without arguments and shall return non-nil if
+flycheck-grammalecte shall be used to check the current buffer.  Otherwise it
+shall return nil. This function is only called in matching major modes (see
+`flycheck-grammalecte-enabled-modes'.
+
+For example, if you only want to have flycheck-grammalecte in french
+documents, you may want to use something like:
+
+    (setq flycheck-grammalecte-predicate
+          #'(lambda ()
+              (or (and (derived-mode-p 'org-mode)
+                       (or (string= \"fr\"
+                                    (car (with-current-buffer (current-buffer)
+                                           (org-element-map (org-element-parse-buffer) 'keyword
+                                             #'(lambda (el)
+                                                 (when (string= \"LANGUAGE\" (org-element-property :key el))
+                                                   (org-element-property :value el)))))))
+                           (and (boundp 'org-export-default-language)
+                                (string= \"fr\" org-export-default-language))))
+                  (and (boundp 'ispell-local-dictionary)
+                       (member ispell-local-dictionary '(\"fr\" \"francais7\" \"francais-tex\"))))))"
+  :type 'function
+  :package-version "1.5"
+  :group 'flycheck-grammalecte)
+
 (defconst flycheck-grammalecte--error-patterns
   (if (< (string-to-number (flycheck-version nil)) 32)
       '((warning line-start "grammaire|" (message) "|" line "|"
@@ -438,6 +466,10 @@ See URL `https://grammalecte.net/'."
       :command (seq-remove #'null cmdline)
       :error-patterns flycheck-grammalecte--error-patterns
       :modes flycheck-grammalecte-enabled-modes
+      :predicate #'(lambda ()
+                     (if (functionp flycheck-grammalecte-predicate)
+                         (funcall flycheck-grammalecte-predicate)
+                       t))
       :enabled #'grammalecte--version
       :verify #'flycheck-grammalecte--verify-setup)
     (add-to-list 'flycheck-checkers 'grammalecte)

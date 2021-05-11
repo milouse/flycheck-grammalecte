@@ -128,9 +128,9 @@ as expected."
           (directory-file-name grammalecte-python-package-directory)))
         (current-pythonpath (or (getenv "PYTHONPATH") "")))
     (unless (or (string-match-p grammalecte-parent-path current-pythonpath)
-                (string= grammalecte-parent-path grammalecte--site-directory))
+                (equal grammalecte-parent-path grammalecte--site-directory))
       (setenv "PYTHONPATH"
-              (if (string= current-pythonpath "")
+              (if (equal current-pythonpath "")
                   grammalecte-parent-path
                 (format "%s:%s" grammalecte-parent-path current-pythonpath))))))
 
@@ -170,7 +170,7 @@ print(__version__)")
 If given, this function will try to download the GRAMMALECTE-VERSION
 of the python package."
   (let* ((up-version (if (or (not grammalecte-version)
-                             (string= grammalecte-version "last"))
+                             (equal grammalecte-version "last"))
                          (grammalecte--upstream-version)
                        grammalecte-version))
          (zip-name (format "Grammalecte-fr-v%s.zip" up-version))
@@ -371,13 +371,11 @@ program."
   "Insert WORDS at point, after having propertized them."
   (if (seq-empty-p words)
       (insert "Aucun résultat")
-    (insert
-     (mapconcat
-      #'(lambda (w)
-          (concat "- "
-                  (propertize w 'mouse-face 'highlight
-                                'help-echo "mouse-1: Remplacer par…")))
-      words "\n"))))
+    (dolist (w words)
+      (insert (concat "- "
+                      (propertize w 'mouse-face 'highlight
+                                  'help-echo "mouse-1: Remplacer par…")
+                      "\n")))))
 
 (defvar-local grammalecte-looked-up-type nil
   "What kind of word was looked up by the user to open the current buffer.
@@ -403,7 +401,7 @@ When REPLACE is non-nil, it will replace the word at point in the
 other buffer by the copied word."
   (unless pos (setq pos (point)))
   (goto-char pos)
-  (when (string= "-" (string (char-after (line-beginning-position))))
+  (when (equal "-" (string (char-after (line-beginning-position))))
     (let ((beg (+ 2 (line-beginning-position))) ;; ignore the leading -
           (end (line-end-position)))
       (kill-ring-save beg end)

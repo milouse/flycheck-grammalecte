@@ -41,28 +41,30 @@
 (require 'flycheck)
 
 ;; Version 1.5 introduced a major refactoring
-(mapc #'(lambda (spec)
-          (define-obsolete-variable-alias (car spec) (cadr spec) "1.5"))
-      '((flycheck-grammalecte--debug-mode grammalecte--debug-mode)
-        (flycheck-grammalecte--directory grammalecte--site-directory)
-        (flycheck-grammalecte-grammalecte-directory grammalecte-python-package-directory)
-        (flycheck-grammalecte-download-without-asking grammalecte-download-without-asking)
-        (flycheck-grammalecte-mode-map grammalecte-mode-map)))
+(dolist
+    (spec
+     '((flycheck-grammalecte--debug-mode grammalecte--debug-mode)
+       (flycheck-grammalecte--directory grammalecte--site-directory)
+       (flycheck-grammalecte-grammalecte-directory grammalecte-python-package-directory)
+       (flycheck-grammalecte-download-without-asking grammalecte-download-without-asking)
+       (flycheck-grammalecte-mode-map grammalecte-mode-map)))
+  (define-obsolete-variable-alias (car spec) (cadr spec) "1.5"))
 
 (require 'grammalecte)
 
-(mapc #'(lambda (spec)
-          (define-obsolete-function-alias (car spec) (cadr spec) "1.5"))
-      '((flycheck-grammalecte--grammalecte-version grammalecte--version)
-        (flycheck-grammalecte--grammalecte-upstream-version grammalecte--upstream-version)
-        (flycheck-grammalecte-kill-ring-save grammalecte-kill-ring-save)
-        (flycheck-grammalecte-save-and-replace grammalecte-save-and-replace)
-        (flycheck-grammalecte-define grammalecte-define)
-        (flycheck-grammalecte-define-at-point grammalecte-define-at-point)
-        (flycheck-grammalecte-find-synonyms grammalecte-find-synonyms)
-        (flycheck-grammalecte-find-synonyms-at-point grammalecte-find-synonyms-at-point)
-        (flycheck-grammalecte-conjugate-verb grammalecte-conjugate-verb)
-        (flycheck-grammalecte-download-grammalecte grammalecte-download-grammalecte)))
+(dolist
+    (spec
+     '((flycheck-grammalecte--grammalecte-version grammalecte--version)
+       (flycheck-grammalecte--grammalecte-upstream-version grammalecte--upstream-version)
+       (flycheck-grammalecte-kill-ring-save grammalecte-kill-ring-save)
+       (flycheck-grammalecte-save-and-replace grammalecte-save-and-replace)
+       (flycheck-grammalecte-define grammalecte-define)
+       (flycheck-grammalecte-define-at-point grammalecte-define-at-point)
+       (flycheck-grammalecte-find-synonyms grammalecte-find-synonyms)
+       (flycheck-grammalecte-find-synonyms-at-point grammalecte-find-synonyms-at-point)
+       (flycheck-grammalecte-conjugate-verb grammalecte-conjugate-verb)
+       (flycheck-grammalecte-download-grammalecte grammalecte-download-grammalecte)))
+  (define-obsolete-function-alias (car spec) (cadr spec) "1.5"))
 
 
 ;; Make the compile happy about grammalecte lib
@@ -231,18 +233,13 @@ For example, if you only want to have flycheck-grammalecte in french
 documents, you may want to use something like:
 
     (setq flycheck-grammalecte-predicate
-          #'(lambda ()
-              (or (and (derived-mode-p 'org-mode)
-                       (or (string= \"fr\"
-                                    (car (with-current-buffer (current-buffer)
-                                           (org-element-map (org-element-parse-buffer) 'keyword
-                                             #'(lambda (el)
-                                                 (when (string= \"LANGUAGE\" (org-element-property :key el))
-                                                   (org-element-property :value el)))))))
-                           (and (boundp 'org-export-default-language)
-                                (string= \"fr\" org-export-default-language))))
-                  (and (boundp 'ispell-local-dictionary)
-                       (member ispell-local-dictionary '(\"fr\" \"francais7\" \"francais-tex\"))))))"
+          (lambda ()
+            (or (and (derived-mode-p 'org-mode)
+                     (equal \"fr\"
+                            (or (cadar (org-collect-keywords '(\"LANGUAGE\")))
+                                (bound-and-true-p org-export-default-language))))
+                (and (boundp 'ispell-local-dictionary)
+                     (member ispell-local-dictionary '(\"fr\" \"francais7\" \"francais-tex\"))))))"
   :type 'function
   :package-version "1.5"
   :group 'flycheck-grammalecte)
@@ -289,8 +286,8 @@ and Info node `(elisp)Syntax of Regular Expressions'."
                      ("\\[:digit:\\]" . "\\d")
                      ("\\[:word:\\]" . "\\w"))))
     (when (and (string-match "\\[:\\([a-z]+\\):\\]" regexp)
-               (not (string= "digit" (match-string 1 regexp)))
-               (not (string= "word" (match-string 1 regexp))))
+               (not (equal "digit" (match-string 1 regexp)))
+               (not (equal "word" (match-string 1 regexp))))
       (signal 'invalid-regexp
               (list (format
                      "%s is not supported by python regular expressions"
@@ -324,11 +321,11 @@ and Info node `(elisp)Syntax of Regular Expressions'."
          (string-to-number (flycheck-version nil))))
     (if (< flycheck-version-number 32)
         (let ((warn-user-about-flycheck
-               #'(lambda (_arg)
-                   (display-warning
-                    'flycheck-grammalecte
-                    (format "Le remplacement des erreurs ne fonctionne qu'avec flycheck >= 32 (vous utilisez la version %s)."
-                            flycheck-version-number)))))
+               (lambda (_arg)
+                 (display-warning
+                  'flycheck-grammalecte
+                  (format "Le remplacement des erreurs ne fonctionne qu'avec flycheck >= 32 (vous utilisez la version %s)."
+                          flycheck-version-number)))))
           ;; Desactivate corrections methods
           (advice-add 'flycheck-grammalecte-correct-error-at-click
                       :override
@@ -411,9 +408,10 @@ flycheck, if any."
         (let* ((region (flycheck-error-region-for-mode first-err major-mode))
                (word (buffer-substring-no-properties (car region) (cdr region)))
                (splitted-err (flycheck-grammalecte--split-error-message first-err))
-               (repl-menu (mapcar
-                           #'(lambda (repl) (list repl repl))
-                           (cdr splitted-err))))
+               repl-menu)
+          (setq repl-menu
+                (dolist (repl (cdr splitted-err) repl-menu)
+                  (push (list repl repl) repl-menu)))
           ;; Add a reminder of the error message
           (push (car splitted-err) repl-menu)
           (flycheck-grammalecte--fix-error
@@ -466,10 +464,10 @@ See URL `https://grammalecte.net/'."
       :command (seq-remove #'null cmdline)
       :error-patterns flycheck-grammalecte--error-patterns
       :modes flycheck-grammalecte-enabled-modes
-      :predicate #'(lambda ()
-                     (if (functionp flycheck-grammalecte-predicate)
-                         (funcall flycheck-grammalecte-predicate)
-                       t))
+      :predicate (lambda ()
+                   (if (functionp flycheck-grammalecte-predicate)
+                       (funcall flycheck-grammalecte-predicate)
+                     t))
       :enabled #'grammalecte--version
       :verify #'flycheck-grammalecte--verify-setup)
     (add-to-list 'flycheck-checkers 'grammalecte)

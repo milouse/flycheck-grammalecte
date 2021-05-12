@@ -217,7 +217,7 @@ border must be activated or not.  Thus you are not obliged to
 list all possible modes, as soon as one is an ancestor of
 another.  This activation is only done once when the function
 `flycheck-grammalecte-setup' is run."
-  :type '(repeat string)
+  :type '(cons (function :tag "Mode") string)
   :package-version "1.1"
   :group 'flycheck-grammalecte)
 
@@ -339,6 +339,24 @@ and Info node `(elisp)Syntax of Regular Expressions'."
       (define-key flycheck-command-map "g"
         #'flycheck-grammalecte-correct-error-at-point))))
 
+(defun flycheck-grammalecte--prepare-arg-list (arg items)
+  "Build an arguments list for ARG from ITEMS elements.
+
+This function may return nil if the current context does not allow any of the
+ITEMS element to be used as argument."
+  (let (arguments)
+    (pcase-dolist (`(,mode . ,patterns) items)
+      (when (derived-mode-p mode)
+        (let (result)
+          (if (listp patterns)
+              ;; If items was a list of lists
+              (when (dolist (elem patterns result)
+                      (setq result (nconc result (list arg elem))))
+                (setq arguments (nconc arguments result)))
+            ;; In case items was a list of cons-cells
+            (setq arguments (nconc arguments (list arg patterns)))))))
+    arguments))
+
 (defun flycheck-grammalecte--retry-setup (&optional _version)
   "Try to call again `flycheck-grammalecte-setup'.
 
@@ -353,20 +371,6 @@ create it again if needed)."
     (advice-remove 'grammalecte-download-grammalecte
                    #'flycheck-grammalecte--retry-setup))
   (flycheck-reset-enabled-checker 'grammalecte))
-
-(defun flycheck-grammalecte--prepare-arg-list (arg items)
-  "Build an arguments list for ARG from ITEMS elements.
-
-This function may return nil if the current context does not allow any of the
-ITEMS element to be used as argument."
-  (let (arguments)
-    (pcase-dolist (`(,mode . ,patterns) items)
-      (when (derived-mode-p mode)
-        (let (result)
-          (when (dolist (elem patterns result)
-                  (setq result (nconc result (list arg elem))))
-            (setq arguments (nconc arguments result))))))
-    arguments))
 
 (defun flycheck-grammalecte--verify-setup (_)
   "Validate the Grammalecte setup.

@@ -3,7 +3,7 @@
 ;; Copyright (C) 2018 Étienne Deparis
 ;; Copyright (C) 2017 Guilhem Doulcier
 
-;; Maintener: Étienne Deparis <etienne@depar.is>
+;; Maintainer: Étienne Deparis <etienne@depar.is>
 ;; Author: Guilhem Doulcier <guilhem.doulcier@espci.fr>
 ;;         Étienne Deparis <etienne@depar.is>
 ;; Created: 21 February 2017

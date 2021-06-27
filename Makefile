@@ -1,25 +1,64 @@
-GRAMVER = $(shell curl -s https://grammalecte.net/index.html | sed -n 's|^ *<p id="version_num">\([0-9.]*\)</p>|\1|p')
-
 EMACS=emacs -Q --batch -nw
+TARGETS=grammalecte.elc flycheck-grammalecte.elc
 
-.PHONY: build clean demo uninstall
+.PHONY: autoloads build clean cleanall demo
 
-.INTERMEDIATE: Grammalecte-fr-v$(GRAMVER).zip dash.zip epl.zip flycheck.zip pkg-info.zip
+.INTERMEDIATE: dash.zip epl.zip flycheck.zip pkg-info.zip
 
 all: build
 
-build: grammalecte flycheck-grammalecte.elc
+build: $(TARGETS)
 
-flycheck-grammalecte.elc: flycheck-master/flycheck.el flycheck-grammalecte.el
-	$(EMACS) --eval "(add-to-list 'load-path \"dash.el-master\")" \
-		--eval "(add-to-list 'load-path \"flycheck-master\")" \
-		-f batch-byte-compile flycheck-grammalecte.el
+autoloads: grammalecte-loaddefs.el
+
+grammalecte-loaddefs.el:
+	$(EMACS) -L $(PWD) \
+		--eval "(setq-default backup-inhibited t)" \
+		--eval "(setq generated-autoload-file \"$(PWD)/grammalecte-loaddefs.el\")" \
+		--eval "(update-directory-autoloads \"$(PWD)\")"
+	sed -i "s/^;;; Code:$$/;;; Code:\n\n(add-to-list 'load-path (directory-file-name (or (file-name-directory #$$) (car load-path))))/" \
+		$(PWD)/grammalecte-loaddefs.el
+
+grammalecte.elc:
+	$(EMACS) -f batch-byte-compile grammalecte.el
+
+flycheck-grammalecte.elc: flycheck-master/flycheck.el
+	$(EMACS) -L dash.el-master -L flycheck-master -L $(PWD) \
+			 -f batch-byte-compile flycheck-grammalecte.el
+
+clean:
+	rm -rf Grammalecte-fr-v*
+	rm -f debug "#example.org#"
+
+cleanall: clean
+	rm -rf grammalecte dash.el-master flycheck-master pkg-info-master epl-master
+	rm -f $(TARGETS) grammalecte-loaddefs.el
+
+grammalecte:
+	$(EMACS) -l grammalecte.el -f grammalecte-download-grammalecte
 
 dash.zip:
 	curl -Lso dash.zip https://github.com/magnars/dash.el/archive/master.zip
 
 dash.el-master/dash.el: dash.zip
 	unzip -qo dash.zip
+
+flycheck.zip:
+	curl -Lso flycheck.zip https://github.com/flycheck/flycheck/archive/master.zip
+
+flycheck-master/flycheck.el: dash.el-master/dash.el flycheck.zip
+	unzip -qo flycheck.zip
+	touch flycheck-master/flycheck.el
+
+######### Demo related targets
+
+demo: grammalecte demo-no-grammalecte
+
+demo-no-grammalecte: build autoloads pkg-info-master/pkg-info.el
+	touch debug
+	emacs -Q -L dash.el-master -L flycheck-master \
+		-L epl-master -L pkg-info-master --eval "(require 'pkg-info)" \
+		-l grammalecte-loaddefs.el -l test-profile.el example.org
 
 epl.zip:
 	curl -Lso epl.zip https://github.com/cask/epl/archive/master.zip
@@ -33,33 +72,3 @@ pkg-info.zip:
 pkg-info-master/pkg-info.el: epl-master/epl.el pkg-info.zip
 	unzip -qo pkg-info.zip
 	touch pkg-info-master/pkg-info.el
-
-flycheck.zip:
-	curl -Lso flycheck.zip https://github.com/flycheck/flycheck/archive/master.zip
-
-flycheck-master/flycheck.el: dash.el-master/dash.el pkg-info-master/pkg-info.el flycheck.zip
-	unzip -qo flycheck.zip
-	touch flycheck-master/flycheck.el
-
-Grammalecte-fr-v$(GRAMVER).zip:
-	curl -sO https://grammalecte.net/grammalecte/zip/Grammalecte-fr-v$(GRAMVER).zip
-
-Grammalecte-fr-v$(GRAMVER): Grammalecte-fr-v$(GRAMVER).zip
-	mkdir -p Grammalecte-fr-v$(GRAMVER)
-	unzip -qo Grammalecte-fr-v$(GRAMVER).zip -d Grammalecte-fr-v$(GRAMVER)
-
-grammalecte:
-	[ ! -d Grammalecte-fr-v$(GRAMVER) ] && $(MAKE) Grammalecte-fr-v$(GRAMVER) || true
-	cp -R Grammalecte-fr-v$(GRAMVER)/grammalecte .
-
-clean:
-	rm -rf Grammalecte-fr-v*
-	rm -f debug "#example.org#"
-
-uninstall: clean
-	rm -rf grammalecte dash.el-master flycheck-master pkg-info-master epl-master
-	rm -f flycheck-grammalecte.elc
-
-demo: build
-	touch debug
-	emacs -Q --debug-init -l test-profile.el example.org

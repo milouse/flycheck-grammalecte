@@ -11,8 +11,8 @@ for other languages.
 #+html: <a href="https://liberapay.com/milouse/donate"><img alt="Support using Liberapay" src="https://img.shields.io/badge/Liberapay-Support_me-yellow?logo=liberapay"/></a>
 #+html: <a href="https://paypal.me/milouse"><img alt="Support using Paypal" src="https://img.shields.io/badge/Paypal-Support_me-00457C?logo=paypal&labelColor=lightgray"/></a>
 
-You can help me a lot by giving me some tip, either through [[https://liberapay.com/milouse][Liberapay]] or
-[[https://paypal.me/milouse][Paypal]]. Thank you very much!
+If you like my work, you can help me a lot by giving me some tip, either
+through [[https://liberapay.com/milouse][Liberapay]] or [[https://paypal.me/milouse][Paypal]]. Thank you very much!
 
 * Installation
 

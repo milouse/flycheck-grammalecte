@@ -4,7 +4,7 @@
 
 ;; Author: Étienne Deparis <etienne@depar.is>
 ;; Created: 21 April 2021
-;; Version: 1.5
+;; Version: 2.0
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: i18n, text
 ;; Homepage: https://git.umaneti.net/flycheck-grammalecte/
@@ -64,7 +64,7 @@ This variable value must not end with a / (see `directory-file-name').
 
 The default value is a folder alongside this elisp package."
   :type 'directory
-  :package-version "1.5"
+  :package-version "2.0"
   :group 'grammalecte)
 
 (defcustom grammalecte-download-without-asking nil
@@ -72,7 +72,7 @@ The default value is a folder alongside this elisp package."
 
 Otherwise, it will ask for a yes-or-no confirmation."
   :type 'boolean
-  :package-version "1.5"
+  :package-version "2.0"
   :group 'grammalecte)
 
 (defcustom grammalecte-check-upstream-version-delay 10
@@ -80,14 +80,14 @@ Otherwise, it will ask for a yes-or-no confirmation."
 
 If this value is 0 or negative, no check will never be attempt."
   :type 'integer
-  :package-version "1.5"
+  :package-version "2.0"
   :group 'grammalecte)
 
 (defcustom grammalecte-settings-file
   (expand-file-name "grammalecte-cache.el" user-emacs-directory)
   "The file in which the timestamp of the last version check will be stored."
   :type 'file
-  :package-version "1.5"
+  :package-version "2.0"
   :group 'grammalecte)
 
 (defvar grammalecte--debug-mode nil

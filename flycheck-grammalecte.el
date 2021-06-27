@@ -7,7 +7,7 @@
 ;; Author: Guilhem Doulcier <guilhem.doulcier@espci.fr>
 ;;         Étienne Deparis <etienne@depar.is>
 ;; Created: 21 February 2017
-;; Version: 1.5
+;; Version: 2.0
 ;; Package-Requires: ((emacs "26.1") (flycheck "26"))
 ;; Keywords: i18n, text
 ;; Homepage: https://git.umaneti.net/flycheck-grammalecte/
@@ -40,7 +40,7 @@
 
 (require 'flycheck)
 
-;; Version 1.5 introduced a major refactoring
+;; Version 2.0 introduced a major refactoring
 (dolist
     (spec
      '((flycheck-grammalecte--debug-mode grammalecte--debug-mode)
@@ -48,7 +48,7 @@
        (flycheck-grammalecte-grammalecte-directory grammalecte-python-package-directory)
        (flycheck-grammalecte-download-without-asking grammalecte-download-without-asking)
        (flycheck-grammalecte-mode-map grammalecte-mode-map)))
-  (define-obsolete-variable-alias (car spec) (cadr spec) "1.5"))
+  (define-obsolete-variable-alias (car spec) (cadr spec) "2.0"))
 
 (require 'grammalecte)
 
@@ -64,7 +64,7 @@
        (flycheck-grammalecte-find-synonyms-at-point grammalecte-find-synonyms-at-point)
        (flycheck-grammalecte-conjugate-verb grammalecte-conjugate-verb)
        (flycheck-grammalecte-download-grammalecte grammalecte-download-grammalecte)))
-  (define-obsolete-function-alias (car spec) (cadr spec) "1.5"))
+  (define-obsolete-function-alias (car spec) (cadr spec) "2.0"))
 
 
 ;; Make the compile happy about grammalecte lib
@@ -241,7 +241,7 @@ documents, you may want to use something like:
                 (and (boundp 'ispell-local-dictionary)
                      (member ispell-local-dictionary '(\"fr\" \"francais7\" \"francais-tex\"))))))"
   :type 'function
-  :package-version "1.5"
+  :package-version "2.0"
   :group 'flycheck-grammalecte)
 
 (defconst flycheck-grammalecte--error-patterns

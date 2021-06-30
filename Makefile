@@ -11,13 +11,18 @@ build: $(TARGETS)
 
 autoloads: grammalecte-loaddefs.el
 
+define LOADDEFS_TPL
+(add-to-list 'load-path (directory-file-name\n\
+........................(or (file-name-directory #$$) (car load-path))))
+endef
+#' (ends emacs font-face garbage due to previous single quote)
+
 grammalecte-loaddefs.el:
 	$(EMACS) -L $(PWD) \
 		--eval "(setq-default backup-inhibited t)" \
-		--eval "(setq generated-autoload-file \"$(PWD)/grammalecte-loaddefs.el\")" \
+		--eval "(setq generated-autoload-file \"$(PWD)/$@\")" \
 		--eval "(update-directory-autoloads \"$(PWD)\")"
-	sed -i "s/^;;; Code:$$/;;; Code:\n\n(add-to-list 'load-path (directory-file-name (or (file-name-directory #$$) (car load-path))))/" \
-		$(PWD)/grammalecte-loaddefs.el
+	sed -i "s/^;;; Code:$$/;;; Code:\n\n$(subst ., ,$(LOADDEFS_TPL))/" $@
 
 grammalecte.elc:
 	$(EMACS) -f batch-byte-compile grammalecte.el

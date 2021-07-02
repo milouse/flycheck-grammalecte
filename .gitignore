@@ -1,8 +1,6 @@
 *.elc
-dash.el-master
-epl-master
-flycheck-master
-pkg-info-master
+*-master
+*.zip
 debug
 grammalecte
 grammalecte-loaddefs.el

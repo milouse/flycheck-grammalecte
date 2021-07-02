@@ -39,6 +39,8 @@
 ;;; Code:
 
 (require 'flycheck)
+(unless (fboundp 'pkg-info-version-info)
+  (require 'pkg-info))
 
 ;; Version 2.0 introduced a major refactoring
 (dolist

@@ -63,6 +63,8 @@ buffer, which major mode is not in the
 
 * Configuration
 
+** Generic way
+
 All options are accessibles with ~customize~. In GNU Emacs, enter
 ~M-x customize~, then click on ~Editing~, then ~I18n~, and finally on
 ~Flycheck Grammalecte~.
@@ -77,6 +79,7 @@ require ~flycheck-grammalecte~ to prefill its variables. For exemple:
     (setq flycheck-grammalecte-report-esp nil)
     (require 'flycheck-grammalecte)
     (add-to-list 'flycheck-grammalecte-enabled-modes 'fountain-mode)
+    (grammalecte-download-grammalecte)
     (flycheck-grammalecte-setup))
 #+end_src
 
@@ -112,6 +115,36 @@ Here is a quick reference of the available variables:
      matching texts are ignored. See its documentation for
      details. There is also a ~flycheck-grammalecte~filters-by-mode~
      variable, which allow to enable filters only for a given mode.
+
+** With ~use-package~
+
+Here is the minimal working configuration:
+
+#+begin_src emacs-lisp
+  (use-package flycheck-grammalecte
+               :config (flycheck-grammalecte-setup))
+#+end_src
+
+However, you may want to configure it a little more, and be sure the
+Grammalecte python package is always here. Thus the following example
+illustrates a more complete scenario. In that one, please take note how the
+~flycheck-grammalecte-enabled-modes~ is customized in the ~:config~ section
+instead of the ~:init~ section, to be sure the package has been loaded and
+thus the list already exists.
+
+#+begin_src emacs-lisp
+  (use-package flycheck-grammalecte
+               :hook (fountain-mode . flycheck-mode)
+               :init
+               (setq flycheck-grammalecte-report-apos nil
+                     flycheck-grammalecte-report-esp nil
+                     flycheck-grammalecte-report-nbsp nil)
+               :config
+               (add-to-list 'flycheck-grammalecte-enabled-modes 'fountain-mode)
+               (grammalecte-download-grammalecte)
+               (flycheck-grammalecte-setup))
+#+end_src
+
 
 ** Breaking changes
 

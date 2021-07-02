@@ -4,4 +4,5 @@
 debug
 grammalecte
 grammalecte-loaddefs.el
+tmp-grammalecte-cache.el
 __pycache__

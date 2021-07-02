@@ -44,7 +44,7 @@ grammalecte:
 
 ######### Demo related targets
 
-.PHONY: demo demo-deps demo-no-grammalecte
+.PHONY: demo demo-deps demo-no-grammalecte demo-use-package
 
 demo: grammalecte demo-no-grammalecte
 
@@ -55,12 +55,16 @@ EMACS_DEMO = emacs -Q -L dash.el-master -L flycheck-master \
 demo-no-grammalecte: demo-deps
 	$(EMACS_DEMO) -l test-profile.el example.org
 
+demo-use-package: demo-deps use-package-master
+	$(EMACS_DEMO) -L use-package-master -l test-profile-use-package.el example.org
+
 demo-deps: build autoloads epl-master pkg-info-master
 	rm -f tmp-grammalecte-cache.el
 	touch debug
 
 ######### Dependencies
 
+use-package_author = jwiegley
 epl_author = cask
 pkg-info_author = emacsorphanage
 dash.el_author = magnars

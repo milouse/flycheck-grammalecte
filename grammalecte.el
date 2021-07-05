@@ -125,7 +125,7 @@ as expected."
           (directory-file-name grammalecte-python-package-directory)))
         (current-pythonpath (or (getenv "PYTHONPATH") "")))
     (unless (or (string-match-p grammalecte-parent-path current-pythonpath)
-                (equal grammalecte-parent-path grammalecte--site-directory))
+                (equal grammalecte-parent-path default-directory))
       (setenv "PYTHONPATH"
               (if (equal current-pythonpath "")
                   grammalecte-parent-path

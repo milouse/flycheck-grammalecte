@@ -33,9 +33,8 @@ flycheck-grammalecte.elc: dash.el-master flycheck-master
 clean:
 	rm -f *.zip
 	rm -rf Grammalecte-fr-v*
-	rm -f debug "#example.org#"
 
-cleanall: clean
+cleanall: clean cleandemo
 	rm -rf grammalecte *-master
 	rm -f $(TARGETS) grammalecte-loaddefs.el
 
@@ -47,21 +46,24 @@ grammalecte:
 
 .PHONY: demo demo-deps demo-no-grammalecte demo-use-package
 
-demo: grammalecte demo-no-grammalecte
+EMACS_DEMO = HOME=$(PWD)/test-home emacs --debug-init
 
-EMACS_DEMO = emacs -Q -L dash.el-master -L flycheck-master \
-					  -L epl-master -L pkg-info-master \
-					  -l grammalecte-loaddefs.el
+demo: demo-deps grammalecte
+	$(EMACS_DEMO) -l test-home/classic.el example.org
 
 demo-no-grammalecte: demo-deps
-	$(EMACS_DEMO) -l test-profile.el example.org
+	$(EMACS_DEMO) -l test-home/classic.el example.org
 
 demo-use-package: demo-deps use-package-master
-	$(EMACS_DEMO) -L use-package-master -l test-profile-use-package.el example.org
+	$(EMACS_DEMO) -l test-home/use-package.el example.org
 
-demo-deps: build autoloads epl-master pkg-info-master
-	rm -f tmp-grammalecte-cache.el
+demo-deps: cleandemo build autoloads epl-master pkg-info-master
 	touch debug
+
+cleandemo:
+	rm -rf grammalecte
+	rm -f debug "#example.org#"
+	rm -f test-home/grammalecte-cache.el
 
 ######### Dependencies
 

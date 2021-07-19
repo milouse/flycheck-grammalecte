@@ -5,29 +5,32 @@
 The canonical git repository of this package is
 https://git.umaneti.net/flycheck-grammalecte/
 
+Before sending any patch, please ensure your work is correctly rebased on the
+~main~ branch of this repository.
+
 However, some other mirrors exists in order to ease participation:
 
 - [[https://framagit.org/milouse/flycheck-grammalecte][On Framagit]]
-- [[https://gitlab.com/milouse/flycheck-grammalecte][On Gitlab]]
 - [[https://github.com/milouse/flycheck-grammalecte][On Github]]
 
-Pull requests, merge requests or issues are accepted on all of these
-mirrors.
+Pull/merge requests or issues are accepted on all of these mirrors.
+
+For historical reason, a last repository exists on [[https://gitlab.com/milouse/flycheck-grammalecte][Gitlab]]. Please, avoid to
+use it to contribute and prefer Github or Framagit. Thanks.
 
 * On commit style
 
 This project try to follow the [[https://conventionalcommits.org/][conventionnal commits]] guidelines.
 
-As issues may be tracked on various websites, please don't use
-abbreviated issue reference like ~Fixes: #42~, but instead use full
-URL references, like:
+As issues may be tracked on various websites, please don't use abbreviated
+issue reference like ~Fixes: #42~, but instead use full URL references, like:
 
 #+begin_src
 Fixes: https://github.com/milouse/flycheck-grammalecte/issues/6
 #+end_src
 
-Try your best to respect the character limits described in the [[https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html][Tim Pope
-blog post]]: 50 chars for the first line, 72 chars after. Thank you.
+Try your best to respect the character limits described in the [[https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html][Tim Pope blog
+post]]: 50 chars for the first line, 72 chars after. Thank you.
 
-In any case, don't hesitate to look at the previous git commits to find
-live examples.
+In any case, don't hesitate to look at the previous git commits to find live
+examples.

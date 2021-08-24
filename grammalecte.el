@@ -551,8 +551,8 @@ Click \\[grammalecte-mouse-save-and-replace] to replace the word at
   point in the buffer you came from by the one you just click in the
   grammalecte buffer.  The word is not removed from the `kill-ring'."
   (buffer-disable-undo)
-  (setq show-trailing-whitespace nil
-        revert-buffer-function #'grammalecte--revert-buffer)
+  (setq-local show-trailing-whitespace nil
+              revert-buffer-function #'grammalecte--revert-buffer)
   (when (bound-and-true-p global-linum-mode)
     (linum-mode -1))
   (when (and (fboundp 'nlinum-mode)

@@ -16,6 +16,7 @@ endef
 #' (ends emacs font-face garbage due to previous single quote)
 
 grammalecte-loaddefs.el:
+	rm -f $@
 	$(EMACS) -L $(PWD) \
 		--eval "(setq-default backup-inhibited t)" \
 		--eval "(setq generated-autoload-file \"$(PWD)/$@\")" \

@@ -239,9 +239,11 @@ documents, you may want to use something like:
             (or (and (derived-mode-p 'org-mode)
                      (equal \"fr\"
                             (or (cadar (org-collect-keywords '(\"LANGUAGE\")))
-                                (bound-and-true-p org-export-default-language))))
+                                (bound-and-true-p
+                                  org-export-default-language))))
                 (and (boundp 'ispell-local-dictionary)
-                     (member ispell-local-dictionary '(\"fr\" \"francais7\" \"francais-tex\"))))))"
+                     (member ispell-local-dictionary
+                             '(\"fr\" \"francais7\" \"francais-tex\"))))))"
   :type 'function
   :package-version "2.0"
   :group 'flycheck-grammalecte)

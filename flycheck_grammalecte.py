@@ -21,10 +21,12 @@ import grammalecte.text as txt
 from argparse import ArgumentParser
 from operator import itemgetter
 
+
 # Enforce utf8 on Windows
 if (os.name == 'nt' or sys.platform == 'win32'):
     sys.stdin.reconfigure(encoding='utf-8')
     sys.stdout.reconfigure(encoding='utf-8')
+
 
 def debug(msg):
     if not os.path.exists("debug"):

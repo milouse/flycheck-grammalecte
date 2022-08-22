@@ -22,6 +22,12 @@ from argparse import ArgumentParser
 from operator import itemgetter
 
 
+# Enforce utf8 on Windows
+if (os.name == "nt" or sys.platform == "win32"):
+    sys.stdin.reconfigure(encoding="utf_8")
+    sys.stdout.reconfigure(encoding="utf_8")
+
+
 def debug(msg):
     if not os.path.exists("debug"):
         return
@@ -134,7 +140,8 @@ def _prepare_spell_errors(spell_err, document_offset):
 def find_errors(input_file, opts={}):
     """Read the file and run grammalecte on it"""
 
-    with open(input_file, "r") as f:
+    # Enforce utf8 to avoid Windows problems
+    with open(input_file, "r", encoding="utf_8") as f:
         lines = f.readlines()
 
     border = opts.get("border")
@@ -206,12 +213,12 @@ if __name__ == "__main__":
                         help="Don't report non-breakable spaces errors")
     parser.add_argument("-W", "--no-space", action="store_true",
                         help="Don't report useless spaces and tabs errors")
-    parser.add_argument('-f', "--filters", action="append", default=[],
+    parser.add_argument("-f", "--filters", action="append", default=[],
                         help="Filter pattern (regular expression "
                         "replaced before analysis)")
-    parser.add_argument('-b', "--border", help="Border pattern (line "
+    parser.add_argument("-b", "--border", help="Border pattern (line "
                         "pattern before which proofing must not occur)")
-    parser.add_argument('file', help="File to proofed")
+    parser.add_argument("file", help="File to proofed")
 
     args = parser.parse_args()
     opts = {

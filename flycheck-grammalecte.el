@@ -7,7 +7,7 @@
 ;; Author: Guilhem Doulcier <guilhem.doulcier@espci.fr>
 ;;         Étienne Deparis <etienne@depar.is>
 ;; Created: 21 February 2017
-;; Version: 2.0
+;; Version: 2.1
 ;; Package-Requires: ((emacs "26.1") (flycheck "26"))
 ;; Keywords: i18n, text
 ;; Homepage: https://git.umaneti.net/flycheck-grammalecte/
@@ -170,7 +170,7 @@ This patterns are always sent to Grammalecte.  See the variable
 (defcustom flycheck-grammalecte-filters-by-mode
   '((latex-mode "\\\\(?:title|(?:sub)*section){([^}]+)}"
                 "\\\\\\w+(?:\\[[^]]+\\])?(?:{[^}]*})?")
-    (org-mode "(?ims)^[ \t]*#\\+begin_src.+#\\+end_src"
+    (org-mode "(?ims)^[ \t]*#\\+begin_src.+?#\\+end_src"
               "(?im)^[ \t]*#\\+begin[_:].+$"
               "(?im)^[ \t]*#\\+end[_:].+$"
               "(?m)^[ \t]*(?:DEADLINE|SCHEDULED):.+$"
@@ -239,9 +239,11 @@ documents, you may want to use something like:
             (or (and (derived-mode-p 'org-mode)
                      (equal \"fr\"
                             (or (cadar (org-collect-keywords '(\"LANGUAGE\")))
-                                (bound-and-true-p org-export-default-language))))
+                                (bound-and-true-p
+                                  org-export-default-language))))
                 (and (boundp 'ispell-local-dictionary)
-                     (member ispell-local-dictionary '(\"fr\" \"francais7\" \"francais-tex\"))))))"
+                     (member ispell-local-dictionary
+                             '(\"fr\" \"francais7\" \"francais-tex\"))))))"
   :type 'function
   :package-version "2.0"
   :group 'flycheck-grammalecte)

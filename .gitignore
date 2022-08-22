@@ -4,5 +4,8 @@
 debug
 grammalecte
 grammalecte-loaddefs.el
-tmp-grammalecte-cache.el
 __pycache__
+test-home/*
+!test-home/.emacs
+!test-home/classic.el
+!test-home/use-package.el

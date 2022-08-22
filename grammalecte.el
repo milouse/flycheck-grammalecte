@@ -4,7 +4,7 @@
 
 ;; Author: Étienne Deparis <etienne@depar.is>
 ;; Created: 21 April 2021
-;; Version: 2.0
+;; Version: 2.1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: i18n, text
 ;; Homepage: https://git.umaneti.net/flycheck-grammalecte/
@@ -551,8 +551,8 @@ Click \\[grammalecte-mouse-save-and-replace] to replace the word at
   point in the buffer you came from by the one you just click in the
   grammalecte buffer.  The word is not removed from the `kill-ring'."
   (buffer-disable-undo)
-  (setq show-trailing-whitespace nil
-        revert-buffer-function #'grammalecte--revert-buffer)
+  (setq-local show-trailing-whitespace nil
+              revert-buffer-function #'grammalecte--revert-buffer)
   (when (bound-and-true-p global-linum-mode)
     (linum-mode -1))
   (when (and (fboundp 'nlinum-mode)

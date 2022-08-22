@@ -23,9 +23,9 @@ from operator import itemgetter
 
 
 # Enforce utf8 on Windows
-if (os.name == 'nt' or sys.platform == 'win32'):
-    sys.stdin.reconfigure(encoding='utf-8')
-    sys.stdout.reconfigure(encoding='utf-8')
+if (os.name == "nt" or sys.platform == "win32"):
+    sys.stdin.reconfigure(encoding="utf-8")
+    sys.stdout.reconfigure(encoding="utf-8")
 
 
 def debug(msg):
@@ -141,7 +141,7 @@ def find_errors(input_file, opts={}):
     """Read the file and run grammalecte on it"""
 
     # Enforce utf8 to avoid Windows problems
-    with open(input_file, "r", encoding='utf8') as f:
+    with open(input_file, "r", encoding="utf8") as f:
         lines = f.readlines()
 
     border = opts.get("border")

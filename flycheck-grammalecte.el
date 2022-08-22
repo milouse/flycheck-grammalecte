@@ -170,7 +170,7 @@ This patterns are always sent to Grammalecte.  See the variable
 (defcustom flycheck-grammalecte-filters-by-mode
   '((latex-mode "\\\\(?:title|(?:sub)*section){([^}]+)}"
                 "\\\\\\w+(?:\\[[^]]+\\])?(?:{[^}]*})?")
-    (org-mode "(?ims)^[ \t]*#\\+begin_src.+#\\+end_src"
+    (org-mode "(?ims)^[ \t]*#\\+begin_src.+?#\\+end_src"
               "(?im)^[ \t]*#\\+begin[_:].+$"
               "(?im)^[ \t]*#\\+end[_:].+$"
               "(?m)^[ \t]*(?:DEADLINE|SCHEDULED):.+$"

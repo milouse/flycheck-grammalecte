@@ -4,7 +4,7 @@
 
 ;; Author: Étienne Deparis <etienne@depar.is>
 ;; Created: 21 April 2021
-;; Version: 2.0
+;; Version: 2.1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: i18n, text
 ;; Homepage: https://git.umaneti.net/flycheck-grammalecte/

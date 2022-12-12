@@ -4,7 +4,7 @@
 
 ;; Author: Étienne Deparis <etienne@depar.is>
 ;; Created: 21 April 2021
-;; Version: 2.1
+;; Version: 2.2
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: i18n, text
 ;; Homepage: https://git.umaneti.net/flycheck-grammalecte/
@@ -172,7 +172,7 @@ of the python package."
                        grammalecte-version))
          (zip-name (format "Grammalecte-fr-v%s.zip" up-version))
          (dl-url
-          (format "https://grammalecte.net/grammalecte/zip/%s"
+          (format "https://grammalecte.net/zip/%s"
                   zip-name))
          (zip-file (expand-file-name
                     zip-name
@@ -180,7 +180,7 @@ of the python package."
     ;; Do not download it twice if it's still there for some reason...
     (unless (file-exists-p zip-file)
       (url-copy-file dl-url zip-file)
-      (message "[Grammalecte] Downloaded to %s" zip-file))
+      (message "[Grammalecte] Downloaded to %s" dl-url))
     zip-file))
 
 (defun grammalecte--extract-zip (zip-file)

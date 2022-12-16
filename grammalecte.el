@@ -4,7 +4,7 @@
 
 ;; Author: Étienne Deparis <etienne@depar.is>
 ;; Created: 21 April 2021
-;; Version: 2.2
+;; Version: 2.3
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: i18n, text
 ;; Homepage: https://git.umaneti.net/flycheck-grammalecte/
@@ -351,7 +351,7 @@ program."
 
 (defun grammalecte--fetch-crisco-words (word)
   "Fetch synonymes and antonymes for the given WORD from the CRISCO."
-  (let ((url (format "https://crisco2.unicaen.fr/des/synonymes/%s" word))
+  (let ((url (format "https://crisco4.unicaen.fr/des/synonymes/%s" word))
         found-words)
     (with-current-buffer (url-retrieve-synchronously url t t)
       (let ((synonymes (grammalecte--extract-crisco-words "synonymes"))
@@ -608,7 +608,7 @@ This function will fetch data from the CRISCO¹ thesaurus.
 
 The found words are then displayed in a new buffer in another window.
 
-¹ See URL `https://crisco2.unicaen.fr/des/synonymes/'"
+¹ See URL `https://crisco4.unicaen.fr/des/synonymes/'"
   (interactive "sMot: ")
   (pop-to-buffer (get-buffer-create (format "*Synonymes de %s*" word)))
   (grammalecte--set-buffer-title

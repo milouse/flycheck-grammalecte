@@ -178,6 +178,7 @@ def find_errors(input_file, opts={}):
         gc.gce.setOption("nbsp", not opts.get("no_nbsp", False))
         gc.gce.setOption("esp", not opts.get("no_esp", False))
         gc.gce.setOption("tab", not opts.get("no_esp", False))
+        gc.gce.setOption("typo", not opts.get("no_typo", False))
         gramm_err = gc.gce.parse(text, "FR", bDebug=False)
 
     if do_spell:
@@ -213,6 +214,8 @@ if __name__ == "__main__":
                         help="Don't report non-breakable spaces errors")
     parser.add_argument("-W", "--no-space", action="store_true",
                         help="Don't report useless spaces and tabs errors")
+    parser.add_argument("-T", "--no-typo", action="store_true",
+                        help="Don't report typographic signs errors")
     parser.add_argument("-f", "--filters", action="append", default=[],
                         help="Filter pattern (regular expression "
                         "replaced before analysis)")
@@ -227,6 +230,7 @@ if __name__ == "__main__":
         "no_apos": args.no_apostrophe,
         "no_nbsp": args.no_nbsp,
         "no_esp": args.no_space,
+        "no_typo": args.no_typo,
         "filters": args.filters,
         "border": args.border
     }

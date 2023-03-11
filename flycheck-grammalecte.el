@@ -118,6 +118,13 @@ Default is t."
   :package-version "0.6"
   :group 'flycheck-grammalecte)
 
+(defcustom flycheck-grammalecte-report-typo t
+  "Report typographic signs errors if non-nil.
+Default is t."
+  :type 'boolean
+  :package-version "2.3"
+  :group 'flycheck-grammalecte)
+
 (defcustom flycheck-grammalecte-enabled-modes
   '(latex-mode
     mail-mode
@@ -447,6 +454,7 @@ flycheck, if any."
                    ,(unless flycheck-grammalecte-report-apos "-A")
                    ,(unless flycheck-grammalecte-report-nbsp "-N")
                    ,(unless flycheck-grammalecte-report-esp "-W")
+                   ,(unless flycheck-grammalecte-report-typo "-T")
                    (option-list "-f" flycheck-grammalecte-filters)
                    (eval (flycheck-grammalecte--prepare-arg-list
                           "-f" flycheck-grammalecte-filters-by-mode))

@@ -3,7 +3,7 @@
 Integrate the french grammar and typography checker [[http://www.dicollecte.org/][Grammalecte]] with
 [[http://www.flycheck.org/][flycheck]] to automatically look for mistakes in your writings. It also
 provides an easy way to find synonyms and antonyms for a given word (to
-avoid repetitions for exemple). This package is of very little interest
+avoid repetitions for example). This package is of very little interest
 for other languages.
 
 [[./demo.gif]]
@@ -72,7 +72,7 @@ All options are accessibles with ~customize~. In GNU Emacs, enter
 You can also set these variables in your GNU Emacs config
 file. Configuration must occurs *before* calling
 ~flycheck-grammalecte-setup~. In that case, don't forget to first
-require ~flycheck-grammalecte~ to prefill its variables. For exemple:
+require ~flycheck-grammalecte~ to prefill its variables. For example:
 
 #+begin_src emacs-lisp
   (with-eval-after-load 'flycheck
@@ -94,16 +94,16 @@ Here is a quick reference of the available variables:
      errors will be notified. Default is ~t~.
 - ~flycheck-grammalecte-report-apos~ :: If this variable is set to
      ~nil~, Flycheck will *not* report typographical apostrophes (’)
-     error. This can be usefull when your main editor mode manage
+     error. This can be useful when your main editor mode manage
      apostrophe by itself (like LaTeX, org-mode export…). Default is
      ~t~.
 - ~flycheck-grammalecte-report-nbsp~ :: If this variable is set to
      ~nil~, Flycheck will *not* report non-breakable spaces
-     error. This can be usefull when your main editor mode manage
+     error. This can be useful when your main editor mode manage
      spaces by itself (like LaTeX, org-mode export…). Default is ~t~.
 - ~flycheck-grammalecte-report-esp~ :: If this variable is set to
      ~nil~, Flycheck will *not* report useless spaces and tabs error.
-     This can be usefull when your main editor mode manage spaces by
+     This can be useful when your main editor mode manage spaces by
      itself (like LaTeX, org-mode export…). Default is ~t~.
 - ~flycheck-grammalecte-report-typo~ :: If this variable is set to
      ~nil~, Flycheck will *not* report typographic glyphs errors such as
@@ -114,7 +114,7 @@ Here is a quick reference of the available variables:
      of major modes for which /flycheck-grammalecte/ must be
      used. Default is ~'(latex-mode mail-mode markdown-mode message-mode
      mu4e-compose-mode org-mode text-mode)~.
-     To add markdown mode use the following line for exemple:
+     To add markdown mode use the following line for example:
      ~(add-to-list 'flycheck-grammalecte-enabled-modes 'fountain-mode)~
 - ~flycheck-grammalecte-filters~ :: Patterns for which errors in
      matching texts are ignored. See its documentation for

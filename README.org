@@ -106,8 +106,9 @@ Here is a quick reference of the available variables:
      This can be usefull when your main editor mode manage spaces by
      itself (like LaTeX, org-mode export…). Default is ~t~.
 - ~flycheck-grammalecte-report-typo~ :: If this variable is set to
-     ~nil~, Flycheck will *not* report typographic signs error.
-     This can be usefull if you want to use '...' instead of '…'.
+     ~nil~, Flycheck will *not* report typographic glyphs errors such as
+     parenthesis or quotation marks mismatch, use of dots
+     instead of ellipsis, use of minus instead of dash, etc.
      Default is ~t~.
 - ~flycheck-grammalecte-enabled-modes~ :: This variable stores the list
      of major modes for which /flycheck-grammalecte/ must be

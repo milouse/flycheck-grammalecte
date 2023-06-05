@@ -7,7 +7,7 @@
 ;; Author: Guilhem Doulcier <guilhem.doulcier@espci.fr>
 ;;         Étienne Deparis <etienne@depar.is>
 ;; Created: 21 February 2017
-;; Version: 2.3
+;; Version: 2.4
 ;; Package-Requires: ((emacs "26.1") (flycheck "26"))
 ;; Keywords: i18n, text
 ;; Homepage: https://git.umaneti.net/flycheck-grammalecte/
@@ -116,6 +116,13 @@ Default is t."
 Default is t."
   :type 'boolean
   :package-version "0.6"
+  :group 'flycheck-grammalecte)
+
+(defcustom flycheck-grammalecte-report-typo t
+  "Report typographic signs errors if non-nil.
+Default is t."
+  :type 'boolean
+  :package-version "2.4"
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-enabled-modes
@@ -447,6 +454,7 @@ flycheck, if any."
                    ,(unless flycheck-grammalecte-report-apos "-A")
                    ,(unless flycheck-grammalecte-report-nbsp "-N")
                    ,(unless flycheck-grammalecte-report-esp "-W")
+                   ,(unless flycheck-grammalecte-report-typo "-T")
                    (option-list "-f" flycheck-grammalecte-filters)
                    (eval (flycheck-grammalecte--prepare-arg-list
                           "-f" flycheck-grammalecte-filters-by-mode))

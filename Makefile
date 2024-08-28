@@ -42,18 +42,22 @@ grammalecte:
 
 ######### Demo related targets
 
-.PHONY: demo demo-deps demo-no-grammalecte demo-use-package
+.PHONY: demo demo-with-grammalecte demo-classic demo-classic-with-grammalecte \
+	demo-deps cleandemo
 
 EMACS_DEMO = emacs --init-directory "$(PWD)/test-home" --debug-init
 
-demo: demo-deps grammalecte
-	$(EMACS_DEMO) -l test-home/classic.el example.org example.tex
-
-demo-no-grammalecte: demo-deps
-	$(EMACS_DEMO) -l test-home/classic.el example.org example.tex
-
-demo-use-package: demo-deps
+demo: demo-deps
 	$(EMACS_DEMO) -l test-home/use-package.el example.org example.tex
+
+demo-with-grammalecte: demo-deps grammalecte
+	$(EMACS_DEMO) -l test-home/use-package.el example.org example.tex
+
+demo-classic: demo-deps
+	$(EMACS_DEMO) -l test-home/classic.el example.org example.tex
+
+demo-classic-with-grammalecte: demo-deps grammalecte
+	$(EMACS_DEMO) -l test-home/classic.el example.org example.tex
 
 demo-deps: cleandemo build autoloads epl-master
 	touch debug

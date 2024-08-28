@@ -1,14 +1,14 @@
-(setq make-backup-files nil
-      auto-save-default nil
-      inhibit-startup-screen t
-      visible-bell t
-      warning-minimum-level :debug
-      warning-minimum-log-level :debug
-      debug-on-error t
-      org-startup-folded "showeverything"
-      grammalecte--debug-mode t)
+(setopt auto-save-default nil
+        debug-on-error t
+        inhibit-startup-screen t
+        make-backup-files nil
+        visible-bell t
+        warning-minimum-level :debug
+        warning-minimum-log-level :debug)
 
 (dolist (path '("dash.el" "flycheck" "epl"))
-  (add-to-list 'load-path (format "%s-master" path)))
+  (add-to-list
+   'load-path
+   (expand-file-name (format "../%s-master" path) user-emacs-directory)))
 
-(load (expand-file-name "grammalecte-loaddefs"))
+(autoload 'flycheck-mode "flycheck")

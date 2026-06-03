@@ -166,7 +166,7 @@ Filters are applied sequentially.  In practice all characters of
 the matching pattern are replaced by █, which are ignored by
 grammalecte.
 
-This patterns are always sent to Grammalecte.  See the variable
+These patterns are always sent to Grammalecte.  See the variable
 `flycheck-grammalecte-filters-by-mode' for mode-related patterns."
   :type '(repeat string)
   :package-version "1.1"
@@ -196,9 +196,7 @@ another.
 
 Patterns defined here will be added after the ones defined in
 `flycheck-grammalecte-filters' when their associated mode matches
-the current buffer major mode, or is an ancestor of it.  This
-operation is only done once when the function
-`flycheck-grammalecte-setup' is run."
+the current buffer major mode, or is an ancestor of it."
   :type '(alist :key-type (function :tag "Mode")
                 :value-type (repeat string))
   :package-version "1.1"
@@ -222,8 +220,7 @@ headers or LaTeX documents header.
 Contrary to flycheck, we will use `derived-mode-p' to check if a
 border must be activated or not.  Thus you are not obliged to
 list all possible modes, as soon as one is an ancestor of
-another.  This activation is only done once when the function
-`flycheck-grammalecte-setup' is run."
+another."
   :type '(cons (function :tag "Mode") string)
   :package-version "1.1"
   :group 'flycheck-grammalecte)
@@ -347,6 +344,13 @@ ITEMS element to be used as argument."
             (setq arguments (nconc arguments (list arg patterns)))))))
     arguments))
 
+(defun flycheck-grammalecte--reverse-arg (arg variable)
+  "Retrieve the value of VARIABLE and return ARG, if the value is nil.
+
+Otherwise return nil."
+  (unless (symbol-value variable)
+    (list arg)))
+
 (defun flycheck-grammalecte--retry-setup (&optional _version)
   "Try to call again `flycheck-grammalecte-setup'.
 
@@ -423,12 +427,18 @@ flycheck, if any."
   (let ((cmdline `("python3"
                    ,(expand-file-name "flycheck_grammalecte.py"
                                       grammalecte--site-directory)
-                   ,(unless flycheck-grammalecte-report-spellcheck "-S")
-                   ,(unless flycheck-grammalecte-report-grammar "-G")
-                   ,(unless flycheck-grammalecte-report-apos "-A")
-                   ,(unless flycheck-grammalecte-report-nbsp "-N")
-                   ,(unless flycheck-grammalecte-report-esp "-W")
-                   ,(unless flycheck-grammalecte-report-typo "-T")
+                   (eval (flycheck-grammalecte--reverse-arg
+                          "-S" flycheck-grammalecte-report-spellcheck))
+                   (eval (flycheck-grammalecte--reverse-arg
+                          "-G" flycheck-grammalecte-report-grammar))
+                   (eval (flycheck-grammalecte--reverse-arg
+                          "-A" flycheck-grammalecte-report-apos))
+                   (eval (flycheck-grammalecte--reverse-arg
+                          "-N" flycheck-grammalecte-report-nbsp))
+                   (eval (flycheck-grammalecte--reverse-arg
+                          "-W" flycheck-grammalecte-report-esp))
+                   (eval (flycheck-grammalecte--reverse-arg
+                          "-T" flycheck-grammalecte-report-typo))
                    (option-list "-f" flycheck-grammalecte-filters)
                    (eval (flycheck-grammalecte--prepare-arg-list
                           "-f" flycheck-grammalecte-filters-by-mode))
@@ -451,7 +461,7 @@ flycheck, if any."
     (flycheck-define-command-checker 'grammalecte
       "Grammalecte syntax checker for french language
 See URL `https://grammalecte.net/'."
-      :command (seq-remove #'null cmdline)
+      :command cmdline
       :error-patterns flycheck-grammalecte--error-patterns
       :modes flycheck-grammalecte-enabled-modes
       :predicate (lambda ()

@@ -364,6 +364,7 @@ create it again if needed)."
                          'grammalecte-download-grammalecte)
     (advice-remove 'grammalecte-download-grammalecte
                    #'flycheck-grammalecte--retry-setup))
+  ;; Reset internal auto-flags
   (flycheck-reset-enabled-checker 'grammalecte))
 
 (defun flycheck-grammalecte--verify-setup (_)
@@ -424,6 +425,21 @@ flycheck, if any."
 ;;;###autoload
 (defun flycheck-grammalecte-setup ()
   "Build the flycheck checker, matching your taste."
+  ;; Support flycheck-grammalecte reset
+  (when (memq 'grammalecte flycheck-checkers)
+    ;; Remove previous installation
+    (setopt flycheck-checkers (delq 'grammalecte flycheck-checkers)))
+
+  ;; If grammalecte is not available, add a little advice to
+  ;; `grammalecte-download-grammalecte'
+  (unless (grammalecte--version)
+    (advice-add 'grammalecte-download-grammalecte :after
+                #'flycheck-grammalecte--retry-setup))
+
+  ;; Be sure grammalecte python module is accessible
+  (grammalecte--augment-pythonpath-if-needed)
+
+  ;; Setup the checker
   (let ((cmdline `("python3"
                    ,(expand-file-name "flycheck_grammalecte.py"
                                       grammalecte--site-directory)
@@ -445,18 +461,6 @@ flycheck, if any."
                    (eval (flycheck-grammalecte--prepare-arg-list
                           "-b" flycheck-grammalecte-borders-by-mode))
                    source)))
-
-    ;; If grammalecte is not available, add a little advice to
-    ;; `grammalecte-download-grammalecte'
-    (unless (grammalecte--version)
-      (advice-add 'grammalecte-download-grammalecte :after-while
-                  #'flycheck-grammalecte--retry-setup))
-
-    ;; Be sure grammalecte python module is accessible
-    (grammalecte--augment-pythonpath-if-needed)
-
-    ;; Now that we have all our variables, we can create the custom
-    ;; checker.
     (flycheck-def-executable-var 'grammalecte "python3")
     (flycheck-define-command-checker 'grammalecte
       "Grammalecte syntax checker for french language

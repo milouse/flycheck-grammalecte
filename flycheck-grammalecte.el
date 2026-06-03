@@ -322,10 +322,12 @@ and Info node `Regexps'."
 (defun flycheck-grammalecte--patch-flycheck-mode-map ()
   "Add new commands to `flycheck-mode-map' if possible."
   ;; Add our fixers to right click and C-c ! g
-  (keymap-set flycheck-mode-map "<mouse-3>"
-              #'flycheck-grammalecte-correct-error-at-click)
-  (keymap-set flycheck-command-map "g"
-              #'flycheck-grammalecte-correct-error-at-point))
+  (bind-key "<mouse-3>"
+            #'flycheck-grammalecte-correct-error-at-click
+            'flycheck-mode-map)
+  (bind-key "g"
+            #'flycheck-grammalecte-correct-error-at-point
+            'flycheck-command-map))
 
 (defun flycheck-grammalecte--prepare-arg-list (arg items)
   "Build an arguments list for ARG from ITEMS elements.

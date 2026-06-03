@@ -38,7 +38,18 @@ config file:
 
 Finally, the last expected step is to download the
 [[https://grammalecte.net/#download][CLI & Server upstream package]]. Just enter the following command:
-~M-x grammalecte-download-grammalecte~
+~M-x grammalecte-download-grammalecte~.
+
+You can also add it to your Gnu Emacs config file, but be warned that it
+might introduce some delay when starting Emacs, due to the http request
+made to check the grammalecte version and eventually upgrade of the
+package:
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'flycheck
+    (grammalecte-download-grammalecte)
+    (flycheck-grammalecte-setup))
+#+end_src
 
 * Usage
 
@@ -47,19 +58,15 @@ Enable /flycheck/ in a buffer, which major mode is declared in
 
 To correct a word or expression at point, you can use the command
 ~flycheck-grammalecte-correct-error-at-point~, which is bind to
-~C-c ! g~ by default[fn:1]. You can also right-click on it and a menu
-will popup to let you choose the better correction.
+~C-c ! g~ by default. You can also right-click on it and a menu will
+popup to let you choose the better correction.
 
 If you are looking for a better word at some place, you can use the
-function ~flycheck-grammalecte-find-synonyms-at-point~ (which will take
-the word at point to find synonyms and antonyms) or the simpler
-~flycheck-grammalecte-find-synonyms~ (which will ask you for a word
-before doing the search). Pro tip: these functions are available even in
-buffer, which major mode is not in the
-~flycheck-grammalecte-enabled-modes~ list.
-
-[fn:1] In fact, it is bind only to ~g~ in the ~flycheck-command-map~,
-       ~C-c !~ being the flycheck default prefix.
+function ~grammalecte-find-synonyms-at-point~ (which will take the word
+at point to find synonyms and antonyms) or the simpler
+~grammalecte-find-synonyms~ (which will ask you for a word before doing
+the search). These functions are always available, even in buffer, which
+major mode is not in the ~flycheck-grammalecte-enabled-modes~ list.
 
 * Configuration
 
@@ -69,18 +76,15 @@ All options are accessibles with ~customize~. In GNU Emacs, enter
 ~M-x customize~, then click on ~Editing~, then ~I18n~, and finally on
 ~Flycheck Grammalecte~.
 
-You can also set these variables in your GNU Emacs config
-file. Configuration must occurs *before* calling
-~flycheck-grammalecte-setup~. In that case, don't forget to first
-require ~flycheck-grammalecte~ to prefill its variables. For example:
+You can also set these variables in your GNU Emacs config file with
+~setopt~. This can be done before or after the
+~flycheck-grammalecte-setup~ call.
 
 #+begin_src emacs-lisp
   (with-eval-after-load 'flycheck
-    (setq flycheck-grammalecte-report-esp nil)
-    (require 'flycheck-grammalecte)
-    (add-to-list 'flycheck-grammalecte-enabled-modes 'fountain-mode)
-    (grammalecte-download-grammalecte)
-    (flycheck-grammalecte-setup))
+    (flycheck-grammalecte-setup)
+    (setopt flycheck-grammalecte-report-esp nil)
+    (add-to-list 'flycheck-grammalecte-enabled-modes 'fountain-mode))
 #+end_src
 
 Here is a quick reference of the available variables:
@@ -126,7 +130,7 @@ Here is a quick reference of the available variables:
 Here is the minimal working configuration:
 
 #+begin_src emacs-lisp
-  (use-package flycheck-grammalecte
+  (use-package flycheck-grammalecte :defer t
     :config (flycheck-grammalecte-setup))
 #+end_src
 
@@ -138,18 +142,16 @@ instead of the ~:init~ section, to be sure the package has been loaded and
 thus the list already exists.
 
 #+begin_src emacs-lisp
-  (use-package flycheck-grammalecte
-    :hook (fountain-mode . flycheck-mode)
+  (use-package flycheck-grammalecte :defer t
+    :hook (fountain-mode . flycheck-grammalecte-setup)
     :custom
     (flycheck-grammalecte-report-apos nil)
     (flycheck-grammalecte-report-esp nil)
     (flycheck-grammalecte-report-nbsp nil)
     :config
     (add-to-list 'flycheck-grammalecte-enabled-modes 'fountain-mode)
-    (grammalecte-download-grammalecte)
-    (flycheck-grammalecte-setup))
+    (grammalecte-download-grammalecte))
 #+end_src
-
 
 ** Breaking changes
 

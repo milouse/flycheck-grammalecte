@@ -35,8 +35,6 @@
 
 ;;; Code:
 
-(require 'seq)
-
 ;;;; Configuration options:
 
 (defgroup grammalecte nil
@@ -321,7 +319,7 @@ program."
   "Extract all words for TYPE from the current buffer."
   (save-excursion
     (save-restriction
-      (let ((results '()) content start end)
+      (let (results content start end)
         (goto-char (point-min))
         (if (re-search-forward
              (format "<i class=[^>]*>[[:digit:]]* %s?" type)
@@ -359,20 +357,20 @@ program."
         (setq found-words (list :synonymes synonymes
                                 :antonymes antonymes))
         (if (and grammalecte--debug-mode
-                 (seq-empty-p synonymes) (seq-empty-p antonymes))
+                 (not synonymes) (not antonymes))
             (pop-to-buffer (current-buffer))
           (kill-buffer (current-buffer)))))
     found-words))
 
 (defun grammalecte--propertize-crisco-words (words)
   "Insert WORDS at point, after having propertized them."
-  (if (seq-empty-p words)
-      (insert "Aucun résultat")
-    (dolist (w words)
-      (insert (concat "- "
-                      (propertize w 'mouse-face 'highlight
-                                  'help-echo "mouse-1: Remplacer par…")
-                      "\n")))))
+  (if words
+      (dolist (w words)
+        (insert (concat "- "
+                        (propertize w 'mouse-face 'highlight
+                                    'help-echo "mouse-1: Remplacer par…")
+                        "\n")))
+    (insert "Aucun résultat")))
 
 (defvar-local grammalecte-looked-up-type nil
   "What kind of word was looked up by the user to open the current buffer.
@@ -474,11 +472,11 @@ other buffer by the copied word."
     (erase-buffer)
     (setq grammalecte-looked-up-type 'define
           grammalecte-looked-up-word word)
-    (if (seq-empty-p definitions)
-        (insert (format "Aucun résultat pour %s." word))
-      (dolist (d definitions)
-        (shr-insert-document d)
-        (insert "\n\n\n")))))
+    (if definitions
+        (dolist (d definitions)
+          (shr-insert-document d)
+          (insert "\n\n\n"))
+      (insert (format "Aucun résultat pour %s." word)))))
 
 (defun grammalecte--revert-buffer (&optional _ignore-auto _noconfirm)
   "Replace the current buffer content by an up-to-date one.

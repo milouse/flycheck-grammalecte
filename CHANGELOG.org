@@ -1,3 +1,32 @@
+* Version 2.6
+
+** Features
+
+- Make the checker command line reactive to custom variables changes
+- Make ~flycheck-grammalecte-setup~ idempotent
+- Improve demo startup
+- Change how demo dependencies are setup
+
+** Fixes
+
+- Correctly report the grammalecte package install path
+- Trigger a flycheck update after fixing an error
+- Do not report errors for bullet lists in org-mode
+
+** Documentation
+
+- Update README.org for modern setup
+- Remove liberapay link from README.org
+- Add a no AI policy in CONTRIBUTING.org and a link to it in README.org
+- Remove deprecated MANUAL_INSTALL.org file
+- Add comments for ~flycheck-grammalecte-filters-by-mode~ patterns
+
+** Others
+
+- Use ~bind-key~ instead of ~keymap-set~
+- Remove ~seq~ dependency from grammalecte.el
+- Stop byte-compiling elisp files
+
 * Version 2.5
 
 ** Features

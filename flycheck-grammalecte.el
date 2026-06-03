@@ -376,8 +376,7 @@ flycheck-grammalecte can be used or not."
     (list (flycheck-verification-result-new
            :label "Grammalecte"
            :message (if version
-                        (format "version %s found in %s"
-                                version grammalecte-python-package-directory)
+                        (apply #'format "version %s found in %s" version)
                       "Not found.  Please run `grammalecte-download-grammalecte' to install it.")
            :face (if version 'success '(bold error))))))
 

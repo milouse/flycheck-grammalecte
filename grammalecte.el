@@ -133,18 +133,17 @@ as expected."
                 (format "%s:%s" grammalecte-parent-path current-pythonpath))))))
 
 (defun grammalecte--version ()
-  "Return the currently installed Grammalecte version."
+  "Return the currently installed Grammalecte version and its path."
   (grammalecte--augment-pythonpath-if-needed)
-  (let* ((python-script "from grammalecte.fr.gc_engine import __version__
-print(__version__)")
+  (let* ((python-script "from grammalecte.fr import gc_engine; print('{} - {}'.format(gc_engine.__version__, gc_engine.__file__.removesuffix('/fr/gc_engine.py')))")
          (fg-version
           (shell-command-to-string
            (format "python3 -c \"%s\"" python-script))))
     ;; Only return a version number if we got something which looks like a
     ;; version number (else it may be a python crash when Grammalecte is not
     ;; yet downloaded)
-    (when (string-match "^[0-9.]+$" fg-version)
-      (match-string 0 fg-version))))
+    (when (string-match "^\\([0-9.]+\\) - \\(.+\\)$" fg-version)
+      (list (match-string 1 fg-version) (match-string 2 fg-version)))))
 
 (defun grammalecte--upstream-version ()
   "Return the upstream version of Grammalecte."
@@ -233,7 +232,7 @@ since the value of the found timestamp."
                    (or (plist-get (grammalecte-read-settings) :check-timestamp)
                        0))
                 (* 86400 grammalecte-check-upstream-version-delay)))
-    (let ((local-version (grammalecte--version))
+    (let ((local-version (car (grammalecte--version)))
           (upstream-version (grammalecte--upstream-version)))
       (when (stringp upstream-version)
         (if (stringp local-version)

@@ -314,7 +314,13 @@ and Info node `Regexps'."
       (setq region (flycheck-error-region-for-mode err major-mode)))
     (when region
       (delete-region (car region) (cdr region)))
-    (insert repl)))
+    (insert repl)
+    ;; Trigger a flycheck update to ensure nearby errors regions are
+    ;; recomputed to avoid text mangling when doing lot of corrections
+    ;; in the same sentence.
+    ;; We do not call directly `flycheck-buffer' to reset the internal idle
+    ;; timer if it is in use.
+    (flycheck-buffer-automatically)))
 
 (defun flycheck-grammalecte--patch-flycheck-mode-map ()
   "Add new commands to `flycheck-mode-map' if possible."

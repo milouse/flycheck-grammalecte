@@ -24,8 +24,20 @@ the right version of python is up to you.
 
 /Flycheck grammalecte/ is available on MELPA stable and unstable. Please
 read the [[https://www.emacswiki.org/emacs/InstallingPackages][Installing Package documentation]] from the EmacsWiki to know
-more how to install a package. A [[./MANUAL_INSTALL.org][manual installation procedure]] exists
-too if you prefer.
+more how to install a package.
+
+Otherwise, just clone this repository somewhere and load necessary files from
+your GNU Emacs config file:
+
+#+begin_src emacs-lisp
+cd ~/.emacs.d
+git clone https://git.umaneti.net/flycheck-grammalecte
+#+end_src
+
+#+begin_src emacs-lisp
+(load-file "~/.emacs.d/flycheck-grammalecte/grammalecte.el")
+(load-file "~/.emacs.d/flycheck-grammalecte/flycheck-grammalecte.el")
+#+end_src
 
 To enable it, simply add the following line somewhere in your GNU Emacs
 config file:

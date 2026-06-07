@@ -180,6 +180,7 @@ These patterns are always sent to Grammalecte.  See the variable
               "(?im)^[ \t]*#\\+end[_:].+$"
               "(?m)^[ \t]*(?:DEADLINE|SCHEDULED):.+$"
               "(?m)^\\*+ .*[ \t]*(:[\\w:@]+:)[ \t]*$"
+              "(?m)^[ \t]*-[ \t]*"
               "(?im)^[ \t]*#\\+(?:caption|description|keywords|(?:sub)?title):"
               "(?im)^[ \t]*#\\+(?!caption|description|keywords|(?:sub)?title)\\w+:.*$")
     (message-mode "(?m)^[ \t]*(?:[\\w_.]+>|[]>|]).*"))

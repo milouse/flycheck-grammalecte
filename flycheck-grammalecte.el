@@ -173,16 +173,27 @@ These patterns are always sent to Grammalecte.  See the variable
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-filters-by-mode
+                ;; mask command name but keep content to check
   '((latex-mode "\\\\(?:title|(?:sub)*section){([^}]+)}"
+                ;; remove all other commands
                 "\\\\\\w+(?:\\[[^]]+\\])?(?:{[^}]*})?")
+              ;; do not check code blocks
     (org-mode "(?ims)^[ \t]*#\\+begin_src.+?#\\+end_src"
+              ;; mask whole #+begin… like lines
               "(?im)^[ \t]*#\\+begin[_:].+$"
+              ;; mask whole #+end… like lines
               "(?im)^[ \t]*#\\+end[_:].+$"
+              ;; mask well-known properties
               "(?m)^[ \t]*(?:DEADLINE|SCHEDULED):.+$"
+              ;; mask leading * and trailing tags in org title lines
               "(?m)^\\*+ .*[ \t]*(:[\\w:@]+:)[ \t]*$"
+              ;; mask leading - in org lists
               "(?m)^[ \t]*-[ \t]*"
+              ;; mask meta-keywords but keep their text content for review
               "(?im)^[ \t]*#\\+(?:caption|description|keywords|(?:sub)?title):"
+              ;; mask whole line for all other meta tags.
               "(?im)^[ \t]*#\\+(?!caption|description|keywords|(?:sub)?title)\\w+:.*$")
+                  ;; mask all quoted lines.
     (message-mode "(?m)^[ \t]*(?:[\\w_.]+>|[]>|]).*"))
   "Filtering patterns by mode.
 

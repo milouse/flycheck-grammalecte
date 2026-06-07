@@ -1,13 +1,6 @@
 EMACS=emacs -Q --batch -nw
-TARGETS=grammalecte.elc flycheck-grammalecte.elc
 
-.PHONY: autoloads build clean cleanall
-
-all: build
-
-build: $(TARGETS)
-
-autoloads: grammalecte-loaddefs.el
+.PHONY: autoloads clean cleanall
 
 define LOADDEFS_TPL
 (add-to-list 'load-path (directory-file-name\n\
@@ -21,12 +14,7 @@ grammalecte-loaddefs.el:
 		--eval "(setq-default backup-inhibited t)" \
 		--eval "(loaddefs-generate \"$(PWD)\" \"$(PWD)/$@\" nil \"$(subst ., ,$(LOADDEFS_TPL))\")"
 
-grammalecte.elc:
-	$(EMACS) -f batch-byte-compile grammalecte.el
-
-flycheck-grammalecte.elc: dash.el-master flycheck-master
-	$(EMACS) -L dash.el-master -L flycheck-master -L $(PWD) \
-			 -f batch-byte-compile flycheck-grammalecte.el
+autoloads: grammalecte-loaddefs.el
 
 clean:
 	rm -f *.zip
@@ -34,7 +22,7 @@ clean:
 
 cleanall: clean cleandemo
 	rm -rf grammalecte *-master
-	rm -f $(TARGETS) grammalecte-loaddefs.el
+	rm -f grammalecte-loaddefs.el
 
 grammalecte:
 	$(EMACS) --eval "(setq grammalecte-settings-file \"/dev/null\")" \
@@ -59,7 +47,7 @@ demo-classic: demo-deps
 demo-classic-with-grammalecte: demo-deps grammalecte
 	$(EMACS_DEMO) -l test-home/classic.el example.org example.tex
 
-demo-deps: cleandemo build autoloads epl-master
+demo-deps: cleandemo build autoloads dash-master flycheck-master epl-master
 	touch debug
 
 cleandemo:

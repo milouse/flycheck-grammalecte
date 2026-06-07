@@ -6,9 +6,9 @@
         warning-minimum-level :debug
         warning-minimum-log-level :debug)
 
-(dolist (path '("dash.el" "flycheck" "epl"))
+(dolist (path '("dash" "flycheck"))
   (add-to-list
    'load-path
-   (expand-file-name (format "../%s-master" path) user-emacs-directory)))
+   (expand-file-name (format "../vendor/%s" path) user-emacs-directory)))
 
 (autoload 'flycheck-mode "flycheck")

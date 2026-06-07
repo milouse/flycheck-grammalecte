@@ -17,11 +17,10 @@ grammalecte-loaddefs.el:
 autoloads: grammalecte-loaddefs.el
 
 clean:
-	rm -f *.zip
 	rm -rf Grammalecte-fr-v*
 
 cleanall: clean cleandemo
-	rm -rf grammalecte *-master
+	rm -rf grammalecte vendor
 	rm -f grammalecte-loaddefs.el
 
 grammalecte:
@@ -47,7 +46,7 @@ demo-classic: demo-deps
 demo-classic-with-grammalecte: demo-deps grammalecte
 	$(EMACS_DEMO) -l test-home/classic.el example.org example.tex
 
-demo-deps: cleandemo build autoloads dash-master flycheck-master epl-master
+demo-deps: cleandemo | vendor/dash vendor/flycheck
 	touch debug
 
 cleandemo:
@@ -57,12 +56,19 @@ cleandemo:
 
 ######### Dependencies
 
-epl_author = cask
-dash.el_author = magnars
-flycheck_author = flycheck
+dash_url = https://elpa.gnu.org/packages/dash-2.20.0.tar
+flycheck_url = https://elpa.nongnu.org/nongnu/flycheck-36.0.tar
 
-%.zip:
-	curl -Lso $@ https://github.com/$($(@:%.zip=%)_author)/$(@:%.zip=%)/archive/master.zip
+define SETUP_DEP =
+curl -Lso $@.tar $($(@F)_url)
+tar -C vendor -xf $@.tar
+rm $@.tar
+mv vendor/$(@F)-[0-9.]* $@
+endef
 
-%-master: %.zip
-	unzip -qo $<
+vendor:
+	mkdir vendor
+vendor/dash: | vendor
+	$(SETUP_DEP)
+vendor/flycheck: | vendor
+	$(SETUP_DEP)

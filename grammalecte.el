@@ -4,7 +4,7 @@
 
 ;; Author: Étienne Pflieger <etienne@pflieger.bzh>
 ;; Created: 21 April 2021
-;; Version: 2.5
+;; Version: 2.6
 ;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: i18n, text
 ;; Homepage: https://git.umaneti.net/flycheck-grammalecte/
@@ -34,8 +34,6 @@
 ;; Boston, MA 02110-1301, USA.
 
 ;;; Code:
-
-(require 'seq)
 
 ;;;; Configuration options:
 
@@ -133,18 +131,17 @@ as expected."
                 (format "%s:%s" grammalecte-parent-path current-pythonpath))))))
 
 (defun grammalecte--version ()
-  "Return the currently installed Grammalecte version."
+  "Return the currently installed Grammalecte version and its path."
   (grammalecte--augment-pythonpath-if-needed)
-  (let* ((python-script "from grammalecte.fr.gc_engine import __version__
-print(__version__)")
+  (let* ((python-script "from grammalecte.fr import gc_engine; print('{} - {}'.format(gc_engine.__version__, gc_engine.__file__.removesuffix('/fr/gc_engine.py')))")
          (fg-version
           (shell-command-to-string
            (format "python3 -c \"%s\"" python-script))))
     ;; Only return a version number if we got something which looks like a
     ;; version number (else it may be a python crash when Grammalecte is not
     ;; yet downloaded)
-    (when (string-match "^[0-9.]+$" fg-version)
-      (match-string 0 fg-version))))
+    (when (string-match "^\\([0-9.]+\\) - \\(.+\\)$" fg-version)
+      (list (match-string 1 fg-version) (match-string 2 fg-version)))))
 
 (defun grammalecte--upstream-version ()
   "Return the upstream version of Grammalecte."
@@ -233,7 +230,7 @@ since the value of the found timestamp."
                    (or (plist-get (grammalecte-read-settings) :check-timestamp)
                        0))
                 (* 86400 grammalecte-check-upstream-version-delay)))
-    (let ((local-version (grammalecte--version))
+    (let ((local-version (car (grammalecte--version)))
           (upstream-version (grammalecte--upstream-version)))
       (when (stringp upstream-version)
         (if (stringp local-version)
@@ -322,7 +319,7 @@ program."
   "Extract all words for TYPE from the current buffer."
   (save-excursion
     (save-restriction
-      (let ((results '()) content start end)
+      (let (results content start end)
         (goto-char (point-min))
         (if (re-search-forward
              (format "<i class=[^>]*>[[:digit:]]* %s?" type)
@@ -360,20 +357,20 @@ program."
         (setq found-words (list :synonymes synonymes
                                 :antonymes antonymes))
         (if (and grammalecte--debug-mode
-                 (seq-empty-p synonymes) (seq-empty-p antonymes))
+                 (not synonymes) (not antonymes))
             (pop-to-buffer (current-buffer))
           (kill-buffer (current-buffer)))))
     found-words))
 
 (defun grammalecte--propertize-crisco-words (words)
   "Insert WORDS at point, after having propertized them."
-  (if (seq-empty-p words)
-      (insert "Aucun résultat")
-    (dolist (w words)
-      (insert (concat "- "
-                      (propertize w 'mouse-face 'highlight
-                                  'help-echo "mouse-1: Remplacer par…")
-                      "\n")))))
+  (if words
+      (dolist (w words)
+        (insert (concat "- "
+                        (propertize w 'mouse-face 'highlight
+                                    'help-echo "mouse-1: Remplacer par…")
+                        "\n")))
+    (insert "Aucun résultat")))
 
 (defvar-local grammalecte-looked-up-type nil
   "What kind of word was looked up by the user to open the current buffer.
@@ -475,11 +472,11 @@ other buffer by the copied word."
     (erase-buffer)
     (setq grammalecte-looked-up-type 'define
           grammalecte-looked-up-word word)
-    (if (seq-empty-p definitions)
-        (insert (format "Aucun résultat pour %s." word))
-      (dolist (d definitions)
-        (shr-insert-document d)
-        (insert "\n\n\n")))))
+    (if definitions
+        (dolist (d definitions)
+          (shr-insert-document d)
+          (insert "\n\n\n"))
+      (insert (format "Aucun résultat pour %s." word)))))
 
 (defun grammalecte--revert-buffer (&optional _ignore-auto _noconfirm)
   "Replace the current buffer content by an up-to-date one.

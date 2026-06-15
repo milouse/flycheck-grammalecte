@@ -1,6 +1,4 @@
-*.elc
-*-master
-*.zip
+*.tar
 debug
 grammalecte
 grammalecte-loaddefs.el
@@ -9,3 +7,4 @@ test-home/*
 !test-home/init.el
 !test-home/classic.el
 !test-home/use-package.el
+vendor

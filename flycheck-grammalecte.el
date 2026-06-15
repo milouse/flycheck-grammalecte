@@ -7,7 +7,7 @@
 ;; Author: Guilhem Doulcier <guilhem.doulcier@espci.fr>
 ;;         Étienne Pflieger <etienne@pflieger.bzh>
 ;; Created: 21 February 2017
-;; Version: 2.5
+;; Version: 2.6
 ;; Package-Requires: ((emacs "29.1") (flycheck "32"))
 ;; Keywords: i18n, text
 ;; Homepage: https://git.umaneti.net/flycheck-grammalecte/
@@ -166,22 +166,34 @@ Filters are applied sequentially.  In practice all characters of
 the matching pattern are replaced by █, which are ignored by
 grammalecte.
 
-This patterns are always sent to Grammalecte.  See the variable
+These patterns are always sent to Grammalecte.  See the variable
 `flycheck-grammalecte-filters-by-mode' for mode-related patterns."
   :type '(repeat string)
   :package-version "1.1"
   :group 'flycheck-grammalecte)
 
 (defcustom flycheck-grammalecte-filters-by-mode
+                ;; mask command name but keep content to check
   '((latex-mode "\\\\(?:title|(?:sub)*section){([^}]+)}"
+                ;; remove all other commands
                 "\\\\\\w+(?:\\[[^]]+\\])?(?:{[^}]*})?")
+              ;; do not check code blocks
     (org-mode "(?ims)^[ \t]*#\\+begin_src.+?#\\+end_src"
+              ;; mask whole #+begin… like lines
               "(?im)^[ \t]*#\\+begin[_:].+$"
+              ;; mask whole #+end… like lines
               "(?im)^[ \t]*#\\+end[_:].+$"
+              ;; mask well-known properties
               "(?m)^[ \t]*(?:DEADLINE|SCHEDULED):.+$"
+              ;; mask leading * and trailing tags in org title lines
               "(?m)^\\*+ .*[ \t]*(:[\\w:@]+:)[ \t]*$"
+              ;; mask leading - in org lists
+              "(?m)^[ \t]*-[ \t]*"
+              ;; mask meta-keywords but keep their text content for review
               "(?im)^[ \t]*#\\+(?:caption|description|keywords|(?:sub)?title):"
+              ;; mask whole line for all other meta tags.
               "(?im)^[ \t]*#\\+(?!caption|description|keywords|(?:sub)?title)\\w+:.*$")
+                  ;; mask all quoted lines.
     (message-mode "(?m)^[ \t]*(?:[\\w_.]+>|[]>|]).*"))
   "Filtering patterns by mode.
 
@@ -196,9 +208,7 @@ another.
 
 Patterns defined here will be added after the ones defined in
 `flycheck-grammalecte-filters' when their associated mode matches
-the current buffer major mode, or is an ancestor of it.  This
-operation is only done once when the function
-`flycheck-grammalecte-setup' is run."
+the current buffer major mode, or is an ancestor of it."
   :type '(alist :key-type (function :tag "Mode")
                 :value-type (repeat string))
   :package-version "1.1"
@@ -222,8 +232,7 @@ headers or LaTeX documents header.
 Contrary to flycheck, we will use `derived-mode-p' to check if a
 border must be activated or not.  Thus you are not obliged to
 list all possible modes, as soon as one is an ancestor of
-another.  This activation is only done once when the function
-`flycheck-grammalecte-setup' is run."
+another."
   :type '(cons (function :tag "Mode") string)
   :package-version "1.1"
   :group 'flycheck-grammalecte)
@@ -317,15 +326,23 @@ and Info node `Regexps'."
       (setq region (flycheck-error-region-for-mode err major-mode)))
     (when region
       (delete-region (car region) (cdr region)))
-    (insert repl)))
+    (insert repl)
+    ;; Trigger a flycheck update to ensure nearby errors regions are
+    ;; recomputed to avoid text mangling when doing lot of corrections
+    ;; in the same sentence.
+    ;; We do not call directly `flycheck-buffer' to reset the internal idle
+    ;; timer if it is in use.
+    (flycheck-buffer-automatically)))
 
 (defun flycheck-grammalecte--patch-flycheck-mode-map ()
   "Add new commands to `flycheck-mode-map' if possible."
   ;; Add our fixers to right click and C-c ! g
-  (keymap-set flycheck-mode-map "<mouse-3>"
-              #'flycheck-grammalecte-correct-error-at-click)
-  (keymap-set flycheck-command-map "g"
-              #'flycheck-grammalecte-correct-error-at-point))
+  (bind-key "<mouse-3>"
+            #'flycheck-grammalecte-correct-error-at-click
+            'flycheck-mode-map)
+  (bind-key "g"
+            #'flycheck-grammalecte-correct-error-at-point
+            'flycheck-command-map))
 
 (defun flycheck-grammalecte--prepare-arg-list (arg items)
   "Build an arguments list for ARG from ITEMS elements.
@@ -345,6 +362,13 @@ ITEMS element to be used as argument."
             (setq arguments (nconc arguments (list arg patterns)))))))
     arguments))
 
+(defun flycheck-grammalecte--reverse-arg (arg variable)
+  "Retrieve the value of VARIABLE and return ARG, if the value is nil.
+
+Otherwise return nil."
+  (unless (symbol-value variable)
+    (list arg)))
+
 (defun flycheck-grammalecte--retry-setup (&optional _version)
   "Try to call again `flycheck-grammalecte-setup'.
 
@@ -358,6 +382,7 @@ create it again if needed)."
                          'grammalecte-download-grammalecte)
     (advice-remove 'grammalecte-download-grammalecte
                    #'flycheck-grammalecte--retry-setup))
+  ;; Reset internal auto-flags
   (flycheck-reset-enabled-checker 'grammalecte))
 
 (defun flycheck-grammalecte--verify-setup (_)
@@ -369,8 +394,7 @@ flycheck-grammalecte can be used or not."
     (list (flycheck-verification-result-new
            :label "Grammalecte"
            :message (if version
-                        (format "version %s found in %s"
-                                version grammalecte-python-package-directory)
+                        (apply #'format "version %s found in %s" version)
                       "Not found.  Please run `grammalecte-download-grammalecte' to install it.")
            :face (if version 'success '(bold error))))))
 
@@ -418,38 +442,47 @@ flycheck, if any."
 ;;;###autoload
 (defun flycheck-grammalecte-setup ()
   "Build the flycheck checker, matching your taste."
+  ;; Support flycheck-grammalecte reset
+  (when (memq 'grammalecte flycheck-checkers)
+    ;; Remove previous installation
+    (setopt flycheck-checkers (delq 'grammalecte flycheck-checkers)))
+
+  ;; If grammalecte is not available, add a little advice to
+  ;; `grammalecte-download-grammalecte'
+  (unless (grammalecte--version)
+    (advice-add 'grammalecte-download-grammalecte :after
+                #'flycheck-grammalecte--retry-setup))
+
+  ;; Be sure grammalecte python module is accessible
+  (grammalecte--augment-pythonpath-if-needed)
+
+  ;; Setup the checker
   (let ((cmdline `("python3"
                    ,(expand-file-name "flycheck_grammalecte.py"
                                       grammalecte--site-directory)
-                   ,(unless flycheck-grammalecte-report-spellcheck "-S")
-                   ,(unless flycheck-grammalecte-report-grammar "-G")
-                   ,(unless flycheck-grammalecte-report-apos "-A")
-                   ,(unless flycheck-grammalecte-report-nbsp "-N")
-                   ,(unless flycheck-grammalecte-report-esp "-W")
-                   ,(unless flycheck-grammalecte-report-typo "-T")
+                   (eval (flycheck-grammalecte--reverse-arg
+                          "-S" flycheck-grammalecte-report-spellcheck))
+                   (eval (flycheck-grammalecte--reverse-arg
+                          "-G" flycheck-grammalecte-report-grammar))
+                   (eval (flycheck-grammalecte--reverse-arg
+                          "-A" flycheck-grammalecte-report-apos))
+                   (eval (flycheck-grammalecte--reverse-arg
+                          "-N" flycheck-grammalecte-report-nbsp))
+                   (eval (flycheck-grammalecte--reverse-arg
+                          "-W" flycheck-grammalecte-report-esp))
+                   (eval (flycheck-grammalecte--reverse-arg
+                          "-T" flycheck-grammalecte-report-typo))
                    (option-list "-f" flycheck-grammalecte-filters)
                    (eval (flycheck-grammalecte--prepare-arg-list
                           "-f" flycheck-grammalecte-filters-by-mode))
                    (eval (flycheck-grammalecte--prepare-arg-list
                           "-b" flycheck-grammalecte-borders-by-mode))
                    source)))
-
-    ;; If grammalecte is not available, add a little advice to
-    ;; `grammalecte-download-grammalecte'
-    (unless (grammalecte--version)
-      (advice-add 'grammalecte-download-grammalecte :after-while
-                  #'flycheck-grammalecte--retry-setup))
-
-    ;; Be sure grammalecte python module is accessible
-    (grammalecte--augment-pythonpath-if-needed)
-
-    ;; Now that we have all our variables, we can create the custom
-    ;; checker.
     (flycheck-def-executable-var 'grammalecte "python3")
     (flycheck-define-command-checker 'grammalecte
       "Grammalecte syntax checker for french language
 See URL `https://grammalecte.net/'."
-      :command (seq-remove #'null cmdline)
+      :command cmdline
       :error-patterns flycheck-grammalecte--error-patterns
       :modes flycheck-grammalecte-enabled-modes
       :predicate (lambda ()

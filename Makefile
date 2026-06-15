@@ -1,13 +1,6 @@
 EMACS=emacs -Q --batch -nw
-TARGETS=grammalecte.elc flycheck-grammalecte.elc
 
-.PHONY: autoloads build clean cleanall
-
-all: build
-
-build: $(TARGETS)
-
-autoloads: grammalecte-loaddefs.el
+.PHONY: autoloads clean cleanall
 
 define LOADDEFS_TPL
 (add-to-list 'load-path (directory-file-name\n\
@@ -21,20 +14,14 @@ grammalecte-loaddefs.el:
 		--eval "(setq-default backup-inhibited t)" \
 		--eval "(loaddefs-generate \"$(PWD)\" \"$(PWD)/$@\" nil \"$(subst ., ,$(LOADDEFS_TPL))\")"
 
-grammalecte.elc:
-	$(EMACS) -f batch-byte-compile grammalecte.el
-
-flycheck-grammalecte.elc: dash.el-master flycheck-master
-	$(EMACS) -L dash.el-master -L flycheck-master -L $(PWD) \
-			 -f batch-byte-compile flycheck-grammalecte.el
+autoloads: grammalecte-loaddefs.el
 
 clean:
-	rm -f *.zip
 	rm -rf Grammalecte-fr-v*
 
 cleanall: clean cleandemo
-	rm -rf grammalecte *-master
-	rm -f $(TARGETS) grammalecte-loaddefs.el
+	rm -rf grammalecte vendor
+	rm -f grammalecte-loaddefs.el
 
 grammalecte:
 	$(EMACS) --eval "(setq grammalecte-settings-file \"/dev/null\")" \
@@ -42,20 +29,24 @@ grammalecte:
 
 ######### Demo related targets
 
-.PHONY: demo demo-deps demo-no-grammalecte demo-use-package
+.PHONY: demo demo-with-grammalecte demo-classic demo-classic-with-grammalecte \
+	demo-deps cleandemo
 
 EMACS_DEMO = emacs --init-directory "$(PWD)/test-home" --debug-init
 
-demo: demo-deps grammalecte
-	$(EMACS_DEMO) -l test-home/classic.el example.org example.tex
-
-demo-no-grammalecte: demo-deps
-	$(EMACS_DEMO) -l test-home/classic.el example.org example.tex
-
-demo-use-package: demo-deps
+demo: demo-deps
 	$(EMACS_DEMO) -l test-home/use-package.el example.org example.tex
 
-demo-deps: cleandemo build autoloads epl-master
+demo-with-grammalecte: demo-deps grammalecte
+	$(EMACS_DEMO) -l test-home/use-package.el example.org example.tex
+
+demo-classic: demo-deps
+	$(EMACS_DEMO) -l test-home/classic.el example.org example.tex
+
+demo-classic-with-grammalecte: demo-deps grammalecte
+	$(EMACS_DEMO) -l test-home/classic.el example.org example.tex
+
+demo-deps: cleandemo | vendor/dash vendor/flycheck
 	touch debug
 
 cleandemo:
@@ -65,12 +56,19 @@ cleandemo:
 
 ######### Dependencies
 
-epl_author = cask
-dash.el_author = magnars
-flycheck_author = flycheck
+dash_url = https://elpa.gnu.org/packages/dash-2.20.0.tar
+flycheck_url = https://elpa.nongnu.org/nongnu/flycheck-36.0.tar
 
-%.zip:
-	curl -Lso $@ https://github.com/$($(@:%.zip=%)_author)/$(@:%.zip=%)/archive/master.zip
+define SETUP_DEP =
+curl -Lso $@.tar $($(@F)_url)
+tar -C vendor -xf $@.tar
+rm $@.tar
+mv vendor/$(@F)-[0-9.]* $@
+endef
 
-%-master: %.zip
-	unzip -qo $<
+vendor:
+	mkdir vendor
+vendor/dash: | vendor
+	$(SETUP_DEP)
+vendor/flycheck: | vendor
+	$(SETUP_DEP)

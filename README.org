@@ -201,6 +201,10 @@ This version changes the default value of
 grammalecte to *not* report spellchecking errors. If you like the old
 behavior, you are now required to explicitely set this variable to ~t~.
 
+* Contributing
+
+See [[./CONTRIBUTING.org]]
+
 * Credits
 
 The original package has been written by Guilhem Doulcier.

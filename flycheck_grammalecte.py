@@ -204,23 +204,23 @@ if __name__ == "__main__":
     debug(sys.argv.__repr__())
 
     parser = ArgumentParser()
-    parser.add_argument("-S", "--no-spellcheck", action="store_true",
-                        help="Don't report spellcheck errors")
-    parser.add_argument("-G", "--no-grammar", action="store_true",
-                        help="Don't report grammar errors")
-    parser.add_argument("-A", "--no-apostrophe", action="store_true",
-                        help="Don't report apostrophe errors")
-    parser.add_argument("-N", "--no-nbsp", action="store_true",
-                        help="Don't report non-breakable spaces errors")
-    parser.add_argument("-W", "--no-space", action="store_true",
-                        help="Don't report useless spaces and tabs errors")
-    parser.add_argument("-T", "--no-typo", action="store_true",
-                        help="Don't report typographic signs errors")
+    parser.add_argument("-b", "--border", help="Border pattern (line "
+                        "pattern before which proofing must not occur)")
     parser.add_argument("-f", "--filters", action="append", default=[],
                         help="Filter pattern (regular expression "
                         "replaced before analysis)")
-    parser.add_argument("-b", "--border", help="Border pattern (line "
-                        "pattern before which proofing must not occur)")
+    parser.add_argument("-A", "--no-apostrophe", action="store_true",
+                        help="Don't report apostrophe errors")
+    parser.add_argument("-G", "--no-grammar", action="store_true",
+                        help="Don't report grammar errors")
+    parser.add_argument("-N", "--no-nbsp", action="store_true",
+                        help="Don't report non-breakable spaces errors")
+    parser.add_argument("-S", "--no-spellcheck", action="store_true",
+                        help="Don't report spellcheck errors")
+    parser.add_argument("-T", "--no-typo", action="store_true",
+                        help="Don't report typographic signs errors")
+    parser.add_argument("-W", "--no-space", action="store_true",
+                        help="Don't report useless spaces and tabs errors")
     parser.add_argument("file", help="File to proofed")
 
     args = parser.parse_args()

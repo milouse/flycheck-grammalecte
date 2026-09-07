@@ -1,3 +1,15 @@
+* Version 2.7
+
+** Feature
+
+- Improve flycheck checker definition (make it reactive to configuration change
+  and buffer-local)
+- Support narrowing by reducing the investigated part of the document
+
+** Fixes
+
+- Make CNRTL define function work with their new design
+
 * Version 2.6
 
 ** Features

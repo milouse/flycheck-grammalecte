@@ -7,7 +7,7 @@
 ;; Author: Guilhem Doulcier <guilhem.doulcier@espci.fr>
 ;;         Étienne Pflieger <etienne@pflieger.bzh>
 ;; Created: 21 February 2017
-;; Version: 2.6
+;; Version: 2.7
 ;; Package-Requires: ((emacs "29.1") (flycheck "32"))
 ;; Keywords: i18n, text
 ;; Homepage: https://git.umaneti.net/flycheck-grammalecte/
@@ -369,6 +369,31 @@ Otherwise return nil."
   (unless (symbol-value variable)
     (list arg)))
 
+(defun flycheck-grammalecte--source ()
+  "Prepare the source file command line argument.
+
+If narrowing is in effect, prepare the source file to be used and
+add the -o option.
+
+Otherwise, just return the source symbol equivalent."
+  (let ((offset (1- (line-number-at-pos (point-min) t))))
+    (if (zerop offset)
+        ;; Narrowing is not in effect, return the equivalent of 'source
+        (list (flycheck-save-buffer-to-temp
+               #'flycheck-temp-file-system))
+      ;; Narrowing is in effect.
+      ;; The following code is taken from flycheck code itself, from the
+      ;; functions `flycheck-save-buffer-to-file' and
+      ;; `flycheck-save-buffer-to-temp'.
+      (let ((filename (funcall
+                       #'flycheck-temp-file-system
+                       (buffer-file-name))))
+        ;; Do not flush short-lived temporary files onto disk
+        (let ((write-region-inhibit-fsync t))
+          (make-directory (file-name-directory filename) t)
+          (write-region (point-min) (point-max) filename nil 0))
+        (list "-o" (number-to-string offset) filename)))))
+
 (defun flycheck-grammalecte--retry-setup (&optional _version)
   "Try to call again `flycheck-grammalecte-setup'.
 
@@ -477,7 +502,7 @@ flycheck, if any."
                           "-f" flycheck-grammalecte-filters-by-mode))
                    (eval (flycheck-grammalecte--prepare-arg-list
                           "-b" flycheck-grammalecte-borders-by-mode))
-                   source)))
+                   (eval (flycheck-grammalecte--source)))))
     (flycheck-def-executable-var 'grammalecte "python3")
     (flycheck-define-command-checker 'grammalecte
       "Grammalecte syntax checker for french language

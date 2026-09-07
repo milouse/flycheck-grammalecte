@@ -4,7 +4,7 @@
 
 ;; Author: Étienne Pflieger <etienne@pflieger.bzh>
 ;; Created: 21 April 2021
-;; Version: 2.6
+;; Version: 2.7
 ;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: i18n, text
 ;; Homepage: https://git.umaneti.net/flycheck-grammalecte/
@@ -270,46 +270,45 @@ program."
 
 ;;;; Definition helper methods:
 
-(declare-function nxml-forward-element "nxml-mode")
-
-(defun grammalecte--extract-cnrtl-definition (start)
-  "Extract a definition from the current XML buffer at START."
-  (require 'nxml-mode)
-  (goto-char start)
-  (delete-region (point-min) (point))
-  (let ((inhibit-message t)) ;; Silences nxml-mode messages
-    (nxml-mode)
-    (nxml-forward-element)
-    (delete-region (point) (point-max))
-    (libxml-parse-html-region (point-min) (point-max))))
-
 (defun grammalecte--fetch-cnrtl-word (word)
   "Fetch WORD definition, according to TLFi, on CNRTL."
-  (let ((url (format "https://www.cnrtl.fr/definition/%s" word))
-        (definitions '()) count start)
-    ;; Get initial definitions location, number of definitions and
-    ;; initial definition.
-    (with-current-buffer (url-retrieve-synchronously url t t)
-      (goto-char (point-min))
-      (if (search-forward "<div id=\"lexicontent\">" nil t)
-          (setq start (match-beginning 0))
-        (when grammalecte--debug-mode
-          (display-warning 'grammalecte "Définition non trouvée.")))
-      (if (re-search-backward "'/definition/[^/]+//\\([0-9]+\\)'" nil t)
-          (setq count (string-to-number (match-string 1)))
-        (when grammalecte--debug-mode
-          (display-warning 'grammalecte "Nombre de définitions non trouvé.")))
-      (when (and start count)
-        (push (grammalecte--extract-cnrtl-definition start) definitions)
-        (kill-buffer (current-buffer))))
-    ;; Collect additional definitions.
-    (when (and start count)
-      (dotimes (i count)
-        (with-current-buffer
-            (url-retrieve-synchronously (format "%s/%d" url (1+ i)) t t)
-          (push (grammalecte--extract-cnrtl-definition start) definitions)
-          (kill-buffer (current-buffer)))))
-    (reverse definitions)))
+  (let ((json-data
+         (gethash "content"
+                  (with-temp-buffer
+                    (url-insert-file-contents
+                     (format "https://www.cnrtl.fr/api/word/%s/" word))
+                    (json-parse-buffer)))))
+    (if (null json-data)
+        (display-warning 'grammalecte "Jeu de données JSON vide.")
+      (if-let* ((first-provider-data (aref json-data 0))
+                (first-provider (gethash "id" first-provider-data)))
+          (if (equal first-provider "tlfi")
+              (let ((definitions (gethash "content" first-provider-data)))
+                (if (null definitions)
+                    (display-warning 'grammalecte
+                                     "Aucune définition trouvée pour le tlfi.")
+                  (mapcar
+                   (lambda (definition)
+                     (with-temp-buffer
+                       (insert definition)
+                       (save-excursion
+                         (goto-char (point-min))
+                         (while (re-search-forward "<h2 class='s-entry'>\\(.+?\\)\\([0-9]*\\)</h2>" nil t)
+                           (let ((number (match-string 2)))
+                             (if (equal "" number)
+                                 (replace-match
+                                  (format "<h2 class='s-entry'>%s</h2>"
+                                          (match-string 1)))
+                               (replace-match
+                                (format "<h2 class='s-entry'>%s. %s</h2>"
+                                        number (match-string 1)))))))
+                       (insert "\n\n<hr/>")
+                       (libxml-parse-html-region (point-min) (point-max))))
+                   definitions)))
+            (display-warning 'grammalecte
+                             "La première définition n’est pas du tlfi."))
+        (display-warning 'grammalecte
+                         "La première définition est mal formée.")))))
 
 
 
@@ -474,8 +473,7 @@ other buffer by the copied word."
           grammalecte-looked-up-word word)
     (if definitions
         (dolist (d definitions)
-          (shr-insert-document d)
-          (insert "\n\n\n"))
+          (shr-insert-document d))
       (insert (format "Aucun résultat pour %s." word)))))
 
 (defun grammalecte--revert-buffer (&optional _ignore-auto _noconfirm)
